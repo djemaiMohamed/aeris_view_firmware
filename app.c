@@ -31,6 +31,9 @@
 #include "sl_bt_api.h"
 #include "app_assert.h"
 #include "app.h"
+#include "scd4x_i2c.h"
+#include "sensirion_common.h"
+#include "sensirion_i2c_hal.h"
 
 // The advertising set handle allocated from Bluetooth stack.
 static uint8_t advertising_set_handle = 0xff;
@@ -38,10 +41,7 @@ static uint8_t advertising_set_handle = 0xff;
 // Application Init.
 SL_WEAK void app_init(void)
 {
-  /////////////////////////////////////////////////////////////////////////////
-  // Put your additional application init code here!                         //
-  // This is called once during start-up.                                    //
-  /////////////////////////////////////////////////////////////////////////////
+  
 }
 
 // Application Process Action.
@@ -88,6 +88,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         0,   // adv. duration
         0);  // max. num. adv. events
       app_assert_status(sc);
+
+
       // Start advertising and enable connections.
       sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
                                          sl_bt_legacy_advertiser_connectable);

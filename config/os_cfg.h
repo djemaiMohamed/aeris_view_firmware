@@ -140,7 +140,7 @@
 // <q OS_CFG_Q_EN> Enable queues
 // <i> Enable the message queue construct.
 // <i> Default: 1
-#define  OS_CFG_Q_EN                                        1
+#define  OS_CFG_Q_EN                                        0
 
 // </h>
 
@@ -220,7 +220,7 @@
 
 // <q OS_CFG_TASK_STK_REDZONE_EN> Enable redzone stack protection
 // <i> Default: 0
-#define  OS_CFG_TASK_STK_REDZONE_EN                         0
+#define  OS_CFG_TASK_STK_REDZONE_EN                         1
 
 // <o OS_CFG_TASK_STK_REDZONE_DEPTH> Depth of the redzone stack protection
 // <i> Default: 8

@@ -33,79 +33,32 @@
 #include "sl_memory_manager.h"
 #include "app_assert.h"
 #include "app.h"
-
-#define APP_TASK_NAME          "app_task"
-#define APP_TASK_STACK_SIZE    1024u
-#define APP_TASK_PRIO          31u
-
-// Application task function
-static void app_task(void *p_arg);
-// Task stack
-static CPU_STK *app_task_stack;
-// Task handle
-static OS_TCB  app_task_handle;
-// Semaphore handle
-static OS_SEM  app_semaphore_handle;
+#include "lcd_task.h"
 
 // Application Runtime Init.
 void app_init_runtime(void)
 {
-  RTOS_ERR err;
-  // Allocate stack for the task
-  size_t stack_size = APP_TASK_STACK_SIZE;
-  stack_size -= (stack_size % CPU_CFG_STK_ALIGN_BYTES);
-  app_task_stack = (CPU_STK *)sl_malloc(stack_size);
-  app_assert(app_task_stack != NULL,
-             "Application task stack allocation failed.");
-  // Create the task for app_process_action
-  OSTaskCreate(&app_task_handle,
-               APP_TASK_NAME,
-               app_task,
-               0u,
-               APP_TASK_PRIO,
-               &app_task_stack[0u],
-               0u,
-               stack_size / sizeof(CPU_STK),
-               0u,
-               0u,
-               0u,
-               (OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
-               &err);
-  app_assert(err.Code == RTOS_ERR_NONE,
-             "Application task creation failed.");
-  // Create the semaphore
-  OSSemCreate(&app_semaphore_handle, "Application semaphore", 0, &err);
-  app_assert(err.Code == RTOS_ERR_NONE,
-             "Application semaphore creation failed.");
+  // init sensor task
+  sensor_task_init();
+  // init lcd task
+  lcd_task_init();
+  // init ble task
+  ble_task_init();
+  // Initialize the LCD display
+  //lcd_init_display();
 }
 
 /******************************************************************************
  * Application task.
  *****************************************************************************/
-static void app_task(void *p_arg)
-{
-  (void)p_arg;
-  for (;; ) {
-    app_process_action();
-  }
-}
+
 
 // Proceed with execution.
 void app_proceed(void)
 {
-  RTOS_ERR err;
-  OSSemPost(&app_semaphore_handle, OS_OPT_POST_1, &err);
-  app_assert(err.Code == RTOS_ERR_NONE, "Semaphore post failed!");
 }
 
 // Check if it is required to process with execution.
 bool app_is_process_required(void)
 {
-  RTOS_ERR err;
-  OSSemPend(&app_semaphore_handle,
-            (OS_TICK)0,
-            OS_OPT_PEND_BLOCKING,
-            DEF_NULL,
-            &err);
-  return (err.Code == RTOS_ERR_NONE);
 }

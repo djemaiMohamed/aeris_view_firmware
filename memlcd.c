@@ -195,7 +195,7 @@ void memlcd_draw_data(memlcd_handle_t *handle)
   
   // Calculate the total width of the temperature display
   int temp_label_width = strlen(temp_label) * 6;
-    
+
   // Draw temperature label
   GLIB_drawString(&glibContext, temp_label, strlen(temp_label), 
                  2, temp_row_y, false);

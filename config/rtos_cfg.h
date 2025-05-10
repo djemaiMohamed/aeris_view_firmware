@@ -52,43 +52,43 @@
 // <i> When enabled, any invocation of macro APP_RTOS_ASSERT_DBG() from the application will cause a END_CALL on failed assertion.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_APP_EN                  1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_APP_EN                  0
 
 // <q RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_BSP_EN> Debug assert on argument checking in BSP
 // <i> When enabled, function arguments will be validated in the BSP and any incorrect argument will cause a END_CALL.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_BSP_EN                  1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_BSP_EN                  0
 
 // <q RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_CAN_EN> Debug assert on argument checking in CAN
 // <i> When enabled, function arguments will be validated in CAN and any incorrect argument will cause a END_CALL.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_CAN_EN                  1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_CAN_EN                  0
 
 // <q RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_COMMON_EN> Debug assert on argument checking in Common
 // <i> When enabled, function arguments will be validated in Common and any incorrect argument will cause a END_CALL.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_COMMON_EN               1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_COMMON_EN               0
 
 // <q RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_CPU_EN> Debug assert on argument checking in CPU
 // <i> When enabled, function arguments will be validated in CPU and any incorrect argument will cause a END_CALL.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_CPU_EN                  1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_CPU_EN                  0
 
 // <q RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_KERNEL_EN> Debug assert on argument checking in the Kernel
 // <i> When enabled, function arguments will be validated in the Kernel and any incorrect argument will cause a END_CALL.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_KERNEL_EN               1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_KERNEL_EN               0
 
 // <q RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_PROBE_EN> Debug assert on argument checking in the Probe drivers
 // <i> When enabled, function arguments will be validated in the probe drivers and any incorrect argument will cause a END_CALL.
 // <i> It is recommended to disable this feature in 'release' code.
 // <i> Default: 1
-#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_PROBE_EN                1
+#define  RTOS_CFG_ASSERT_DBG_ARG_CHK_EXT_PROBE_EN                0
 
 // <o RTOS_CFG_RTOS_ASSERT_DBG_FAILED_END_CALL_SEL> END_CALL action on failed debug assertions.
 //   <RTOS_ASSERT_END_CALL_SEL_TRAP=> Trap

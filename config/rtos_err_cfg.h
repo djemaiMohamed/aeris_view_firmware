@@ -49,7 +49,7 @@
 // <i> Enabling this configuration may have an impact on performance and resource usage.
 // <i> It is recommended to disable this configuration in release code.
 // <i> Default: 1
-#define  RTOS_ERR_CFG_EXT_EN                                1
+#define  RTOS_ERR_CFG_EXT_EN                                0
 
 // <q RTOS_ERR_CFG_STR_EN> Add string description to errors
 // <i> Add strings associated with each error code, in order to print them.

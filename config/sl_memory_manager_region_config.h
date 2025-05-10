@@ -40,7 +40,7 @@
 // <i> The stack size configured here will be used by the stack that the
 // <i> application uses when coming out of a reset.
 #ifndef SL_STACK_SIZE
-#define SL_STACK_SIZE 2000
+#define SL_STACK_SIZE 1000
 #endif
 // </h>
 
