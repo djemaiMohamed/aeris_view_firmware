@@ -3,7 +3,7 @@
   "specVersion" : "1.6",
   "version" : 1,
   "metadata" : {
-    "timestamp" : "2025-05-08T07:08:02.430530Z",
+    "timestamp" : "2025-05-11T00:50:03.410998Z",
     "authors" : [ {
       "name" : "Silicon Laboratories, Inc."
     } ],
@@ -38,6 +38,18 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:app_assert",
       "name" : "Assert",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:app_log",
+      "name" : "Log",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -204,6 +216,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:dmd_memlcd",
+      "name" : "GLIB driver for Memory LCD",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:gatt_configuration",
       "name" : "Static GATT Database and Configuration",
       "version" : "2024.12.0",
@@ -218,6 +242,30 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:gatt_service_device_information",
       "name" : "Device Information GATT Service",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:glib",
+      "name" : "GLIB Graphics Library",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:i2cspm",
+      "name" : "I2CSPM",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -561,6 +609,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_retarget_stdio",
+      "name" : "IO Stream: Retarget STDIO",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:nvm3_source",
       "name" : "NVM3 Core (source)",
       "version" : "2024.12.0",
@@ -625,6 +685,18 @@
           }
         } ]
       }
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:iostream",
+      "name" : "IO Stream",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
     }, {
       "scope" : "required",
       "type" : "library",
@@ -935,6 +1007,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_ldma",
+      "name" : "LDMA",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:bluetooth_rtos_adaptation",
       "name" : "Bluetooth RTOS Adaptation",
       "version" : "2024.12.0",
@@ -967,6 +1051,30 @@
       },
       "licenses" : [ {
         "expression" : "MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:ls013b7dh03",
+      "name" : "Monochrome Sharp Memory LCD",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:cmsis_os2_ext_task_register",
+      "name" : "Task registers abstraction layer",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
       } ]
     }, {
       "scope" : "required",
@@ -1051,6 +1159,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:memlcd_usart",
+      "name" : "Memory LCD with usart SPI driver",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:trustzone_unaware",
       "name" : "TrustZone Unaware",
       "version" : "2024.12.0",
@@ -1090,8 +1210,32 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:dmadrv",
+      "name" : "DMADRV",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:hal_common",
       "name" : "Common Headers",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_i2c",
+      "name" : "I2C",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -1164,6 +1308,18 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:emlib_rtcc",
       "name" : "RTCC",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_uart_common",
+      "name" : "IO Stream: Common code for UART-type streams",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -1490,6 +1646,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:i2cspm_core",
+      "name" : "I2CSPM Core",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:cmsis_common",
       "name" : "Common APIs for CMSIS-Compliant Kernels",
       "version" : "2024.12.0",
@@ -1769,6 +1937,18 @@
       },
       "licenses" : [ {
         "expression" : "MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:sl_string",
+      "name" : "String Functions",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
       } ]
     }, {
       "scope" : "required",
@@ -2084,6 +2264,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_common",
+      "name" : "Common Headers",
+      "version" : "2024.12.0",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.0:micriumos_kernel_port_generic",
       "name" : "Kernel port generic",
       "version" : "2024.12.0",
@@ -2163,8 +2355,8 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_common",
-      "name" : "Common Headers",
+      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_stdlib_config",
+      "name" : "IO Stream: STDLIB Configuration",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -2408,8 +2600,8 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:i2cspm",
-      "name" : "I2CSPM",
+      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_usart",
+      "name" : "IO Stream: USART",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -2420,212 +2612,8 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_i2c",
-      "name" : "I2C",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:i2cspm_core",
-      "name" : "I2CSPM Core",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:app_log",
-      "name" : "Log",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_eusart",
-      "name" : "EUSART",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_retarget_stdio",
-      "name" : "IO Stream: Retarget STDIO",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:iostream",
-      "name" : "IO Stream",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:emlib_ldma",
-      "name" : "LDMA",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:cmsis_os2_ext_task_register",
-      "name" : "Task registers abstraction layer",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:dmadrv",
-      "name" : "DMADRV",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_uart_common",
-      "name" : "IO Stream: Common code for UART-type streams",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:sl_string",
-      "name" : "String Functions",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_eusart",
-      "name" : "IO Stream: EUSART",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_eusart_core",
-      "name" : "IO Stream: EUSART Core",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_stdlib_config",
-      "name" : "IO Stream: STDLIB Configuration",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:dmd_memlcd",
-      "name" : "GLIB driver for Memory LCD",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:ls013b7dh03",
-      "name" : "Monochrome Sharp Memory LCD",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:memlcd_usart",
-      "name" : "Memory LCD with usart SPI driver",
-      "version" : "2024.12.0",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.0:glib",
-      "name" : "GLIB Graphics Library",
+      "bom-ref" : "simplicity_sdk:2024.12.0:iostream_usart_core",
+      "name" : "IO Stream: USART Core",
       "version" : "2024.12.0",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."

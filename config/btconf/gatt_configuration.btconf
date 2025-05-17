@@ -99,7 +99,7 @@ Examples:
     </informativeText>
       <value length="17" type="hex" variable_length="false"/>
       <properties>
-        <notify authenticated="false" bonded="false" encrypted="false"/>
+        <notify authenticated="true" bonded="true" encrypted="false"/>
       </properties>
     </characteristic>
 
@@ -113,7 +113,7 @@ Summary:
 		</informativeText>
       <value length="1" type="hex" variable_length="false"/>
       <properties>
-        <read authenticated="false" bonded="false" encrypted="false"/>
+        <read authenticated="true" bonded="true" encrypted="false"/>
       </properties>
     </characteristic>
 
@@ -124,7 +124,7 @@ Summary:
 		</informativeText>
       <value length="17" type="hex" variable_length="false"/>
       <properties>
-        <notify authenticated="false" bonded="false" encrypted="false"/>
+        <notify authenticated="true" bonded="true" encrypted="false"/>
       </properties>
     </characteristic>
 
@@ -138,7 +138,7 @@ Summary:
 		</informativeText>
       <value length="2" type="hex" variable_length="false"/>
       <properties>
-        <read authenticated="false" bonded="false" encrypted="false"/>
+        <read authenticated="true" bonded="true" encrypted="false"/>
         <write authenticated="false" bonded="false" encrypted="false"/>
       </properties>
     </characteristic>
@@ -147,7 +147,7 @@ Summary:
     <characteristic const="false" id="humidity_0" name="Humidity" sourceId="org.bluetooth.characteristic.humidity" uuid="2A6F">
       <value length="2" type="hex" variable_length="false"/>
       <properties>
-        <notify authenticated="false" bonded="false" encrypted="false"/>
+        <notify authenticated="true" bonded="true" encrypted="false"/>
       </properties>
     </characteristic>
 
@@ -155,7 +155,7 @@ Summary:
     <characteristic const="false" id="air_quality_id" name="Air_quality" sourceId="" uuid="30171109-f957-45e4-81ef-f0c8e64116ea">
       <value length="2" type="hex" variable_length="false"/>
       <properties>
-        <notify authenticated="false" bonded="false" encrypted="false"/>
+        <notify authenticated="true" bonded="true" encrypted="false"/>
       </properties>
     </characteristic>
   </service>

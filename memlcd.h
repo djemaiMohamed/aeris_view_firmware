@@ -33,4 +33,9 @@ typedef struct {
  ******************************************************************************/
 void memlcd_draw_data(memlcd_handle_t *handle);
 
+/***************************************************************************//**
+ * Display BLE passkey on LCD
+ ******************************************************************************/
+void memlcd_display_passkey(uint32_t passkey);
+
 #endif // MEMLCD_APP_H

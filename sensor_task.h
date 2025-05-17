@@ -11,7 +11,6 @@
 
 // SCD I2C ADDRESS
 #define SCD_ADDR                      0x62
-#define MEASUREMENT_INTERVAL_S        5 // Default 5 second for now
 
 // Semaphores for synchronization
 extern OS_SEM sensor_data_ready_sem;

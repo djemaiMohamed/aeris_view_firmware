@@ -13,7 +13,7 @@ DocumentNamespace: https://silabs.com
 
 ## Creation Information
 Creator: Organization: Silicon Laboratories, Inc.
-Created: 2025-05-08T07:08:02.430530Z
+Created: 2025-05-11T00:50:03.410998Z
 ## Relationships
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-simplicity_sdk-2024.12.0
 
@@ -27,6 +27,7 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-BGM220PC22HNA
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-app_assert
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-app_log
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_feature_connection
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_feature_gatt
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_feature_gatt_server
@@ -40,8 +41,11 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-brd4311a_a01
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-clock_manager
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-device_init
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-gatt_configuration
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-gatt_service_device_information
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-glib
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-i2cspm
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-in_place_ota_dfu
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-memory_manager
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-micriumos_kernel
@@ -65,10 +69,12 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-slist
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-micriumos_kernel_port_armv8m
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-device_gpio
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-nvm3_source
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-nvm3_default_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_crypto
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_config
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_aes
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_configuration
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-se_manager_crypto
@@ -93,23 +99,30 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-rail_lib_singleprotocol
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_feature_builtin_bonding_database
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-memory_manager_pool
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_rtos_adaptation
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-sl_system_process_action
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-micriumos_common_core
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_device_compatibility
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-cmsis_rtos2_tick
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_cmu
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_host_release_libraries
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_syscfg
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-trustzone_unaware
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-libcryptosoc
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-dmadrv
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-hal_common
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-micriumos_rtos_description
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-device_peripheral_hal
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-brd4311a_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-interrupt_manager
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-ecode
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_rtcc
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-psa_crypto
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-psa_driver
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-sl_system_init
@@ -130,6 +143,7 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-board_control
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-device_init_core
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-power_manager_core
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-cmsis_common
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_cmac
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-mbedtls_slcrypto_driver
@@ -152,6 +166,7 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-interrupt_manager_cortexm
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-rail_util_features
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-apploader
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-sl_string
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_host_adaptation
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-mx25_flash_shutdown_usart
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_usart
@@ -173,12 +188,13 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_burtc
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-psa_its
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_controller_crypto
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_common
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-micriumos_kernel_port_generic
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-mbedtls_core
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-sl_core
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-rail_util_built_in_phys
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-bluetooth_common_release
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_common
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-mbedtls_platform_dynamic_memory_allocation_config_default
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-fem_util
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-hal_syscfg
@@ -192,25 +208,8 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-mbedtls_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-BGM220PC22HNA_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-gpio
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-i2cspm
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-app_log
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_eusart
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-dmadrv
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-sl_string
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart_core
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart
-Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-glib
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_usart
+Relationship: SPDXRef-simplicity_sdk-2024.12.0 CONTAINS SPDXRef-simplicity_sdk-2024.12.0-iostream_usart_core
 
 ## Package Information
 PackageName: BGM220PC22HNA
@@ -233,6 +232,17 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-app_assert CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: Log
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-app_log
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-app_log CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: Connection
@@ -378,6 +388,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-device_init CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
+PackageName: GLIB driver for Memory LCD
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: Static GATT Database and Configuration
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-gatt_configuration
 PackageVersion: 2024.12.0
@@ -398,6 +419,28 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-gatt_service_device_information CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: GLIB Graphics Library
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-glib
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-glib CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: I2CSPM
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-i2cspm
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-i2cspm CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: In-Place OTA DFU
@@ -695,6 +738,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-device_gpio CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
+PackageName: IO Stream: Retarget STDIO
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: NVM3 Core (source)
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-nvm3_source
 PackageVersion: 2024.12.0
@@ -751,6 +805,17 @@ PackageHomePage: https://github.com/Mbed-TLS/mbedtls.git
 PackageComment: <text>Mbed TLS is a C library implementing the PSA Cryptography API, cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols</text>
 ## Relationships
 Relationship: SPDXRef-psa_crypto_config-v3.6.2 DESCENDANT_OF SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_config
+
+## Package Information
+PackageName: IO Stream
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: AES Block Cipher
@@ -1031,6 +1096,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-memory_manager_pool CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
+PackageName: LDMA
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: Bluetooth RTOS Adaptation
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-bluetooth_rtos_adaptation
 PackageVersion: 2024.12.0
@@ -1062,6 +1138,28 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: MSLA
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-micriumos_common_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: Monochrome Sharp Memory LCD
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03 CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: Task registers abstraction layer
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: Device compatibility defines for Bluetooth features
@@ -1134,6 +1232,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_syscfg CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
+PackageName: Memory LCD with usart SPI driver
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: TrustZone Unaware
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-trustzone_unaware
 PackageVersion: 2024.12.0
@@ -1169,6 +1278,17 @@ PackageComment: <text>Software for cryptography offload to hardware, IP from Sec
 Relationship: SPDXRef-libcryptosoc-v20210503_s29p0p0 DESCENDANT_OF SPDXRef-simplicity_sdk-2024.12.0-libcryptosoc
 
 ## Package Information
+PackageName: DMADRV
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-dmadrv
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-dmadrv CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: Common Headers
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-hal_common
 PackageVersion: 2024.12.0
@@ -1178,6 +1298,17 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-hal_common CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: I2C
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: RTOS Description
@@ -1244,6 +1375,17 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_rtcc CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: IO Stream: Common code for UART-type streams
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: PSA Crypto
@@ -1522,6 +1664,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-power_manager_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
+PackageName: I2CSPM Core
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: Common APIs for CMSIS-Compliant Kernels
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-cmsis_common
 PackageVersion: 2024.12.0
@@ -1776,6 +1929,17 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: MSLA
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-apploader CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
+PackageName: String Functions
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-sl_string
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-sl_string CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: System adaptation layer used by the Bluetooth host stack
@@ -2053,6 +2217,17 @@ PackageLicenseConcluded: MSLA
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-bluetooth_controller_crypto CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
+PackageName: Common Headers
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_common
+PackageVersion: 2024.12.0
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_common CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+
+## Package Information
 PackageName: Kernel port generic
 SPDXID: SPDXRef-simplicity_sdk-2024.12.0-micriumos_kernel_port_generic
 PackageVersion: 2024.12.0
@@ -2122,15 +2297,15 @@ PackageLicenseConcluded: MSLA
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-bluetooth_common_release CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
-PackageName: Common Headers
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_common
+PackageName: IO Stream: STDLIB Configuration
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config
 PackageVersion: 2024.12.0
 PrimaryPackagePurpose: LIBRARY
 PackageDownloadLocation: NOASSERTION
 PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_common CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
 PackageName: Default dynamic memory allocation macros for mbedtls
@@ -2333,210 +2508,23 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.0-gpio CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
-PackageName: I2CSPM
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-i2cspm
+PackageName: IO Stream: USART
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_usart
 PackageVersion: 2024.12.0
 PrimaryPackagePurpose: LIBRARY
 PackageDownloadLocation: NOASSERTION
 PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-i2cspm CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_usart CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
 
 ## Package Information
-PackageName: I2C
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c
+PackageName: IO Stream: USART Core
+SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_usart_core
 PackageVersion: 2024.12.0
 PrimaryPackagePurpose: LIBRARY
 PackageDownloadLocation: NOASSERTION
 PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: I2CSPM Core
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: Log
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-app_log
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-app_log CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: EUSART
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_eusart
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_eusart CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: IO Stream: Retarget STDIO
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: IO Stream
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: LDMA
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: Task registers abstraction layer
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: DMADRV
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-dmadrv
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-dmadrv CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: IO Stream: Common code for UART-type streams
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: String Functions
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-sl_string
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-sl_string CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: IO Stream: EUSART
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: IO Stream: EUSART Core
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart_core
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: IO Stream: STDLIB Configuration
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: GLIB driver for Memory LCD
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: Monochrome Sharp Memory LCD
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03 CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: Memory LCD with usart SPI driver
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
-
-## Package Information
-PackageName: GLIB Graphics Library
-SPDXID: SPDXRef-simplicity_sdk-2024.12.0-glib
-PackageVersion: 2024.12.0
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.0-glib CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0
+Relationship: SPDXRef-simplicity_sdk-2024.12.0-iostream_usart_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.0

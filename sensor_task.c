@@ -10,10 +10,13 @@
 
 // Semaphores for synchronization
 OS_SEM sensor_data_ready_sem;
-OS_SEM ble_notification_sem;
+OS_TCB *sensor_task_tcb_ptr;
+CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
+// measurement interval in seconds
+uint16_t measurement_interval = 5; // Default to 5 seconds
 
 /**************************************************************************//**
  * Initialize the SCD4x sensor for single shot measurements.
@@ -150,11 +153,11 @@ void sensor_task_init(void)
   RTOS_ERR err;
 
   // Dynamically allocate TCB
-  OS_TCB *sensor_task_tcb_ptr = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
+  sensor_task_tcb_ptr = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
   app_assert(sensor_task_tcb_ptr != DEF_NULL, "Failed to allocate TCB for sensor task");
 
   // Dynamically allocate stack
-  CPU_STK *sensor_task_stk_ptr = (CPU_STK *)sl_malloc(SENSOR_TASK_STK_SIZE * sizeof(CPU_STK));
+  sensor_task_stk_ptr = (CPU_STK *)sl_malloc(SENSOR_TASK_STK_SIZE * sizeof(CPU_STK));
   app_assert(sensor_task_stk_ptr != DEF_NULL, "Failed to allocate stack for sensor task");
 
   app_log_info("Initializing sensor and LCD tasks...\n");
@@ -166,10 +169,6 @@ void sensor_task_init(void)
               &err);
   app_assert(err.Code == RTOS_ERR_NONE, "Failed to create sensor data ready semaphore");
   
-  OSSemCreate(&ble_notification_sem,
-              "BLE Notification Sem",
-              0,                     // Initial count (no data available)
-              &err);
   app_assert(err.Code == RTOS_ERR_NONE, "Failed to create BLE notification semaphore");
   
   // Create the sensor task
@@ -225,15 +224,11 @@ void sensor_task(void *p_arg)
       // Signal that new data is available to other tasks
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);
       app_assert(err.Code == RTOS_ERR_NONE, "Sensor data ready semaphore post failed");
-      
-      // Signal BLE notification semaphore
-      OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
-      app_assert(err.Code == RTOS_ERR_NONE, "BLE notification semaphore post failed");
     } else if (error != 1) { // error=1 means data not ready, which is not a critical error
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
     }
-    
+
     // Step 4: Wait for the next measurement cycle
-    OSTimeDlyHMSM(0, 0, MEASUREMENT_INTERVAL_S, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    OSTimeDlyHMSM(0, 0, measurement_interval, 0, OS_OPT_TIME_HMSM_STRICT, &err);
   }
 }

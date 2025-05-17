@@ -5,7 +5,7 @@
   "name" : "Silicon-Laboratories",
   "documentNamespace" : "https://silabs.com",
   "creationInfo" : {
-    "created" : "2025-05-08T07:08:02.430530Z",
+    "created" : "2025-05-11T00:50:03.410998Z",
     "creators" : [ "Tool: Silicon Labs Configuration Tooling" ]
   },
   "comment" : "TERMS OF USE - SILICON LABORATORIES INC.\n(With respect to Silicon Labs software components, this Software Bill of Materials (SBOM) is based upon Silicon Labs'\nreview and analysis of the code version when released.  It is provided \"AS IS\" and does not modify, change or alter\nthe terms or conditions of your use of Silicon Labs' software and/or SDKs based upon license terms and/or agreements\nassociated with this software or SDKs when distributed to you, received by you, or installed by you.  Further, no\nwarranties or obligations are created by this SBOM.  It is your obligation to comply with the terms of licenses\nreferenced in this SBOM.)",
@@ -28,6 +28,14 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-app_assert",
     "name" : "Assert",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-app_log",
+    "name" : "Log",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -138,6 +146,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd",
+    "name" : "GLIB driver for Memory LCD",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-gatt_configuration",
     "name" : "Static GATT Database and Configuration",
     "versionInfo" : "2024.12.0",
@@ -148,6 +164,22 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-gatt_service_device_information",
     "name" : "Device Information GATT Service",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-glib",
+    "name" : "GLIB Graphics Library",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm",
+    "name" : "I2CSPM",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -368,6 +400,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio",
+    "name" : "IO Stream: Retarget STDIO",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-nvm3_source",
     "name" : "NVM3 Core (source)",
     "versionInfo" : "2024.12.0",
@@ -409,6 +449,14 @@
     "originator" : "Organization: NOASSERTION",
     "homepage" : "https://github.com/Mbed-TLS/mbedtls.git",
     "comment" : "Mbed TLS is a C library implementing the PSA Cryptography API, cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream",
+    "name" : "IO Stream",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_aes",
     "name" : "AES Block Cipher",
@@ -612,6 +660,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma",
+    "name" : "LDMA",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-bluetooth_rtos_adaptation",
     "name" : "Bluetooth RTOS Adaptation",
     "versionInfo" : "2024.12.0",
@@ -635,6 +691,22 @@
     "downloadLocation" : "NOASSERTION",
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "MSLA"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03",
+    "name" : "Monochrome Sharp Memory LCD",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register",
+    "name" : "Task registers abstraction layer",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-bluetooth_device_compatibility",
     "name" : "Device compatibility defines for Bluetooth features",
@@ -691,6 +763,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart",
+    "name" : "Memory LCD with usart SPI driver",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-trustzone_unaware",
     "name" : "TrustZone Unaware",
     "versionInfo" : "2024.12.0",
@@ -716,8 +796,24 @@
     "originator" : "Organization: NOASSERTION",
     "comment" : "Software for cryptography offload to hardware, IP from Secure-IC, previously Barco-Silex."
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-dmadrv",
+    "name" : "DMADRV",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-hal_common",
     "name" : "Common Headers",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c",
+    "name" : "I2C",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -766,6 +862,14 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_rtcc",
     "name" : "RTCC",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common",
+    "name" : "IO Stream: Common code for UART-type streams",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -972,6 +1076,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core",
+    "name" : "I2CSPM Core",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-cmsis_common",
     "name" : "Common APIs for CMSIS-Compliant Kernels",
     "versionInfo" : "2024.12.0",
@@ -1157,6 +1269,14 @@
     "downloadLocation" : "NOASSERTION",
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "MSLA"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-sl_string",
+    "name" : "String Functions",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-bluetooth_host_adaptation",
     "name" : "System adaptation layer used by the Bluetooth host stack",
@@ -1366,6 +1486,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "MSLA"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_common",
+    "name" : "Common Headers",
+    "versionInfo" : "2024.12.0",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-micriumos_kernel_port_generic",
     "name" : "Kernel port generic",
     "versionInfo" : "2024.12.0",
@@ -1416,8 +1544,8 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "MSLA"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_common",
-    "name" : "Common Headers",
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config",
+    "name" : "IO Stream: STDLIB Configuration",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -1573,152 +1701,16 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm",
-    "name" : "I2CSPM",
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_usart",
+    "name" : "IO Stream: USART",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c",
-    "name" : "I2C",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core",
-    "name" : "I2CSPM Core",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-app_log",
-    "name" : "Log",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_eusart",
-    "name" : "EUSART",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio",
-    "name" : "IO Stream: Retarget STDIO",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream",
-    "name" : "IO Stream",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma",
-    "name" : "LDMA",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register",
-    "name" : "Task registers abstraction layer",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-dmadrv",
-    "name" : "DMADRV",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common",
-    "name" : "IO Stream: Common code for UART-type streams",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-sl_string",
-    "name" : "String Functions",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart",
-    "name" : "IO Stream: EUSART",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart_core",
-    "name" : "IO Stream: EUSART Core",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config",
-    "name" : "IO Stream: STDLIB Configuration",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd",
-    "name" : "GLIB driver for Memory LCD",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03",
-    "name" : "Monochrome Sharp Memory LCD",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart",
-    "name" : "Memory LCD with usart SPI driver",
-    "versionInfo" : "2024.12.0",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-glib",
-    "name" : "GLIB Graphics Library",
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_usart_core",
+    "name" : "IO Stream: USART Core",
     "versionInfo" : "2024.12.0",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -1736,6 +1728,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-app_assert",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-app_log",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -1791,11 +1787,23 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-gatt_configuration",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-gatt_service_device_information",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-glib",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -1903,6 +1911,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-nvm3_source",
     "relationshipType" : "CONTAINS"
   }, {
@@ -1921,6 +1933,10 @@
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_config",
     "relatedSpdxElement" : "SPDXRef-psa_crypto_config-v3.6.2",
     "relationshipType" : "ANCESTOR_OF"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream",
+    "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-psa_crypto_aes",
@@ -2023,6 +2039,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-bluetooth_rtos_adaptation",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2032,6 +2052,14 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-micriumos_common_core",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -2059,6 +2087,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-trustzone_unaware",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2071,7 +2103,15 @@
     "relationshipType" : "ANCESTOR_OF"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-dmadrv",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-hal_common",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -2096,6 +2136,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_rtcc",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -2195,6 +2239,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-cmsis_common",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2284,6 +2332,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-apploader",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-sl_string",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -2383,6 +2435,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_common",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-micriumos_kernel_port_generic",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2407,7 +2463,7 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_common",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
@@ -2479,79 +2535,11 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_usart",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_i2c",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-i2cspm_core",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-app_log",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_eusart",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_retarget_stdio",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-emlib_ldma",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-cmsis_os2_ext_task_register",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-dmadrv",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_uart_common",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-sl_string",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_eusart_core",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_stdlib_config",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-dmd_memlcd",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-ls013b7dh03",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-memlcd_usart",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.0",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-glib",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.0-iostream_usart_core",
     "relationshipType" : "CONTAINS"
   } ]
 }

@@ -43,9 +43,10 @@ void app_init_runtime(void)
   // init lcd task
   lcd_task_init();
   // init ble task
-  ble_task_init();
-  // Initialize the LCD display
-  //lcd_init_display();
+  notification_task_init();
+  // init bond task
+  bond_task_init();
+
 }
 
 /******************************************************************************

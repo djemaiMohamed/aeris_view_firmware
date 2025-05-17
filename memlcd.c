@@ -237,3 +237,75 @@ void memlcd_draw_data(memlcd_handle_t *handle)
   DMD_updateDisplay();
   DMD_sleep();
 }
+
+/***************************************************************************//**
+ * @brief Displays the BLE passkey on the LCD.
+ * @param[in] passkey The passkey to display.
+ ******************************************************************************/
+void memlcd_display_passkey(uint32_t passkey)
+{
+  uint32_t status;
+
+  /* Enable the memory lcd */
+  status = sl_board_enable_display();
+  EFM_ASSERT(status == SL_STATUS_OK);
+
+  /* Initialize the DMD support for memory lcd display */
+  status = DMD_init(0);
+  EFM_ASSERT(status == DMD_OK);
+
+  /* Initialize the glib context */
+  status = GLIB_contextInit(&glibContext);
+  EFM_ASSERT(status == GLIB_OK);
+
+  glibContext.backgroundColor = White;
+  glibContext.foregroundColor = Black;
+
+  /* Clear display first */
+  GLIB_clear(&glibContext);
+
+  // Message: "Enter on phone:"
+  char msg_str[] = "Enter on phone:";
+  // Set font for message and get its properties
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNarrow6x8); // Use narrow font for this message
+  const GLIB_Font_t *msg_font_props = &glibContext.font;
+  int msg_actual_char_width = msg_font_props->fontWidth;
+  int msg_actual_char_height = msg_font_props->fontHeight;
+
+  int msg_text_render_width = strlen(msg_str) * msg_actual_char_width;
+  int msg_x_pos = (LCD_WIDTH - msg_text_render_width) / 2;
+
+  // Passkey
+  char passkey_str[7]; // 6 digits + null terminator
+  snprintf(passkey_str, sizeof(passkey_str), "%06lu", (unsigned long)passkey % 1000000); // Ensure 6 digits
+
+  // Set font for passkey and get its properties
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNumber16x20);
+  const GLIB_Font_t *passkey_font_props = &glibContext.font;
+  int passkey_actual_char_width = passkey_font_props->fontWidth;
+  int passkey_actual_char_height = passkey_font_props->fontHeight;
+
+  int passkey_text_len = strlen(passkey_str);
+  int passkey_text_render_width = passkey_text_len * passkey_actual_char_width;
+  int passkey_x_pos = (LCD_WIDTH - passkey_text_render_width) / 2;
+
+  // Calculate Y positions for vertical centering of the block
+  // Uses actual heights obtained from font properties
+  int total_content_height = msg_actual_char_height + 10 /* spacing */ + passkey_actual_char_height;
+  int start_y_pos = (LCD_HEIGHT - total_content_height) / 2;
+
+  int msg_y_pos = start_y_pos;
+  int passkey_y_pos = msg_y_pos + msg_actual_char_height + 10; // 10px spacing
+
+  // Draw message
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNarrow6x8); // Ensure correct font (msg_str font) is active
+  GLIB_drawString(&glibContext, msg_str, strlen(msg_str), msg_x_pos, msg_y_pos, false);
+
+  // Draw passkey
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNumber16x20); // Ensure correct font (passkey font) is active
+  GLIB_drawString(&glibContext, passkey_str, passkey_text_len, passkey_x_pos, passkey_y_pos, true);
+
+  /* Update the display */
+  DMD_updateDisplay();
+  DMD_sleep();
+}

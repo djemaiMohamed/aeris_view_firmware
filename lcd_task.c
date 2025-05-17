@@ -11,6 +11,10 @@
 
 // Semaphores for synchronization
 extern OS_SEM sensor_data_ready_sem;
+OS_TCB *lcd_task_tcb_ptr;
+CPU_STK *lcd_task_stk_ptr;
+extern OS_SEM bond_sem;
+extern uint16_t measurement_interval;
 
 // Variables for LCD display data
 static memlcd_handle_t lcd_data;
@@ -24,11 +28,11 @@ void lcd_task_init(void)
   RTOS_ERR err;
 
   // Dynamically allocate TCB
-  OS_TCB *lcd_task_tcb_ptr = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
+  lcd_task_tcb_ptr = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
   app_assert(lcd_task_tcb_ptr != DEF_NULL, "Failed to allocate TCB for LCD task");
 
   // Dynamically allocate stack
-  CPU_STK *lcd_task_stk_ptr = (CPU_STK *)sl_malloc(LCD_TASK_STK_SIZE * sizeof(CPU_STK));
+  lcd_task_stk_ptr = (CPU_STK *)sl_malloc(LCD_TASK_STK_SIZE * sizeof(CPU_STK));
   app_assert(lcd_task_stk_ptr != DEF_NULL, "Failed to allocate stack for LCD task");
   
   app_log_info("Initializing LCD task...\n");
@@ -65,7 +69,7 @@ void lcd_init_display(void)
   lcd_data.temperature_value = 0;
   
   // Update measurement interval string with default interval (5 seconds)
-  lcd_update_measurement_interval_string(5);
+  lcd_update_measurement_interval_string(measurement_interval);
   
   // Draw initial display
   memlcd_draw_data(&lcd_data);
@@ -94,9 +98,6 @@ void lcd_update_measurement_interval_string(uint16_t interval_seconds)
                "%dm %ds", minutes, seconds);
     }
   }
-  
-  // Update LCD data structure with measurement interval string
-  lcd_data.date = measurement_interval_str;
 }
 
 /**************************************************************************//**
@@ -141,7 +142,11 @@ void lcd_update_display(sensor_data_t *sensor_data)
   lcd_data.co2_value = sensor_data->co2_ppm;
   lcd_data.temperature_value = (float)sensor_data->temperature_mdeg_c / 1000.0f; // Convert from milli-degrees to degrees
   lcd_data.humidity_value = sensor_data->humidity_percent;
-  
+  // Update measurement interval string
+  lcd_update_measurement_interval_string(measurement_interval);
+  // Update LCD data structure with measurement interval string
+  lcd_data.date = measurement_interval_str;
+
   // Draw data to LCD
   memlcd_draw_data(&lcd_data);
   
@@ -165,7 +170,6 @@ void lcd_task(void *p_arg)
   // Initialize the LCD display
   lcd_init_display();
 
-
   while (DEF_TRUE) {
 
     // Wait for the semaphore that indicates new sensor data is available
@@ -180,5 +184,8 @@ void lcd_task(void *p_arg)
     
     // Update the LCD with the new data
     lcd_update_display(sensor_data);
+
+    // Signal reconnecting to the phone
+    OSSemPost(&bond_sem, OS_OPT_POST_1, &err);
   }
 }

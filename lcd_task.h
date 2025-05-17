@@ -7,7 +7,7 @@
 #include "sensor_task.h"
 
 // Task constants
-#define LCD_TASK_PRIO              24u
+#define LCD_TASK_PRIO              21u
 #define LCD_TASK_STK_SIZE          256u
 
 // Function prototypes

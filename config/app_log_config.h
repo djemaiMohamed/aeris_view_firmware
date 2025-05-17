@@ -73,7 +73,7 @@
 
 // <e APP_LOG_ENABLE> Application Logging
 // <i> Enables Logging.
-#define APP_LOG_ENABLE            0
+#define APP_LOG_ENABLE            1
 
 // <h> General
 
@@ -119,7 +119,7 @@
 
 // <e APP_LOG_LEVEL_MASK_ENABLE> Mask filter
 // <i> Enable mask for log levels
-#define APP_LOG_LEVEL_MASK_ENABLE            0
+#define APP_LOG_LEVEL_MASK_ENABLE            1
 
 // <q APP_LOG_LEVEL_MASK_DEBUG> DEBUG
 // <i> Enable mask entry for log DEBUG
@@ -147,7 +147,7 @@
 
 // <e APP_LOG_OVERRIDE_DEFAULT_STREAM> Override default stream
 // <i> Enable overriding the system level default stream to use for logging.
-#define APP_LOG_OVERRIDE_DEFAULT_STREAM            0
+#define APP_LOG_OVERRIDE_DEFAULT_STREAM            1
 
 // <o APP_LOG_STREAM_TYPE> Stream type
 // <SL_IOSTREAM_TYPE_SWO=> SWO
@@ -159,7 +159,7 @@
 
 // <s APP_LOG_STREAM_INSTANCE> Preferred instance
 // <i> Preferred IOStream instance name
-#define APP_LOG_STREAM_INSTANCE    "vcom"
+#define APP_LOG_STREAM_INSTANCE    "exp"
 
 // </e>
 
