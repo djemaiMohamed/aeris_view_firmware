@@ -194,10 +194,14 @@ static void notification_task(void *p_arg)
               OS_OPT_PEND_BLOCKING,
               NULL,
               &err);
-    // if phone is connected, send sensor data
+    app_assert_status(err.Code);
+
+    // Check if the device is connected before sending notifications
     if (is_connected) {
       // Send notification to the phone
       send_notifications();
+    } else {
+      app_log_info("Notification task triggered, but device is not connected. Skipping notification.\n");
     }
   }
 }

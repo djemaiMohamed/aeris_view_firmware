@@ -3,6 +3,8 @@
 #include "app_log.h"
 #include "app_assert.h"
 #include "bond_task.h"
+#include "nvm3_default.h" // For NVM3 API
+#include "sl_common.h"    // For SL_FALLTHROUGH
 
 // Global variable definition
 app_bond_info_t g_app_current_bond_info;
@@ -20,6 +22,7 @@ extern OS_SEM ble_notification_sem;
 
 // connection handle
 extern uint8_t connection_handle;
+extern uint8_t advertising_set_handle; // External declaration
 
 // function to initialize the bond info structure
 static void bond_info_init(void) {
@@ -27,6 +30,129 @@ static void bond_info_init(void) {
   memset(&g_app_current_bond_info.address, 0, sizeof(bd_addr));
   g_app_current_bond_info.bonding_handle = SL_BT_INVALID_BONDING_HANDLE;
   g_app_current_bond_info.address_type = 0;
+  // Initialize other fields if necessary
+  g_app_current_bond_info.security_mode = 0;
+  g_app_current_bond_info.key_size = 0;
+}
+
+// Helper function to read bonding information from NVM3
+static bool read_bonding_info_from_nvm3(app_bond_info_t *bond_info) {
+    Ecode_t status;
+    uint32_t object_type;
+    size_t data_len;
+
+    app_log_info("Reading bonding info from NVM3.\n");
+    bond_info_init(); // Initialize to default before reading
+
+    // Check if bond is present
+    status = nvm3_readData(nvm3_defaultHandle,
+                           NVM3_KEY_BOND_PRESENT,
+                           &bond_info->is_present,
+                           sizeof(bond_info->is_present));
+
+    if (status != ECODE_NVM3_OK || !bond_info->is_present) {
+        if (status == ECODE_NVM3_ERR_KEY_NOT_FOUND) {
+            app_log_info("No NVM3_KEY_BOND_PRESENT key found in NVM3.\n");
+        } else if (!bond_info->is_present) {
+            app_log_info("NVM3_KEY_BOND_PRESENT is false.\n");
+        } else {
+            app_log_error("Failed to read NVM3_KEY_BOND_PRESENT (0x%lx).\n", status);
+        }
+        bond_info->is_present = DEF_FALSE; // Ensure it's false
+        return false; // No bond marked as present or error reading the flag
+    }
+
+    // Read address
+    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_KEY_BOND_ADDRESS, &object_type, &data_len);
+    if (status == ECODE_NVM3_OK && data_len == sizeof(bd_addr)) {
+        status = nvm3_readData(nvm3_defaultHandle,
+                               NVM3_KEY_BOND_ADDRESS,
+                               &bond_info->address,
+                               sizeof(bd_addr));
+        if (status != ECODE_NVM3_OK) {
+            app_log_error("Failed to read bonding address from NVM3 (key: 0x%lx).\n", status);
+            bond_info_init(); return false;
+        }
+    } else {
+        app_log_error("Failed to get bonding address info or wrong size from NVM3 (status: 0x%lx, len: %zu).\n", status, data_len);
+        bond_info_init(); return false;
+    }
+
+    // Read address type
+    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_KEY_BOND_ADDRESS_TYPE, &object_type, &data_len);
+     if (status == ECODE_NVM3_OK && data_len == sizeof(uint8_t)) {
+        status = nvm3_readData(nvm3_defaultHandle,
+                               NVM3_KEY_BOND_ADDRESS_TYPE,
+                               &bond_info->address_type,
+                               sizeof(bond_info->address_type));
+        if (status != ECODE_NVM3_OK) {
+            app_log_error("Failed to read bonding address type from NVM3 (key: 0x%lx).\n", status);
+            bond_info_init(); return false;
+        }
+    } else {
+        app_log_error("Failed to get bonding address type info or wrong size from NVM3 (status: 0x%lx, len: %zu).\n", status, data_len);
+        bond_info_init(); return false;
+    }
+
+    app_log_info("Successfully read bonding info from NVM3. Address Type: %d\n", bond_info->address_type);
+    // bond_info->is_present is already true from the first read.
+    return true;
+}
+
+// Function to save bonding information to NVM3 (public)
+void save_bonding_info_to_nvm3(bd_addr *address, uint8_t address_type, uint8_t bonding_handle) {
+    Ecode_t status;
+    CPU_BOOLEAN bond_present_flag = DEF_TRUE;
+
+    app_log_info("Saving bonding info to NVM3. Address: %02X:%02X:%02X:%02X:%02X:%02X, Type: %d, Handle: %d\n",
+                 address->addr[5], address->addr[4], address->addr[3],
+                 address->addr[2], address->addr[1], address->addr[0],
+                 address_type, bonding_handle);
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_KEY_BOND_PRESENT, &bond_present_flag, sizeof(bond_present_flag));
+    if (status != ECODE_NVM3_OK) {
+        app_log_error("Failed to write NVM3_KEY_BOND_PRESENT (0x%lx).\n", status);
+        return;
+    }
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_KEY_BOND_ADDRESS, address, sizeof(bd_addr));
+    if (status != ECODE_NVM3_OK) {
+        app_log_error("Failed to write NVM3_KEY_BOND_ADDRESS (0x%lx).\n", status);
+        clear_bonding_info_from_nvm3(); // Attempt to clear to avoid inconsistent state
+        return;
+    }
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_KEY_BOND_ADDRESS_TYPE, &address_type, sizeof(address_type));
+    if (status != ECODE_NVM3_OK) {
+        app_log_error("Failed to write NVM3_KEY_BOND_ADDRESS_TYPE (0x%lx).\n", status);
+        clear_bonding_info_from_nvm3();
+        return;
+    }
+    // Update global g_app_current_bond_info with the new saved bond
+    memcpy(&g_app_current_bond_info.address, address, sizeof(bd_addr));
+    g_app_current_bond_info.address_type = address_type;
+    g_app_current_bond_info.bonding_handle = bonding_handle; // Store handle too
+    g_app_current_bond_info.is_present = DEF_TRUE;
+
+    app_log_info("Bonding info saved to NVM3 successfully.\n");
+}
+
+// Function to clear bonding information from NVM3 (public)
+void clear_bonding_info_from_nvm3(void) {
+    Ecode_t status;
+    CPU_BOOLEAN bond_present_flag = DEF_FALSE;
+
+    app_log_info("Clearing bonding info from NVM3.\n");
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_KEY_BOND_PRESENT, &bond_present_flag, sizeof(bond_present_flag));
+    if (status != ECODE_NVM3_OK && status != ECODE_NVM3_ERR_KEY_NOT_FOUND) {
+        app_log_error("Failed to clear NVM3_KEY_BOND_PRESENT (0x%lx).\n", status);
+    }
+    // Deleting other keys is optional if NVM3_KEY_BOND_PRESENT is false
+    nvm3_deleteObject(nvm3_defaultHandle, NVM3_KEY_BOND_ADDRESS);
+    nvm3_deleteObject(nvm3_defaultHandle, NVM3_KEY_BOND_ADDRESS_TYPE);
+
+    bond_info_init(); // Reset global bond info structure
 }
 
 // Function to create the bond task
@@ -64,6 +190,7 @@ void bond_task_init(void) {
 void bond_task(void *p_arg) {
   (void)p_arg; // Unused parameter
   RTOS_ERR err;
+  sl_status_t sc;
 
   while (DEF_TRUE) {
     // Wait on the semaphore
@@ -72,84 +199,44 @@ void bond_task(void *p_arg) {
               OS_OPT_PEND_BLOCKING,
               NULL,
               &err);
+    app_assert_status(err.Code);
 
-    app_log_info("Bond task woken up, checking for existing bonds.\n");
+    app_log_info("Bond task triggered. Checking NVM3 for bonded device.\n");
 
-    uint32_t num_bondings = 0;
-    size_t total_bondings_actual_len;
-    uint8_t bonding_buffer[2];
+    if (read_bonding_info_from_nvm3(&g_app_current_bond_info) && g_app_current_bond_info.is_present) {
+        app_log_info("Bonded device found in NVM3. Address: %02X:%02X:%02X:%02X:%02X:%02X, Type: %d\n",
+                     g_app_current_bond_info.address.addr[5], g_app_current_bond_info.address.addr[4],
+                     g_app_current_bond_info.address.addr[3], g_app_current_bond_info.address.addr[2],
+                     g_app_current_bond_info.address.addr[1], g_app_current_bond_info.address.addr[0],
+                     g_app_current_bond_info.address_type);
 
-    sl_status_t sc = sl_bt_sm_get_bonding_handles(0, &num_bondings,
-                                                  sizeof(bonding_buffer),
-                                                  &total_bondings_actual_len,
-                                                  bonding_buffer);
-
-    if (num_bondings > 0) {
-      app_log_info("Found %lu bonding(s).\n", num_bondings);
-
-      bool found_valid_bond = false;
-
-      for (uint32_t i = 0; i < num_bondings; i++) {
-        uint8_t bonding_handle = bonding_buffer[i];
-        app_log_info("Checking bonding handle: %u\n", bonding_handle);
-
-        sc = sl_bt_sm_get_bonding_details(bonding_handle,
-                                          &g_app_current_bond_info.address,
-                                          &g_app_current_bond_info.address_type,
-                                          &g_app_current_bond_info.security_mode,
-                                          &g_app_current_bond_info.key_size);
+        // As a central device, attempt to connect to the bonded peripheral.
+        // This applies to public (0), random static (1), and resolvable private addresses (2).
+        // For type 2 (RPA), the Bluetooth stack uses the IRK from the bonding entry
+        // to resolve the address if the peripheral is advertising with its RPA.
+        app_log_info("Attempting to connect to bonded device (Type: %d) as central.\n", g_app_current_bond_info.address_type);
+        sc = sl_bt_connection_open(g_app_current_bond_info.address,
+                                   g_app_current_bond_info.address_type,
+                                   sl_bt_gap_phy_1m, // Use 1M PHY, or make configurable
+                                   &connection_handle); // Update the global connection_handle
 
         if (sc == SL_STATUS_OK) {
-          if (g_app_current_bond_info.address_type > 1) {
-            app_log_error("Invalid address type (%u) for bonding handle %u. Skipping.\n",
-                          g_app_current_bond_info.address_type, bonding_handle);
-            continue;
-          }
-
-          g_app_current_bond_info.bonding_handle = bonding_handle;
-          g_app_current_bond_info.is_present = DEF_TRUE;
-
-          //app_log_info("Connecting to bonded device: %02X:%02X:%02X:%02X:%02X:%02X (type %u)\n",
-          //             g_app_current_bond_info.address.addr[5],
-          //             g_app_current_bond_info.address.addr[4],
-          //             g_app_current_bond_info.address.addr[3],
-          //             g_app_current_bond_info.address.addr[2],
-          //             g_app_current_bond_info.address.addr[1],
-          //             g_app_current_bond_info.address.addr[0],
-          //             g_app_current_bond_info.address_type);
-          sl_bt_sm_set_bondable_mode(0);
-          sc = sl_bt_connection_open(g_app_current_bond_info.address,
-                                     g_app_current_bond_info.address_type,
-                                     sl_bt_gap_phy_1m,
-                                     &connection_handle);
-
-          if (sc == SL_STATUS_OK) {
-            app_log_info("Connection request sent successfully, handle: %u\n", connection_handle);
-            is_connected = true;
-            // Signal BLE notification semaphore
+            app_log_info("Connection request sent to bonded device. Handle will be updated by connection opened event.\n");
+            // Triger notification task to send notifications
             OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
-            app_assert(err.Code == RTOS_ERR_NONE, "BLE notification semaphore post failed");
-            app_log_info("Connected to bonded device.\n");
-          } else {
-            app_log_error("Failed to connect to bonded device, status: 0x%04X\n", sc);
-            is_connected = false;
-          }
-
-          found_valid_bond = true;
-          break; // Stop after first successful bonding
+            // If successful, sl_bt_evt_connection_opened_id will be triggered.
+            // Advertising (if any was running for other purposes) is typically stopped in sl_bt_evt_connection_opened_id.
         } else {
-          app_log_warning("Failed to get bonding details for handle %u, status: 0x%04X\n", bonding_handle, sc);
+            app_log_error("Failed to initiate connection to bonded device (Type: %d), status: 0x%04X\n",
+                          g_app_current_bond_info.address_type, sc);
+            // Bond task has attempted connection. No further action here regarding advertising.
+            // The device remains disconnected. Further reconnection attempts might be triggered by other events
+            // or timers if implemented.
         }
-      }
-
-      if (!found_valid_bond) {
-        g_app_current_bond_info.is_present = DEF_FALSE;
-        app_log_warning("No valid bonding details found.\n");
-      }
-
-    } else {
-      g_app_current_bond_info.is_present = DEF_FALSE;
-      app_log_info("No existing bonds found.\n");
+    } else { // No valid bond info found or error reading it
+      app_log_info("No valid bonding information found in NVM3 by bond_task, or error reading it. Bond task will not attempt connection.\n");
+      // If this device also has a peripheral role, app.c's event handlers should manage advertising
+      // based on overall system state (e.g., start advertising if disconnected and no bond). Bond_task does not handle this.
     }
   }
 }
