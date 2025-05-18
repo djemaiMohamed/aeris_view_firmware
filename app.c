@@ -45,19 +45,23 @@
 // The advertising set handle allocated from Bluetooth stack.
 uint8_t advertising_set_handle = 0xff; // Removed static
 static RTOS_ERR err;
-extern OS_TCB *sensor_task_tcb_ptr;
-extern OS_TCB *lcd_task_tcb_ptr;
 // connection handle
 uint8_t connection_handle = 0xFF;
+
+//pairing mode
+bool pairing_mode = true;
 
 // A semaphore to trigger bonding process
 extern OS_SEM bond_sem;
 extern OS_SEM sensor_data_ready_sem;
-extern OS_SEM ble_notification_sem;
+extern OS_SEM *ble_notification_sem;
+extern OS_TCB *bond_task_tcb;
+extern OS_TCB *notification_task_tcb_ptr;
+extern OS_TCB *lcd_task_tcb_ptr;
+extern OS_TCB *sensor_task_tcb_ptr;
 
 // Initialize g_app_current_bond_info
 extern app_bond_info_t g_app_current_bond_info;
-extern bool is_connected; // Defined in bond_task.c
 
 // Function prototypes for NVM3 operations (defined in bond_task.c)
 extern void save_bonding_info_to_nvm3(bd_addr *address, uint8_t address_type, uint8_t bonding_handle);
@@ -78,6 +82,42 @@ SL_WEAK void app_process_action(void)
     // Do not call blocking functions from here!                               //
     /////////////////////////////////////////////////////////////////////////////
   }
+}
+
+// function to suspend tasks
+static void suspend_tasks(void) {
+  RTOS_ERR err;
+  // Suspend the sensor task
+  OSTaskSuspend(sensor_task_tcb_ptr, &err);
+  app_assert_status(err.Code);
+  // Suspend the LCD task
+  OSTaskSuspend(lcd_task_tcb_ptr, &err);
+  app_assert_status(err.Code);
+  // Suspend the bond task
+  OSTaskSuspend(bond_task_tcb, &err);
+  app_assert_status(err.Code);
+  // Suspend the notification task
+  OSTaskSuspend(notification_task_tcb_ptr, &err);
+  app_assert_status(err.Code);
+  app_log_info("Tasks suspended.\n");
+}
+
+// function to resume tasks
+static void resume_tasks(void) {
+  RTOS_ERR err;
+  // Resume the sensor task
+  OSTaskResume(sensor_task_tcb_ptr, &err);
+  app_assert_status(err.Code);
+  // Resume the LCD task
+  OSTaskResume(lcd_task_tcb_ptr, &err);
+  app_assert_status(err.Code);
+  // Resume the bond task
+  OSTaskResume(bond_task_tcb, &err);
+  app_assert_status(err.Code);
+  // Resume the notification task
+  OSTaskResume(notification_task_tcb_ptr, &err);
+  app_assert_status(err.Code);
+  app_log_info("Tasks resumed.\n");
 }
 
 /**************************************************************************//**
@@ -124,19 +164,17 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
+      if(pairing_mode) {
+        suspend_tasks();
+        app_log_info("Pairing mode enabled.\n");
+      }
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
-      is_connected = true;
       // Stop advertising
-      sl_bt_advertiser_stop(advertising_set_handle);
-      app_log_info("Advertising stopped.\n");
-
-      // Signal the notification task that a connection is established
-      {
-        RTOS_ERR err_post;
-        OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err_post);
-        app_assert_status(err_post.Code);
-      }
+      //sl_bt_advertiser_stop(advertising_set_handle);
+      //app_log_info("Advertising stopped.\n");
+      // Triger notification task to send notifications
+      OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
       break;
 
     // -------------------------------
@@ -145,22 +183,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       app_log_info("Connection closed. Handle: %d, Reason: 0x%04x\n",
                    evt->data.evt_connection_closed.connection,
                    evt->data.evt_connection_closed.reason);
-      is_connected = false;
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
-
-      if (g_app_current_bond_info.is_present) {
-          app_log_info("Disconnected from a potentially bonded device. Triggering bond_task to attempt reconnection.\n");
-          RTOS_ERR err_post;
-          OSSemPost(&bond_sem, OS_OPT_POST_1, &err_post); // Trigger bond_task
-          app_assert_status(err_post.Code);
-      } else {
-          // No known bond, or bond was cleared. Restart advertising to allow new connections/bonds.
-          sc = sl_bt_legacy_advertiser_start(
-              advertising_set_handle,
-              sl_bt_advertiser_connectable_scannable);
-          app_assert_status(sc);
-          app_log_info("Restarted advertising after disconnection (no active bond attempt).\n");
-      }
       break;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -168,12 +191,13 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     ///////////////////////////////////////////////////////////////////////////
     case sl_bt_evt_sm_passkey_display_id:
       app_log_info("Passkey: %lu\n", evt->data.evt_sm_passkey_display.passkey);
-      OSTaskSuspend(sensor_task_tcb_ptr, &err);
-      OSTaskSuspend(lcd_task_tcb_ptr, &err);
       memlcd_display_passkey(evt->data.evt_sm_passkey_display.passkey);
       break;
 
     case sl_bt_evt_sm_bonded_id:
+      // Set pairing mode to false after bonding is completed
+      pairing_mode = false;
+      app_log_info("Pairing mode disabled.\n");
       app_log_info("Bonding completed. Connection: %d, Security mode: %d, Bonding handle: %d\n",
                    evt->data.evt_sm_bonded.connection,
                    evt->data.evt_sm_bonded.security_mode,
@@ -197,8 +221,10 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           app_log_error("Failed to get remote address for bonding, sc: 0x%04X\n", sc_addr);
         }
       }
-      OSTaskResume(sensor_task_tcb_ptr, &err);
-      OSTaskResume(lcd_task_tcb_ptr, &err);
+      // 3 seconds delay before resuming tasks
+      //OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &local_err);
+      // Resume tasks after bonding is completed
+      resume_tasks();
       break;
 
     case sl_bt_evt_sm_bonding_failed_id:
@@ -207,8 +233,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                     evt->data.evt_sm_bonding_failed.reason);
       // Clear any potentially partially saved or outdated bonding information
       clear_bonding_info_from_nvm3();
-      OSTaskResume(sensor_task_tcb_ptr, &err);
-      OSTaskResume(lcd_task_tcb_ptr, &err);
+      // Resume tasks after bonding failure
+      resume_tasks();
       app_log_error("Device not secure. Closing connection.\n");
       sl_bt_connection_close(evt->data.evt_sm_bonding_failed.connection);
       sc = sl_bt_legacy_advertiser_start(

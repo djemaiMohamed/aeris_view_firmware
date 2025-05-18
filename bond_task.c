@@ -16,7 +16,6 @@ OS_TCB *bond_task_tcb;
 // Task Stack
 CPU_STK *bond_task_stack;
 // variable to hold connection state
-bool is_connected = false;
 
 extern OS_SEM ble_notification_sem;
 
@@ -222,10 +221,13 @@ void bond_task(void *p_arg) {
 
         if (sc == SL_STATUS_OK) {
             app_log_info("Connection request sent to bonded device. Handle will be updated by connection opened event.\n");
-            // Triger notification task to send notifications
-            OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
             // If successful, sl_bt_evt_connection_opened_id will be triggered.
             // Advertising (if any was running for other purposes) is typically stopped in sl_bt_evt_connection_opened_id.
+            //Delay for a short time to allow the connection to be established
+            // Triger notification task to send notifications
+            // delay is not necessary here as the connection event will be handled in app.c
+            //OSTimeDlyHMSM(0, 0, 4, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+            //OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
         } else {
             app_log_error("Failed to initiate connection to bonded device (Type: %d), status: 0x%04X\n",
                           g_app_current_bond_info.address_type, sc);

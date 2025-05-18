@@ -32,9 +32,6 @@ typedef struct {
 // This will be updated by the Bluetooth event handler in app.c
 extern app_bond_info_t g_app_current_bond_info;
 
-// External variable to indicate connection status
-extern bool is_connected;
-
 // Declaration for the task creation function
 void bond_task_init(void);
 void bond_task(void *p_arg);

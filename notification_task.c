@@ -7,12 +7,14 @@
 #include "sensor_task.h"
 #include "gatt_db.h"
 
+OS_TCB *notification_task_tcb_ptr;
+CPU_STK *notification_task_stk_ptr;
 // Task control block and stack
 static bool    notification_task_running = false;
 // Semaphores for synchronization
 extern OS_SEM sensor_data_ready_sem;
+extern OS_TCB *sensor_task_tcb_ptr;
 OS_SEM ble_notification_sem;
-extern bool is_connected;
 extern uint8_t connection_handle;
 extern uint16_t measurement_interval;
 
@@ -27,11 +29,11 @@ sl_status_t notification_task_init(void)
   RTOS_ERR err;
 
   // Dynamically allocate TCB
-  OS_TCB *notification_task_tcb_ptr = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
+  notification_task_tcb_ptr = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
   app_assert(notification_task_tcb_ptr != DEF_NULL, "Failed to allocate TCB for NOTIFICATION task");
 
   // Dynamically allocate stack
-  CPU_STK *notification_task_stk_ptr = (CPU_STK *)sl_malloc(NOTIFICATION_TASK_STK_SIZE * sizeof(CPU_STK));
+  notification_task_stk_ptr = (CPU_STK *)sl_malloc(NOTIFICATION_TASK_STK_SIZE * sizeof(CPU_STK));
   app_assert(notification_task_stk_ptr != DEF_NULL, "Failed to allocate stack for NOTIFICATION task");
 
   // Create NOTIFICATION task
@@ -124,14 +126,15 @@ static void temperature_measurement_val_to_buf(int32_t value, bool fahrenheit, u
 static void send_notifications(void)
 {
   sl_status_t sc;
+  RTOS_ERR err;
   // Handle BLE notifications if needed
   uint8_t temperature[5];
   // get sensor data
   sensor_data_t *sensor_data = sensor_get_latest_readings();
-  
+
   // Prepare temperature data for BLE notification
   temperature_measurement_val_to_buf(sensor_data->temperature_mdeg_c, false, temperature);
-  
+
   // Send temperature notification
   sc = sl_bt_gatt_server_send_notification(
     connection_handle,
@@ -196,12 +199,19 @@ static void notification_task(void *p_arg)
               &err);
     app_assert_status(err.Code);
 
+    // Suspend the sensor task
+    OSTaskSuspend(sensor_task_tcb_ptr, &err);
+
+    // log the event
+    app_log_info("Notification task triggered.\n");
+
     // Check if the device is connected before sending notifications
-    if (is_connected) {
-      // Send notification to the phone
-      send_notifications();
-    } else {
-      app_log_info("Notification task triggered, but device is not connected. Skipping notification.\n");
-    }
+    // Send notification to the phone
+    send_notifications();
+    // Then close the connection to save power
+    sl_bt_connection_close(connection_handle);
+    app_log_info("Connection closed to save power.\n");
+    // Resume the sensor task
+    OSTaskResume(sensor_task_tcb_ptr, &err);
   }
 }
