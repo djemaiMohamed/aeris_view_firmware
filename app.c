@@ -55,6 +55,7 @@ bool pairing_mode = true;
 extern OS_SEM bond_sem;
 extern OS_SEM sensor_data_ready_sem;
 extern OS_SEM *ble_notification_sem;
+extern OS_SEM scan_sem;
 extern OS_TCB *bond_task_tcb;
 extern OS_TCB *notification_task_tcb_ptr;
 extern OS_TCB *lcd_task_tcb_ptr;
@@ -167,6 +168,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       if(pairing_mode) {
         suspend_tasks();
         app_log_info("Pairing mode enabled.\n");
+        // inscrease security level
+        sl_bt_sm_increase_security(evt->data.evt_connection_opened.connection);
+        app_log_info("Security level increased.\n");
       }
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
@@ -185,6 +189,26 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.reason);
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
       break;
+    
+    case sl_bt_evt_scanner_extended_advertisement_report_id:
+      // check if the report is from the bonded device
+      //if (evt->data.evt_scanner_legacy_advertisement_report.address_type == g_app_current_bond_info.address_type &&
+      //    memcmp(evt->data.evt_scanner_legacy_advertisement_report.address.addr, g_app_current_bond_info.address.addr, sizeof(bd_addr)) == 0) {
+        app_log_info("Bonded device found. Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
+                     evt->data.evt_scanner_extended_advertisement_report.address.addr[5],
+                     evt->data.evt_scanner_extended_advertisement_report.address.addr[4],
+                     evt->data.evt_scanner_extended_advertisement_report.address.addr[3],
+                     evt->data.evt_scanner_extended_advertisement_report.address.addr[2],
+                     evt->data.evt_scanner_extended_advertisement_report.address.addr[1],
+                     evt->data.evt_scanner_extended_advertisement_report.address.addr[0]);
+        // Stop scanning
+        sc = sl_bt_scanner_stop();
+        app_assert_status(sc);
+        app_log_info("Scanning stopped.\n");
+        // Signal the bond task to attempt connection
+        OSSemPost(&scan_sem, OS_OPT_POST_1, &err);
+      //}
+      break;
 
     ///////////////////////////////////////////////////////////////////////////
     // Add additional event handlers here as your application requires!      //
@@ -192,6 +216,12 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     case sl_bt_evt_sm_passkey_display_id:
       app_log_info("Passkey: %lu\n", evt->data.evt_sm_passkey_display.passkey);
       memlcd_display_passkey(evt->data.evt_sm_passkey_display.passkey);
+      break;
+
+    case sl_bt_evt_sm_confirm_bonding_id:
+      app_log_info("Bonding confirm\r\n");
+      sc = sl_bt_sm_bonding_confirm(evt->data.evt_sm_confirm_bonding.connection, 1);
+      app_assert_status(sc);
       break;
 
     case sl_bt_evt_sm_bonded_id:

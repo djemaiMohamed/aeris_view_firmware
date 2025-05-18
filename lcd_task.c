@@ -15,6 +15,7 @@ OS_TCB *lcd_task_tcb_ptr;
 CPU_STK *lcd_task_stk_ptr;
 extern OS_SEM bond_sem;
 extern uint16_t measurement_interval;
+extern bool pairing_mode;
 
 // Variables for LCD display data
 static memlcd_handle_t lcd_data;

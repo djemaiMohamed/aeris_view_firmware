@@ -11,6 +11,8 @@ app_bond_info_t g_app_current_bond_info;
 
 // External declaration for the semaphore
 OS_SEM bond_sem;
+// create a scan semaphore
+OS_SEM scan_sem;
 // Task Control Block
 OS_TCB *bond_task_tcb;
 // Task Stack
@@ -162,7 +164,8 @@ void bond_task_init(void) {
   bond_info_init();
   // Create the semaphore for bonding
   OSSemCreate(&bond_sem, "Bond Sem", 0, &err);
-  app_assert_status(err.Code);
+  // create the semaphore for scanning
+  OSSemCreate(&scan_sem, "Scan Sem", 0, &err);
   // Dynamically allocate TCB
   bond_task_tcb = (OS_TCB *)sl_malloc(sizeof(OS_TCB));
   // Dynamically allocate stack
@@ -181,7 +184,6 @@ void bond_task_init(void) {
                DEF_NULL,
                (OS_OPT_TASK_STK_CLR | OS_OPT_TASK_STK_CHK),
                &err);
-  app_assert_status(err.Code);
   app_log_info("Bond task created\n");
 }
 
@@ -208,11 +210,6 @@ void bond_task(void *p_arg) {
                      g_app_current_bond_info.address.addr[3], g_app_current_bond_info.address.addr[2],
                      g_app_current_bond_info.address.addr[1], g_app_current_bond_info.address.addr[0],
                      g_app_current_bond_info.address_type);
-
-        // As a central device, attempt to connect to the bonded peripheral.
-        // This applies to public (0), random static (1), and resolvable private addresses (2).
-        // For type 2 (RPA), the Bluetooth stack uses the IRK from the bonding entry
-        // to resolve the address if the peripheral is advertising with its RPA.
         app_log_info("Attempting to connect to bonded device (Type: %d) as central.\n", g_app_current_bond_info.address_type);
         sc = sl_bt_connection_open(g_app_current_bond_info.address,
                                    g_app_current_bond_info.address_type,
