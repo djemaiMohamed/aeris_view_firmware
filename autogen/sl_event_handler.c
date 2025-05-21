@@ -30,9 +30,9 @@
 #include "cmsis_os2.h"
 #include "sl_iostream_init_instances.h"
 #include "sl_bluetooth.h"
+#include "nvm3_default.h"
 #include "sl_cos.h"
 #include "sl_iostream_handles.h"
-#include "nvm3_default.h"
 #include "sl_power_manager.h"
 
 void sl_platform_init(void)

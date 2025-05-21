@@ -7,7 +7,7 @@
     <file name="readme_img3.png" linked="false" uri="studio:/project/image/readme_img3.png"/>
     <file name="readme_img4.png" linked="false" uri="studio:/project/image/readme_img4.png"/>
   </folder>
-  <folder name="simplicity_sdk_2024.12.0">
+  <folder name="simplicity_sdk_2024.12.2">
     <folder name="platform">
       <folder name="Device">
         <folder name="SiliconLabs">
@@ -108,6 +108,13 @@
           <file name="btl_interface_parser.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface_parser.h"/>
           <file name="btl_interface_storage.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface_storage.h"/>
           <file name="btl_reset_info.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_reset_info.h"/>
+        </folder>
+        <folder name="core">
+          <folder name="flash">
+            <file name="btl_internal_flash.c" linked="false" uri="studio:/sdk/platform/bootloader/core/flash/btl_internal_flash.c"/>
+            <file name="btl_internal_flash.h" linked="false" uri="studio:/sdk/platform/bootloader/core/flash/btl_internal_flash.h"/>
+          </folder>
+          <file name="btl_util.h" linked="false" uri="studio:/sdk/platform/bootloader/core/btl_util.h"/>
         </folder>
       </folder>
       <folder name="service">
@@ -1234,90 +1241,91 @@
   <excludedPath>image/readme_img2.png</excludedPath>
   <excludedPath>image/readme_img3.png</excludedPath>
   <excludedPath>image/readme_img4.png</excludedPath>
-  <excludedPath>simplicity_sdk_2024.12.0/protocol/bluetooth/api/sl_bt.xapi</excludedPath>
-  <excludedPath>simplicity_sdk_2024.12.0/util/third_party/crypto_ip/libcryptosoc/license.txt</excludedPath>
+  <excludedPath>simplicity_sdk_2024.12.2/protocol/bluetooth/api/sl_bt.xapi</excludedPath>
+  <excludedPath>simplicity_sdk_2024.12.2/util/third_party/crypto_ip/libcryptosoc/license.txt</excludedPath>
   <includePath uri="studio:/project/"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/Device/SiliconLabs/BGM22/Include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/app/common/util/app_assert"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/app/common/util/app_log"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/app/common/util/app_timer"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/app/common/util/app_timer/micriumos"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/common/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/bgcommon/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/bgstack/ll/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/hardware/board/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/bootloader"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/bootloader/api"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/clock_manager/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/clock_manager/src"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/CMSIS/Core/Include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/CMSIS/RTOS2/Include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/hardware/driver/configuration_over_swo/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/driver/debug/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/device_manager/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/device_init/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/emdrv/dmadrv/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/emdrv/dmadrv/inc/s2_signals"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/middleware/glib/dmd"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/middleware/glib"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/emdrv/common/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/emlib/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/plugin/fem_util"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/app/bluetooth/common/gatt_service_device_information"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/middleware/glib/glib"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/driver/gpio/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/peripheral/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/driver/i2cspm/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/app/bluetooth/common/in_place_ota_dfu"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/interrupt_manager/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/interrupt_manager/inc/arm"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/iostream/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/util/third_party/crypto_ip/libcryptosoc/include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/util/third_party/crypto_ip/libcryptosoc/src"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/hardware/driver/memlcd/src/ls013b7dh03"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sl_mbedtls_support/config"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sl_mbedtls_support/config/preset"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sl_mbedtls_support/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/util/third_party/mbedtls/include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/util/third_party/mbedtls/library"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/hardware/driver/memlcd/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/hardware/driver/memlcd/inc/memlcd_usart"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/memory_manager/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/memory_manager/src"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/memory_manager/profiler/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os/common/source"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os/common/include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os/cpu/include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os/ports/source"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os/kernel/source"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/micrium_os/kernel/include"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/mpu/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/hardware/driver/mx25_flash_shutdown/inc/sl_mx25_flash_shutdown_usart"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/emdrv/nvm3/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/emdrv/nvm3/config"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/power_manager/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sl_psa_driver/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/common"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/protocol/ble"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/protocol/ieee802154"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/protocol/wmbus"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/protocol/zwave"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/chip/efr32/efr32xg2x"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/protocol/sidewalk"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/plugin/pa-conversions"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/plugin/pa-conversions/efr32xg22"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/plugin/rail_util_power_manager_init"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/plugin/rail_util_pti"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/se_manager/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/common/toolchain/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/system/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/sleeptimer/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sli_crypto/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sl_protocol_crypto/src"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/security/sl_component/sli_psec_osal/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.0/platform/service/udelay/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/Device/SiliconLabs/BGM22/Include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_assert"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_log"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_timer"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_timer/micriumos"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/common/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/bgcommon/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/bgstack/ll/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/board/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/bootloader"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/bootloader/api"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/bootloader/core/flash"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/clock_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/clock_manager/src"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/CMSIS/Core/Include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/CMSIS/RTOS2/Include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/configuration_over_swo/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/driver/debug/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/device_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/device_init/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/emdrv/dmadrv/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/emdrv/dmadrv/inc/s2_signals"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/middleware/glib/dmd"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/middleware/glib"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/emdrv/common/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/emlib/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/fem_util"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/bluetooth/common/gatt_service_device_information"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/middleware/glib/glib"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/driver/gpio/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/peripheral/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/driver/i2cspm/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/bluetooth/common/in_place_ota_dfu"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/interrupt_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/interrupt_manager/inc/arm"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/iostream/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/crypto_ip/libcryptosoc/include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/crypto_ip/libcryptosoc/src"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/src/ls013b7dh03"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_mbedtls_support/config"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_mbedtls_support/config/preset"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_mbedtls_support/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/mbedtls/include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/mbedtls/library"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/inc/memlcd_usart"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/memory_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/memory_manager/src"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/memory_manager/profiler/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os/common/source"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os/common/include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os/cpu/include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os/ports/source"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os/kernel/source"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/micrium_os/kernel/include"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/mpu/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/mx25_flash_shutdown/inc/sl_mx25_flash_shutdown_usart"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/emdrv/nvm3/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/emdrv/nvm3/config"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/power_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_psa_driver/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/common"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/protocol/ble"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/protocol/ieee802154"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/protocol/wmbus"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/protocol/zwave"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/chip/efr32/efr32xg2x"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/protocol/sidewalk"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/pa-conversions"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/pa-conversions/efr32xg22"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/rail_util_power_manager_init"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/rail_util_pti"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/se_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/common/toolchain/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/system/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/sleeptimer/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sli_crypto/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_protocol_crypto/src"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sli_psec_osal/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/udelay/inc"/>
   <macroDefinition name="BGM220PC22HNA"/>
   <macroDefinition name="SL_CODE_COMPONENT_SYSTEM" value="system"/>
   <macroDefinition name="SL_APP_PROPERTIES"/>
@@ -1334,11 +1342,13 @@
   <macroDefinition name="SL_COMPONENT_CATALOG_PRESENT"/>
   <macroDefinition name="SL_CODE_COMPONENT_DEVICE_PERIPHERAL" value="device_peripheral"/>
   <macroDefinition name="SL_CODE_COMPONENT_DMADRV" value="dmadrv"/>
+  <macroDefinition name="SL_CODE_COMPONENT_GPIO" value="gpio"/>
   <macroDefinition name="SL_CODE_COMPONENT_HAL_COMMON" value="hal_common"/>
   <macroDefinition name="SL_CODE_COMPONENT_HAL_GPIO" value="hal_gpio"/>
   <macroDefinition name="CMSIS_NVIC_VIRTUAL"/>
   <macroDefinition name="CMSIS_NVIC_VIRTUAL_HEADER_FILE" value="&quot;cmsis_nvic_virtual.h&quot;"/>
   <macroDefinition name="MBEDTLS_CONFIG_FILE" value="&lt;sl_mbedtls_config.h>"/>
+  <macroDefinition name="SL_CODE_COMPONENT_MEMLCD" value="memlcd"/>
   <macroDefinition name="SL_CODE_COMPONENT_MICRIUMOS_KERNEL" value="micriumos_kernel"/>
   <macroDefinition name="SL_CODE_COMPONENT_POWER_MANAGER" value="power_manager"/>
   <macroDefinition name="MBEDTLS_PSA_CRYPTO_CONFIG_FILE" value="&lt;psa_crypto_config.h>"/>
@@ -1347,22 +1357,24 @@
   <macroDefinition name="SL_CODE_COMPONENT_SE_MANAGER" value="se_manager"/>
   <macroDefinition name="SL_CODE_COMPONENT_CORE" value="core"/>
   <macroDefinition name="SL_CODE_COMPONENT_SLEEPTIMER" value="sleeptimer"/>
+  <macroDefinition name="SL_CODE_COMPONENT_SLI_CRYPTO" value="sli_crypto"/>
   <macroDefinition name="SLI_RADIOAES_REQUIRES_MASKING"/>
+  <macroDefinition name="SL_CODE_COMPONENT_SLI_PROTOCOL_CRYPTO" value="sli_protocol_crypto"/>
   <macroDefinition name="SL_CODE_COMPONENT_PSEC_OSAL" value="psec_osal"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/bgstack/ll/build/gcc/xg22/release/liblinklayer.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/bgstack/release/libbondingdb.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi_gatt_client.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi_gatt_server.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/bgapi_protocol/api3/release/libbgapi_core.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/accept_list/release/libble_host_accept_list_stub.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/bgstack/release/libble_host.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/hal/release/libble_host_hal_series2.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/hci/release/libble_host_hci.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/protocol/bluetooth/build/gcc/cortex-m33/ble_host/system/release/libble_system.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22hna_gcc.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.0/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg22_gcc_release.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/bgstack/ll/build/gcc/xg22/release/liblinklayer.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/bgstack/release/libbondingdb.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi_gatt_client.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi_gatt_server.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/bgapi_protocol/api3/release/libbgapi_core.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/accept_list/release/libble_host_accept_list_stub.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/bgstack/release/libble_host.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/ble_bgapi/release/libble_bgapi.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/hal/release/libble_host_hal_series2.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/hci/release/libble_host_hci.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/system/release/libble_system.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22hna_gcc.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg22_gcc_release.a"/>
   <libraryFile name="gcc"/>
   <libraryFile name="c"/>
   <libraryFile name="m"/>
@@ -1370,6 +1382,7 @@
   <toolOption toolId="toolOption.uc.toolchain" optionId="toolOption.uc.toolchain.cpu" value="cortex-m33"/>
   <toolOption toolId="toolOption.uc.toolchain" optionId="toolOption.uc.toolchain.fpu" value="fpv5-sp"/>
   <toolOption toolId="toolOption.uc.toolchain" optionId="toolOption.uc.toolchain.float_abi" value="hard"/>
+  <toolOption toolId="toolOption.uc.compiler" optionId="toolOption.uc.compiler.secure_code" value="true"/>
   <toolOption toolId="toolOption.uc.compiler" optionId="toolOption.uc.compiler.preinclude">
     <toolListOption value="sl_gcc_preinclude.h"/>
   </toolOption>
@@ -1416,6 +1429,8 @@
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.misc.dialect" value="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.misc.dialect.cpp17"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.no_rtti" value="true"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.no_exceptions" value="true"/>
+  <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.generateSecureCode" value="true"/>
+  <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.generateSecureCode" value="true"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.optimization.level" value="gnu.c.optimization.level.size"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.optimization.level" value="gnu.cpp.compiler.optimization.level.size"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.optimization.datasect" value="true"/>
@@ -1439,31 +1454,6 @@
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.map" value="true"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.map" value="true"/>
   <toolOption toolId="studio.ide.project" optionId="device_opn" value="bgm220pc22hna"/>
-  <toolOption toolId="makefile.arm.gcc.compiler" optionId="misc">
-    <toolListOption value="-mcmse"/>
-    <toolListOption value="-fno-lto"/>
-    <toolListOption value="--specs=nano.specs"/>
-  </toolOption>
-  <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base" optionId="com.silabs.gnu.c.compiler.option.misc.otherlist">
-    <toolListOption value="-mcmse"/>
-    <toolListOption value="-fno-lto"/>
-    <toolListOption value="--specs=nano.specs"/>
-    <toolListOption value="-c"/>
-    <toolListOption value="-fmessage-length=0"/>
-  </toolOption>
-  <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.gnu.cpp.compiler.option.misc.otherlist">
-    <toolListOption value="-mcmse"/>
-    <toolListOption value="-fno-lto"/>
-    <toolListOption value="--specs=nano.specs"/>
-    <toolListOption value="-c"/>
-    <toolListOption value="-fmessage-length=0"/>
-  </toolOption>
-  <toolOption toolId="iar.ewp.arm.compiler" optionId="IExtraOptions">
-    <toolListOption value="--cmse"/>
-  </toolOption>
-  <toolOption toolId="iar.arm.toolchain.compiler.v5.4.1" optionId="iar.arm.toolchain.compiler.option.additionalUserOptions">
-    <toolListOption value="--cmse"/>
-  </toolOption>
   <toolOption toolId="makefile.arm.gcc.linker" optionId="misc">
     <toolListOption value="-Wl,--wrap=_free_r -Wl,--wrap=_malloc_r -Wl,--wrap=_calloc_r -Wl,--wrap=_realloc_r"/>
     <toolListOption value="-Wl,--no-warn-rwx-segments"/>
@@ -1483,6 +1473,22 @@
     <toolListOption value="-Wl,--wrap=_free_r -Wl,--wrap=_malloc_r -Wl,--wrap=_calloc_r -Wl,--wrap=_realloc_r"/>
     <toolListOption value="-Wl,--no-warn-rwx-segments"/>
     <toolListOption value="-fno-lto"/>
+  </toolOption>
+  <toolOption toolId="makefile.arm.gcc.compiler" optionId="misc">
+    <toolListOption value="-fno-lto"/>
+    <toolListOption value="--specs=nano.specs"/>
+  </toolOption>
+  <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.compiler.base" optionId="com.silabs.gnu.c.compiler.option.misc.otherlist">
+    <toolListOption value="-fno-lto"/>
+    <toolListOption value="--specs=nano.specs"/>
+    <toolListOption value="-c"/>
+    <toolListOption value="-fmessage-length=0"/>
+  </toolOption>
+  <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.compiler.base" optionId="com.silabs.gnu.cpp.compiler.option.misc.otherlist">
+    <toolListOption value="-fno-lto"/>
+    <toolListOption value="--specs=nano.specs"/>
+    <toolListOption value="-c"/>
+    <toolListOption value="-fmessage-length=0"/>
   </toolOption>
   <toolOption toolId="makefile.host.gcc.compiler" optionId="misc">
     <toolListOption value="--specs=nano.specs"/>

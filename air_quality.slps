@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ASCII"?>
 <model:MDescriptors xmlns:model="http://www.silabs.com/ss/Studio.ecore">
   <descriptors name="air_quality">
-    <properties key="projectCommon.sdkId" value="com.silabs.sdk.stack.sisdk:2024.12.0._-723280918"/>
+    <properties key="projectCommon.sdkId" value="com.silabs.sdk.stack.sisdk:2024.12.2._1573221119"/>
     <properties key="universalConfig.relativeWorkspacePath" value="../air_quality.slcw"/>
     <properties key="universalConfig.generationDirectory" value=""/>
     <properties key="universalConfig.toolchainCompatibility" value="iar gcc"/>
@@ -13,5 +13,6 @@
     <properties key="universalConfig.projectTypeIds" value="com.silabs.ss.framework.ide.project.core.cdtMbsProjectType"/>
     <properties key="projectCommon.importModeId" value="COPY"/>
     <properties key="universalConfig.compSelProjInstanceId" value="1746587663994"/>
+    <properties key="universalConfig.previousSdkId" value="com.silabs.sdk.stack.sisdk:2024.12.0._-723280918"/>
   </descriptors>
 </model:MDescriptors>

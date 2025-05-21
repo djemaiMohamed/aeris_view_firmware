@@ -205,6 +205,9 @@ static void notification_task(void *p_arg)
     // log the event
     app_log_info("Notification task triggered.\n");
 
+    // delay for a short time to allow the notification to be sent
+    OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+
     // Check if the device is connected before sending notifications
     // Send notification to the phone
     send_notifications();

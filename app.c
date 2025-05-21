@@ -138,12 +138,14 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // Do not call any stack command before receiving this boot event!
     case sl_bt_evt_system_boot_id:
       sc = sl_bt_sm_delete_bondings();
+      // Clear any potentially partially saved or outdated bonding information
+      clear_bonding_info_from_nvm3();
       app_assert_status(sc);
       app_log_info("All previous bondings deleted at startup.\n");
       sl_bt_sm_configure(SL_BT_SM_CONFIGURATION_BONDING_REQUIRED |
                          SL_BT_SM_CONFIGURATION_MITM_REQUIRED, sl_bt_sm_io_capability_displayonly);
       sl_bt_sm_set_bondable_mode(1);
-      sl_bt_sm_store_bonding_configuration(32, 1);
+      //sl_bt_sm_store_bonding_configuration(32, 1);
       app_log_info("bondable mode is set");
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&advertising_set_handle);
@@ -165,15 +167,28 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
+      connection_handle = evt->data.evt_connection_opened.connection;
+
       if(pairing_mode) {
         suspend_tasks();
         app_log_info("Pairing mode enabled.\n");
-        // inscrease security level
-        sl_bt_sm_increase_security(evt->data.evt_connection_opened.connection);
-        app_log_info("Security level increased.\n");
+      } else {
+        app_log_info("No pairing mode.\n");
+        // check if bonding handle is valid
+        if (evt->data.evt_connection_opened.bonding == SL_BT_INVALID_BONDING_HANDLE) {
+          app_log_error("Invalid bonding handle. Bonding failed.\n");
+          break;
+        }
       }
+      // inscrease security level
+      sc = sl_bt_sm_increase_security(evt->data.evt_connection_opened.connection);
+      // check is status is ok
+      if (sc != SL_STATUS_OK) {
+        app_log_error("Failed to increase security level. Status: 0x%04X\n", sc);
+        break;
+      }
+      app_log_info("Security level increased.\n");
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
-      connection_handle = evt->data.evt_connection_opened.connection;
       // Stop advertising
       //sl_bt_advertiser_stop(advertising_set_handle);
       //app_log_info("Advertising stopped.\n");
@@ -181,6 +196,25 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
       break;
 
+    case sl_bt_evt_connection_parameters_id:
+      switch (evt->data.evt_connection_parameters.security_mode)
+      {
+        case sl_bt_connection_mode1_level1:
+          app_log_info("No Security\r\n");
+          break;
+        case sl_bt_connection_mode1_level2:
+          app_log_info("Unauthenticated pairing with encryption (Just Works)\r\n");
+          break;
+        case sl_bt_connection_mode1_level3:
+          app_log_info("Authenticated pairing with encryption (Legacy Pairing)\r\n");
+          break;
+        case sl_bt_connection_mode1_level4:
+          app_log_info("Authenticated Secure Connections pairing with encryption (BT 4.2 LE Secure Pairing)\r\n");
+          break;
+        default:
+          break;
+      }
+      break;
     // -------------------------------
     // This event indicates that a connection was closed.
     case sl_bt_evt_connection_closed_id:
@@ -188,26 +222,6 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.connection,
                    evt->data.evt_connection_closed.reason);
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
-      break;
-    
-    case sl_bt_evt_scanner_extended_advertisement_report_id:
-      // check if the report is from the bonded device
-      //if (evt->data.evt_scanner_legacy_advertisement_report.address_type == g_app_current_bond_info.address_type &&
-      //    memcmp(evt->data.evt_scanner_legacy_advertisement_report.address.addr, g_app_current_bond_info.address.addr, sizeof(bd_addr)) == 0) {
-        app_log_info("Bonded device found. Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
-                     evt->data.evt_scanner_extended_advertisement_report.address.addr[5],
-                     evt->data.evt_scanner_extended_advertisement_report.address.addr[4],
-                     evt->data.evt_scanner_extended_advertisement_report.address.addr[3],
-                     evt->data.evt_scanner_extended_advertisement_report.address.addr[2],
-                     evt->data.evt_scanner_extended_advertisement_report.address.addr[1],
-                     evt->data.evt_scanner_extended_advertisement_report.address.addr[0]);
-        // Stop scanning
-        sc = sl_bt_scanner_stop();
-        app_assert_status(sc);
-        app_log_info("Scanning stopped.\n");
-        // Signal the bond task to attempt connection
-        OSSemPost(&scan_sem, OS_OPT_POST_1, &err);
-      //}
       break;
 
     ///////////////////////////////////////////////////////////////////////////
