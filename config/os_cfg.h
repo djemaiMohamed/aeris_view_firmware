@@ -57,7 +57,7 @@
 // <q OS_CFG_APP_HOOKS_EN> Enable application hooks
 // <i> Enable or disable Application-specific Hooks.
 // <i> Default: 0
-#define  OS_CFG_APP_HOOKS_EN                                1
+#define  OS_CFG_APP_HOOKS_EN                                0
 
 // <q OS_CFG_DBG_EN> Add debug helper code and variable
 // <i> Enable debug helper code and variables.

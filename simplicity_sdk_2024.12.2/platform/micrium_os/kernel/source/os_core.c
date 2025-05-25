@@ -81,7 +81,7 @@ const CPU_CHAR *os_core__c = "$Id: $";
       .StkBasePtr = DEF_NULL,                 \
       .StkSize = 256u,                        \
       .Prio = KERNEL_TMR_TASK_PRIO_DFLT,      \
-      .RateHz = 10u                           \
+      .RateHz = 1u                           \
     },                                        \
     .MemSeg = DEF_NULL,                       \
     .TickRate = 1000u                         \

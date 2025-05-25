@@ -147,6 +147,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       sl_bt_sm_set_bondable_mode(1);
       //sl_bt_sm_store_bonding_configuration(32, 1);
       app_log_info("bondable mode is set");
+      int16_t pwr_min, pwr_max;
+      sl_bt_system_set_tx_power(0, 0, &pwr_min, &pwr_max);
+
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&advertising_set_handle);
       // Generate data for advertising
@@ -155,8 +158,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       // Set advertising interval to 100ms.
       sc = sl_bt_advertiser_set_timing(
         advertising_set_handle,
-        160, // min. adv. interval (milliseconds * 1.6)
-        160, // max. adv. interval (milliseconds * 1.6)
+        1600, // min. adv. interval (milliseconds * 1.6)
+        1600, // max. adv. interval (milliseconds * 1.6)
         0,   // adv. duration
         0);  // max. num. adv. events
       // Start advertising and enable connections.
@@ -168,6 +171,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
       connection_handle = evt->data.evt_connection_opened.connection;
+
+      sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);;
 
       if(pairing_mode) {
         suspend_tasks();
@@ -190,8 +195,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       app_log_info("Security level increased.\n");
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       // Stop advertising
-      //sl_bt_advertiser_stop(advertising_set_handle);
-      //app_log_info("Advertising stopped.\n");
+      sl_bt_advertiser_stop(advertising_set_handle);
+      app_log_info("Advertising stopped.\n");
       // Triger notification task to send notifications
       OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
       break;
@@ -214,6 +219,12 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         default:
           break;
       }
+      uint16_t interval = evt->data.evt_connection_parameters.interval, latency = evt->data.evt_connection_parameters.latency, timeout = evt->data.evt_connection_parameters.timeout;
+      app_log_info("connection interval %d, latency %d, timeout %d ms\n", interval, latency, timeout * 10);
+
+      break;
+    case sl_bt_evt_connection_set_parameters_failed_id:
+      app_log_error("Failed to set connection parameters");
       break;
     // -------------------------------
     // This event indicates that a connection was closed.
@@ -291,9 +302,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     case sl_bt_evt_gatt_server_characteristic_status_id:
       if (evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config) {
         if (evt->data.evt_gatt_server_characteristic_status.client_config_flags & sl_bt_gatt_server_notification) {
-          app_log_info("Notifications enabled by client.\n");
+          //app_log_info("Notifications enabled by client.\n");
         } else {
-          app_log_info("Notifications disabled by client.\n");
+          //app_log_info("Notifications disabled by client.\n");
         }
       }
       break;

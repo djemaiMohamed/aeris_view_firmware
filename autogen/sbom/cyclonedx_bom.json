@@ -3,7 +3,7 @@
   "specVersion" : "1.6",
   "version" : 1,
   "metadata" : {
-    "timestamp" : "2025-05-20T07:00:13.772519Z",
+    "timestamp" : "2025-05-25T07:10:45.647247Z",
     "authors" : [ {
       "name" : "Silicon Laboratories, Inc."
     } ],
@@ -266,18 +266,6 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:i2cspm",
       "name" : "I2CSPM",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:in_place_ota_dfu",
-      "name" : "In-Place OTA DFU",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -1500,18 +1488,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:app_timer",
-      "name" : "Timer",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:se_manager_mailbox",
       "name" : "SE mailbox utilities",
       "version" : "2024.12.2",
@@ -1943,18 +1919,6 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:rail_util_features",
       "name" : "RAIL Library Features, Core",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "MSLA"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:apploader",
-      "name" : "AppLoader Support for Applications",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -2557,18 +2521,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:apploader_util",
-      "name" : "AppLoader Utility",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "MSLA"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:mbedtls_config",
       "name" : "Configuration",
       "version" : "2024.12.2",
@@ -2620,6 +2572,54 @@
       },
       "licenses" : [ {
         "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:in_place_ota_dfu",
+      "name" : "In-Place OTA DFU",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:app_timer",
+      "name" : "Timer",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:apploader",
+      "name" : "AppLoader Support for Applications",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:apploader_util",
+      "name" : "AppLoader Utility",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "MSLA"
       } ]
     } ]
   } ]

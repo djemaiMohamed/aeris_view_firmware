@@ -16,7 +16,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 5; // Default to 5 seconds
+uint16_t measurement_interval = 60; // Default to 5 seconds
 
 /**************************************************************************//**
  * Initialize the SCD4x sensor for single shot measurements.

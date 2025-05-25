@@ -129,6 +129,8 @@ static void send_notifications(void)
   RTOS_ERR err;
   // Handle BLE notifications if needed
   uint8_t temperature[5];
+  uint8_t co2_data[2];
+  uint8_t humidity_data[2];
   // get sensor data
   sensor_data_t *sensor_data = sensor_get_latest_readings();
 
@@ -149,12 +151,16 @@ static void send_notifications(void)
     app_log_error("Failed to send temperature notification. Status: 0x%04x\n", sc);
   }
 
+  // Prepare Humidity data for BLE notifications
+  humidity_data[0] = (uint8_t)(sensor_data->humidity_percent & 0xFF);
+  humidity_data[1] = (uint8_t)((sensor_data->humidity_percent >> 8) & 0xFF);
+
   // Send humidity notification
   sc = sl_bt_gatt_server_send_notification(
     connection_handle,
     gattdb_humidity_0,
-    sizeof(sensor_data->humidity_percent),
-    sensor_data->humidity_percent
+    sizeof(humidity_data),
+    humidity_data
   );
   
   if (sc == SL_STATUS_OK) {
@@ -163,12 +169,16 @@ static void send_notifications(void)
     app_log_error("Failed to send humidity notification. Status: 0x%04x\n", sc);
   }
 
+  // Prepare CO2 data for BLE notifications
+  co2_data[0] = (uint8_t)(sensor_data->co2_ppm & 0xFF);
+  co2_data[1] = (uint8_t)((sensor_data->co2_ppm >> 8) & 0xFF);
+
   // Send CO2 notification
   sc = sl_bt_gatt_server_send_notification(
     connection_handle,
     gattdb_air_quality_id,
-    sizeof(sensor_data->co2_ppm),
-    sensor_data->co2_ppm
+    sizeof(co2_data),
+    co2_data
   );
 
   if (sc == SL_STATUS_OK) {
@@ -206,13 +216,13 @@ static void notification_task(void *p_arg)
     app_log_info("Notification task triggered.\n");
 
     // delay for a short time to allow the notification to be sent
-    OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &err);
 
     // Check if the device is connected before sending notifications
     // Send notification to the phone
     send_notifications();
     // Then close the connection to save power
-    sl_bt_connection_close(connection_handle);
+    //sl_bt_connection_close(connection_handle);
     app_log_info("Connection closed to save power.\n");
     // Resume the sensor task
     OSTaskResume(sensor_task_tcb_ptr, &err);
