@@ -13,7 +13,6 @@
 extern OS_SEM sensor_data_ready_sem;
 OS_TCB *lcd_task_tcb_ptr;
 CPU_STK *lcd_task_stk_ptr;
-extern OS_SEM bond_sem;
 extern uint16_t measurement_interval;
 extern bool pairing_mode;
 
@@ -187,6 +186,8 @@ void lcd_task(void *p_arg)
     lcd_update_display(sensor_data);
 
     // Signal reconnecting to the phone
-    OSSemPost(&bond_sem, OS_OPT_POST_1, &err);
+    //OSSemPost(&bond_sem, OS_OPT_POST_1, &err);
+    // Triger notification task to send notifications
+    OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
   }
 }

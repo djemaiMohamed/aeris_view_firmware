@@ -31,6 +31,7 @@ void sensor_task(void *p_arg);
 // Sensor operation functions
 int16_t sensor_init(void);
 int16_t sensor_trigger_measurement(void);
+int16_t sensor_trigger_periodic_measurement(void);
 int16_t sensor_read_measurement(sensor_data_t *data);
 sensor_data_t* sensor_get_latest_readings(void);
 

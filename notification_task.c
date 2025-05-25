@@ -210,21 +210,21 @@ static void notification_task(void *p_arg)
     app_assert_status(err.Code);
 
     // Suspend the sensor task
-    OSTaskSuspend(sensor_task_tcb_ptr, &err);
+    //OSTaskSuspend(sensor_task_tcb_ptr, &err);
 
     // log the event
     app_log_info("Notification task triggered.\n");
 
     // delay for a short time to allow the notification to be sent
-    OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    //OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &err);
 
     // Check if the device is connected before sending notifications
     // Send notification to the phone
     send_notifications();
     // Then close the connection to save power
     //sl_bt_connection_close(connection_handle);
-    app_log_info("Connection closed to save power.\n");
+    //app_log_info("Connection closed to save power.\n");
     // Resume the sensor task
-    OSTaskResume(sensor_task_tcb_ptr, &err);
+    //OSTaskResume(sensor_task_tcb_ptr, &err);
   }
 }

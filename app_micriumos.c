@@ -45,7 +45,7 @@ void app_init_runtime(void)
   // init ble task
   notification_task_init();
   // init bond task
-  bond_task_init();
+  //bond_task_init();
 
 }
 

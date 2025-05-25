@@ -16,7 +16,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 60; // Default to 5 seconds
+uint16_t measurement_interval = 35; // Default to 5 seconds
 
 /**************************************************************************//**
  * Initialize the SCD4x sensor for single shot measurements.
@@ -82,6 +82,24 @@ int16_t sensor_trigger_measurement(void)
   }
   
   app_log_info("Single shot measurement triggered\n");
+  return 0; // Success
+}
+
+/**************************************************************************//**
+ * Trigger a single shot measurement on the SCD4x sensor.
+ * @return Status code (0 = success, otherwise error)
+ *****************************************************************************/
+int16_t sensor_trigger_periodic_measurement(void)
+{
+  int16_t error;
+  
+  error = scd4x_start_low_power_periodic_measurement();
+  if (error) {
+    app_log_error("Error triggering periodic  measurement: %d\n", error);
+    return error;
+  }
+  
+  app_log_info("Periodic measurement triggered\n");
   return 0; // Success
 }
 
@@ -204,19 +222,26 @@ void sensor_task(void *p_arg)
     app_log_error("Sensor initialization failed with error %d\n", error);
     // Continue anyway - will try to recover in the main loop
   }
+
+  // Start peridic measurement
+  error = sensor_trigger_periodic_measurement();
+  if (error) {
+    app_log_error("Error starting periodic measurement: %d\n", error);
+    // Continue anyway - will try to recover in the main loop
+  }
   
   while (DEF_TRUE) {
     // Step 1: Trigger a measurement
-    error = sensor_trigger_measurement();
-    if (error) {
-      app_log_error("Failed to trigger measurement. Will retry after delay.\n");
-      // Wait and try again
-      OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-      continue;
-    }
+    //error = sensor_trigger_measurement();
+    //if (error) {
+    //  app_log_error("Failed to trigger measurement. Will retry after delay.\n");
+    //  // Wait and try again
+    //  OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    //  continue;
+    //}
     
-    // Step 2: Wait for measurement to complete (typically 5 seconds for SCD4x)
-    OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    // Step 2: Wait for measurement to complete
+    OSTimeDlyHMSM(0, 0, measurement_interval, 0, OS_OPT_TIME_HMSM_STRICT, &err);
     
     // Step 3: Read the measurement
     error = sensor_read_measurement(&sensor_readings);
@@ -227,8 +252,5 @@ void sensor_task(void *p_arg)
     } else if (error != 1) { // error=1 means data not ready, which is not a critical error
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
     }
-
-    // Step 4: Wait for the next measurement cycle
-    OSTimeDlyHMSM(0, 0, measurement_interval, 0, OS_OPT_TIME_HMSM_STRICT, &err);
   }
 }
