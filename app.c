@@ -121,17 +121,17 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // This event indicates the device has started and the radio is ready.
     // Do not call any stack command before receiving this boot event!
     case sl_bt_evt_system_boot_id:
-      sc = sl_bt_sm_delete_bondings();
+      //sc = sl_bt_sm_delete_bondings();
       // Clear any potentially partially saved or outdated bonding information
       app_assert_status(sc);
       app_log_info("All previous bondings deleted at startup.\n");
       sl_bt_sm_configure(SL_BT_SM_CONFIGURATION_BONDING_REQUIRED |
                          SL_BT_SM_CONFIGURATION_MITM_REQUIRED, sl_bt_sm_io_capability_displayonly);
       sl_bt_sm_set_bondable_mode(1);
-      //sl_bt_sm_store_bonding_configuration(32, 1);
+      sl_bt_sm_store_bonding_configuration(32, 1);
       app_log_info("bondable mode is set");
-      int16_t pwr_min, pwr_max;
-      sl_bt_system_set_tx_power(0, 0, &pwr_min, &pwr_max);
+      //int16_t pwr_min, pwr_max;
+      //sl_bt_system_set_tx_power(0, 0, &pwr_min, &pwr_max);
 
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&advertising_set_handle);
@@ -154,9 +154,6 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
       connection_handle = evt->data.evt_connection_opened.connection;
-
-      sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);;
-
       if(pairing_mode) {
         suspend_tasks();
         app_log_info("Pairing mode enabled.\n");
@@ -193,9 +190,14 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           break;
         case sl_bt_connection_mode1_level3:
           app_log_info("Authenticated pairing with encryption (Legacy Pairing)\r\n");
+          sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
           break;
         case sl_bt_connection_mode1_level4:
           app_log_info("Authenticated Secure Connections pairing with encryption (BT 4.2 LE Secure Pairing)\r\n");
+          sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
+          pairing_mode = false; // Disable pairing mode after secure connection
+          app_log_info("Pairing mode disabled.\n");
+          resume_tasks();
           break;
         default:
           break;
@@ -214,6 +216,11 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.connection,
                    evt->data.evt_connection_closed.reason);
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
+      // Start advertising and enable connections.
+      sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
+                                         sl_bt_advertiser_connectable_scannable);
+      // log start advertising
+      app_log_info("Advertising restarted.\n");
       break;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -239,29 +246,17 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_sm_bonded.security_mode,
                    evt->data.evt_sm_bonded.bonding);
 
-      // Retrieve connection properties to get the remote device's address
-      {
-        sl_status_t sc_addr;
-        bd_addr remote_address;
-        uint8_t remote_address_type;
-        sc_addr = sl_bt_connection_get_remote_address(evt->data.evt_sm_bonded.connection, &remote_address, &remote_address_type);
-
-        if (SL_STATUS_OK == sc_addr) {
-          app_log_info("Remote address: %02X:%02X:%02X:%02X:%02X:%02X, type: %d\n",
-                       remote_address.addr[5], remote_address.addr[4], remote_address.addr[3],
-                       remote_address.addr[2], remote_address.addr[1], remote_address.addr[0],
-                       remote_address_type);
-        } else {
-          app_log_error("Failed to get remote address for bonding, sc: 0x%04X\n", sc_addr);
-        }
-      }
       // 3 seconds delay before resuming tasks
       //OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &local_err);
       // Resume tasks after bonding is completed
       resume_tasks();
+      memlcd_display_waiting_message();
+      OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
       break;
 
     case sl_bt_evt_sm_bonding_failed_id:
+      sl_bt_sm_delete_bondings();
+      //sl_bt_sm_delete_bonding(evt->data.evt_sm_bonding_failed.connection);
       app_log_error("Bonding failed. Connection: %d, Reason: 0x%04X\n",
                     evt->data.evt_sm_bonding_failed.connection,
                     evt->data.evt_sm_bonding_failed.reason);
@@ -272,7 +267,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       sc = sl_bt_legacy_advertiser_start(
           advertising_set_handle,
           sl_bt_advertiser_connectable_scannable);
-      app_assert_status(sc);
+      //app_assert_status(sc);
       app_log_info("Restarted advertising after bonding failure.\n");
       break;
 

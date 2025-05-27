@@ -38,4 +38,9 @@ void memlcd_draw_data(memlcd_handle_t *handle);
  ******************************************************************************/
 void memlcd_display_passkey(uint32_t passkey);
 
+/***************************************************************************//**
+ * Display waiting for measurement message on LCD
+ ******************************************************************************/
+void memlcd_display_waiting_message(void);
+
 #endif // MEMLCD_APP_H

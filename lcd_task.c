@@ -72,7 +72,8 @@ void lcd_init_display(void)
   lcd_update_measurement_interval_string(measurement_interval);
   
   // Draw initial display
-  memlcd_draw_data(&lcd_data);
+  //memlcd_draw_data(&lcd_data);
+  memlcd_display_waiting_message();
   
   app_log_info("LCD initialized with default values\n");
 }

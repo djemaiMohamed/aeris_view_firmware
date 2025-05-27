@@ -35,7 +35,7 @@
 
 // <e APP_ASSERT_ENABLE> Assert component
 // <i> Enables Assert.
-#define APP_ASSERT_ENABLE      1
+#define APP_ASSERT_ENABLE      0
 
 // <q APP_ASSERT_SCHEDULE_LOCK> Enable schedule lock
 // <i> Enables schedule locking under OS

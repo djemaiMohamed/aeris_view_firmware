@@ -309,3 +309,71 @@ void memlcd_display_passkey(uint32_t passkey)
   DMD_updateDisplay();
   DMD_sleep();
 }
+
+/***************************************************************************//**
+ * @brief Displays a waiting for measurement message on the LCD.
+ ******************************************************************************/
+void memlcd_display_waiting_message(void)
+{
+  uint32_t status;
+
+  /* Enable the memory lcd */
+  status = sl_board_enable_display();
+  EFM_ASSERT(status == SL_STATUS_OK);
+
+  /* Initialize the DMD support for memory lcd display */
+  status = DMD_init(0);
+  EFM_ASSERT(status == DMD_OK);
+
+  /* Initialize the glib context */
+  status = GLIB_contextInit(&glibContext);
+  EFM_ASSERT(status == GLIB_OK);
+
+  glibContext.backgroundColor = White;
+  glibContext.foregroundColor = Black;
+
+  /* Clear display first */
+  GLIB_clear(&glibContext);
+
+  // Main message: "Measuring..."
+  char main_msg[] = "MEASURING...";
+  // Set font for main message and get its properties
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNormal8x8);
+  const GLIB_Font_t *main_font_props = &glibContext.font;
+  int main_actual_char_width = main_font_props->fontWidth;
+  int main_actual_char_height = main_font_props->fontHeight;
+
+  int main_text_render_width = strlen(main_msg) * main_actual_char_width;
+  int main_x_pos = (LCD_WIDTH - main_text_render_width) / 2;
+
+  // Secondary message: "Please wait"
+  char sub_msg[] = "PLEASE WAIT :)";
+  // Set font for secondary message and get its properties
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNormal8x8);
+  const GLIB_Font_t *sub_font_props = &glibContext.font;
+  int sub_actual_char_width = sub_font_props->fontWidth;
+  int sub_actual_char_height = sub_font_props->fontHeight;
+
+  int sub_text_render_width = strlen(sub_msg) * sub_actual_char_width;
+  int sub_x_pos = (LCD_WIDTH - sub_text_render_width) / 2;
+
+  // Calculate Y positions for vertical centering of the block
+  // Uses actual heights obtained from font properties
+  int total_content_height = main_actual_char_height + 8 /* spacing */ + sub_actual_char_height;
+  int start_y_pos = (LCD_HEIGHT - total_content_height) / 2;
+
+  int main_y_pos = start_y_pos;
+  int sub_y_pos = main_y_pos + main_actual_char_height + 8; // 8px spacing
+
+  // Draw main message
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNormal8x8);
+  GLIB_drawString(&glibContext, main_msg, strlen(main_msg), main_x_pos, main_y_pos, true);
+
+  // Draw secondary message
+  GLIB_setFont(&glibContext, (GLIB_Font_t *)&GLIB_FontNormal8x8);
+  GLIB_drawString(&glibContext, sub_msg, strlen(sub_msg), sub_x_pos, sub_y_pos, false);
+
+  /* Update the display */
+  DMD_updateDisplay();
+  DMD_sleep();
+}
