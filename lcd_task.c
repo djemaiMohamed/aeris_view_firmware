@@ -14,7 +14,8 @@ extern OS_SEM sensor_data_ready_sem;
 OS_TCB *lcd_task_tcb_ptr;
 CPU_STK *lcd_task_stk_ptr;
 extern uint16_t measurement_interval;
-extern bool pairing_mode;
+extern uint8_t connection_handle;
+extern bool suspend_lcd;
 
 // Variables for LCD display data
 static memlcd_handle_t lcd_data;
@@ -183,12 +184,21 @@ void lcd_task(void *p_arg)
     // Get the latest sensor readings
     sensor_data = sensor_get_latest_readings();
     
+    if (suspend_lcd) {
+      // Skip updating LCD and sending notifications.
+      continue;
+    }
     // Update the LCD with the new data
     lcd_update_display(sensor_data);
 
-    // Signal reconnecting to the phone
-    //OSSemPost(&bond_sem, OS_OPT_POST_1, &err);
-    // Triger notification task to send notifications
-    OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
+    // if connection handle is valid and pairing mode is false
+    if (connection_handle != 0xFF) {
+      // Trigger BLE notifications to send updated data
+      app_log_info("Triggering BLE notifications for updated sensor data.\n");
+      // Triger notification task to send notifications
+      OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
+    } else {
+      app_log_info("No connection. Skipping BLE notifications.\n");
+    }
   }
 }

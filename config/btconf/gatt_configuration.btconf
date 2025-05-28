@@ -136,7 +136,7 @@ Summary:
 Summary: 
     This characteristic is capable of representing values from 1 second to 65535 seconds which is equal to 18 hours, 12 minutes and 15 seconds.            
 		</informativeText>
-      <value length="2" type="hex" variable_length="false"/>
+      <value length="2" type="hex" variable_length="false">1E</value>
       <properties>
         <read authenticated="true" bonded="true" encrypted="true"/>
         <write authenticated="false" bonded="false" encrypted="false"/>

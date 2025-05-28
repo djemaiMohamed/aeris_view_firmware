@@ -45,10 +45,10 @@
 uint8_t advertising_set_handle = 0xff; // Removed static
 static RTOS_ERR err;
 // connection handle
-uint8_t connection_handle = 0xFF;
-
-//pairing mode
-bool pairing_mode = true;
+uint8_t connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
+bool suspend_lcd = false;
+static int16_t pwr_min;
+static int16_t pwr_max;
 
 // A semaphore to trigger bonding process
 extern OS_SEM sensor_data_ready_sem;
@@ -130,20 +130,20 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       sl_bt_sm_set_bondable_mode(1);
       sl_bt_sm_store_bonding_configuration(32, 1);
       app_log_info("bondable mode is set");
-      //int16_t pwr_min, pwr_max;
-      //sl_bt_system_set_tx_power(0, 0, &pwr_min, &pwr_max);
+
+      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
 
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&advertising_set_handle);
       // Generate data for advertising
       sc = sl_bt_legacy_advertiser_generate_data(advertising_set_handle,
                                                  sl_bt_advertiser_general_discoverable);
-      // Set advertising interval to 100ms.
+      // Set advertising interval.
       sc = sl_bt_advertiser_set_timing(
         advertising_set_handle,
-        1600, // min. adv. interval (milliseconds * 1.6)
-        1600, // max. adv. interval (milliseconds * 1.6)
-        0,   // adv. duration
+        3200, // min. adv. interval (milliseconds * 1.6)
+        3200, // max. adv. interval (milliseconds * 1.6)
+        0,   // adv. duration (3 minutes)
         0);  // max. num. adv. events
       // Start advertising and enable connections.
       sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
@@ -153,30 +153,20 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
+      app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
-      if(pairing_mode) {
-        suspend_tasks();
-        app_log_info("Pairing mode enabled.\n");
-      } else {
-        app_log_info("No pairing mode.\n");
-        // check if bonding handle is valid
-        if (evt->data.evt_connection_opened.bonding == SL_BT_INVALID_BONDING_HANDLE) {
-          app_log_error("Invalid bonding handle. Bonding failed.\n");
-          break;
-        }
-      }
+
+      sl_bt_system_set_tx_power(-30, 80, &pwr_min, &pwr_max);
+
       // inscrease security level
       sc = sl_bt_sm_increase_security(evt->data.evt_connection_opened.connection);
-      // check is status is ok
-      if (sc != SL_STATUS_OK) {
-        app_log_error("Failed to increase security level. Status: 0x%04X\n", sc);
-        break;
-      }
       app_log_info("Security level increased.\n");
-      app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
+
       // Stop advertising
       sl_bt_advertiser_stop(advertising_set_handle);
       app_log_info("Advertising stopped.\n");
+
+      //sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
       break;
 
     case sl_bt_evt_connection_parameters_id:
@@ -190,14 +180,10 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           break;
         case sl_bt_connection_mode1_level3:
           app_log_info("Authenticated pairing with encryption (Legacy Pairing)\r\n");
-          sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
           break;
         case sl_bt_connection_mode1_level4:
           app_log_info("Authenticated Secure Connections pairing with encryption (BT 4.2 LE Secure Pairing)\r\n");
-          sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
-          pairing_mode = false; // Disable pairing mode after secure connection
-          app_log_info("Pairing mode disabled.\n");
-          resume_tasks();
+          OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
           break;
         default:
           break;
@@ -216,6 +202,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.connection,
                    evt->data.evt_connection_closed.reason);
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
+
+      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
+
       // Start advertising and enable connections.
       sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
                                          sl_bt_advertiser_connectable_scannable);
@@ -229,6 +218,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     case sl_bt_evt_sm_passkey_display_id:
       app_log_info("Passkey: %lu\n", evt->data.evt_sm_passkey_display.passkey);
       memlcd_display_passkey(evt->data.evt_sm_passkey_display.passkey);
+      suspend_lcd = true;
       break;
 
     case sl_bt_evt_sm_confirm_bonding_id:
@@ -239,35 +229,28 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
     case sl_bt_evt_sm_bonded_id:
       // Set pairing mode to false after bonding is completed
-      pairing_mode = false;
-      app_log_info("Pairing mode disabled.\n");
       app_log_info("Bonding completed. Connection: %d, Security mode: %d, Bonding handle: %d\n",
                    evt->data.evt_sm_bonded.connection,
                    evt->data.evt_sm_bonded.security_mode,
                    evt->data.evt_sm_bonded.bonding);
 
-      // 3 seconds delay before resuming tasks
-      //OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &local_err);
-      // Resume tasks after bonding is completed
-      resume_tasks();
-      memlcd_display_waiting_message();
-      OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
+      suspend_lcd = false;
+      OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
       break;
 
     case sl_bt_evt_sm_bonding_failed_id:
       sl_bt_sm_delete_bondings();
-      //sl_bt_sm_delete_bonding(evt->data.evt_sm_bonding_failed.connection);
       app_log_error("Bonding failed. Connection: %d, Reason: 0x%04X\n",
                     evt->data.evt_sm_bonding_failed.connection,
                     evt->data.evt_sm_bonding_failed.reason);
-      // Resume tasks after bonding failure
-      resume_tasks();
       app_log_error("Device not secure. Closing connection.\n");
       sl_bt_connection_close(evt->data.evt_sm_bonding_failed.connection);
+
+      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
+
       sc = sl_bt_legacy_advertiser_start(
           advertising_set_handle,
           sl_bt_advertiser_connectable_scannable);
-      //app_assert_status(sc);
       app_log_info("Restarted advertising after bonding failure.\n");
       break;
 

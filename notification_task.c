@@ -197,7 +197,6 @@ static void notification_task(void *p_arg)
   sl_bt_msg_t evt;
   
   (void)p_arg; // Unused parameter
-  //extern sl_status_t sli_bt_system_start_bluetooth();
   
   // Infinite loop
   while (1) {
@@ -209,22 +208,15 @@ static void notification_task(void *p_arg)
               &err);
     app_assert_status(err.Code);
 
-    // Suspend the sensor task
-    //OSTaskSuspend(sensor_task_tcb_ptr, &err);
-
     // log the event
     app_log_info("Notification task triggered.\n");
 
-    // delay for a short time to allow the notification to be sent
-    //OSTimeDlyHMSM(0, 0, 3, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    if(connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
+      sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
+      app_log_info("Connection parameters set: min_interval=160, max_interval=200, latency=4, timeout=600.\n");
+      OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    }
 
-    // Check if the device is connected before sending notifications
-    // Send notification to the phone
     send_notifications();
-    // Then close the connection to save power
-    //sl_bt_connection_close(connection_handle);
-    //app_log_info("Connection closed to save power.\n");
-    // Resume the sensor task
-    //OSTaskResume(sensor_task_tcb_ptr, &err);
   }
 }

@@ -16,7 +16,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 35; // Default to 5 seconds
+uint16_t measurement_interval = 30; // Default to 5 seconds
 
 /**************************************************************************//**
  * Initialize the SCD4x sensor for single shot measurements.
@@ -241,7 +241,7 @@ void sensor_task(void *p_arg)
     //}
     
     // Step 2: Wait for measurement to complete
-    OSTimeDlyHMSM(0, 0, measurement_interval, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    OSTimeDlyHMSM(0, 0, measurement_interval + 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
     
     // Step 3: Read the measurement
     error = sensor_read_measurement(&sensor_readings);
