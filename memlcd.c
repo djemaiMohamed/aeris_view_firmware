@@ -208,30 +208,65 @@ static void draw_co2_history_chart(GLIB_Context_t *context, int x, int y, int wi
     GLIB_drawPixel(context, i, y + height - 1);      // Bottom dotted line
   }
   
-  // Draw horizontal grid line at 1500 ppm (middle) - dotted
+  // Calculate adaptive chart range based on actual data
+  uint16_t max_value = 0;
+  uint16_t min_value = 0; // Always fixed to 0
+  int points_to_show = 0;
+  
+  if (handle->history_count > 1) {
+    int chart_area_width = width;
+    points_to_show = (chart_area_width < handle->history_count) ? chart_area_width : handle->history_count;
+    
+    // Find max value in the visible data range
+    for (int i = 0; i < points_to_show; i++) {
+      int idx = (handle->history_index - points_to_show + i + CO2_HISTORY_SIZE) % CO2_HISTORY_SIZE;
+      uint16_t co2_value = handle->co2_history[idx];
+      if (co2_value > max_value) max_value = co2_value;
+    }
+    
+    // Ensure we have a reasonable range (minimum 500 ppm range)
+    if (max_value < 500) {
+      max_value = 500;
+    }
+    
+    // Add some padding (10% above max value)
+    uint16_t padding = max_value / 10;
+    max_value += padding;
+  } else {
+    // Default range when no data
+    max_value = 1000;
+  }
+  
+  // Draw horizontal grid line at middle value - dotted
+  uint16_t mid_value = max_value / 2; // Middle of 0 to max_value
   int mid_y = y + height/2;
   for (int i = x; i < x + width; i += 3) {
     GLIB_drawPixel(context, i, mid_y);
   }
   
-  // Draw maximum value label (3000) at top right of chart
+  // Draw adaptive maximum value label at top right of chart
   GLIB_setFont(context, (GLIB_Font_t *)&GLIB_FontNarrow6x8);
-  GLIB_drawString(context, "3000", 4, x + width - 26, y - 8, false);
+  char max_label[8];
+  snprintf(max_label, sizeof(max_label), "%d", max_value);
+  int label_width = strlen(max_label) * 6; // FontNarrow6x8 width
+  GLIB_drawString(context, max_label, strlen(max_label), x + width - label_width - 2, y - 8, false);
   
   // Draw the CO2 history data if available
-  if (handle->history_count > 1) {
+  if (handle->history_count > 1 && max_value > 0) {
     int chart_area_height = height;
-    int chart_area_width = width;
-    int points_to_show = (chart_area_width < handle->history_count) ? chart_area_width : handle->history_count;
+    uint16_t value_range = max_value; // Range is now 0 to max_value
     
     // Draw the area chart
     for (int i = 0; i < points_to_show; i++) {
       // Get data point
       int idx = (handle->history_index - points_to_show + i + CO2_HISTORY_SIZE) % CO2_HISTORY_SIZE;
-      uint16_t co2_value = (handle->co2_history[idx] > 3000) ? 3000 : handle->co2_history[idx];
+      uint16_t co2_value = handle->co2_history[idx];
       
-      // Convert CO2 value to Y coordinate (inverted)
-      int data_y = y + height - 1 - ((co2_value * chart_area_height) / 3000);
+      // Clamp value to our adaptive range (0 to max_value)
+      if (co2_value > max_value) co2_value = max_value;
+      
+      // Convert CO2 value to Y coordinate (inverted) using 0-based range
+      int data_y = y + height - 1 - ((co2_value * chart_area_height) / value_range);
       
       // Draw vertical line from bottom to data point (area fill)
       GLIB_drawLine(context, x + i, y + height - 1, x + i, data_y);
