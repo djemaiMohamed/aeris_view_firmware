@@ -384,7 +384,7 @@ void memlcd_display_waiting_message(void)
 
   // Main message: "Measuring..."
   char main_msg[] = "MEASURING...";
-  char sub_msg[] = "PLEASE WAIT :)";
+  char sub_msg[] = "PLEASE WAIT";
   
   // Get font properties for Normal8x8 (both messages use same font)
   int char_width, char_height;
