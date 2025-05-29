@@ -143,19 +143,27 @@ static void draw_temp_icon(GLIB_Context_t *context, int x, int y)
 // Helper function to draw humidity icon (water drop)
 static void draw_humidity_icon(GLIB_Context_t *context, int x, int y)
 {
-  // Simplified water drop shape using fewer lines
-  GLIB_drawPixel(context, x+5, y);     // Top point
-  for (int i = 1; i <= 3; i++) {
-    GLIB_drawLine(context, x+5-i/2, y+i, x+5+i/2, y+i);
+  // Draw a proper water drop shape
+  // Top point
+  GLIB_drawPixel(context, x+5, y);
+  
+  // Upper part - gradually expanding from point
+  GLIB_drawLine(context, x+4, y+1, x+6, y+1);     // width 3
+  GLIB_drawLine(context, x+3, y+2, x+7, y+2);     // width 5
+  GLIB_drawLine(context, x+2, y+3, x+8, y+3);     // width 7
+  GLIB_drawLine(context, x+2, y+4, x+8, y+4);     // width 7
+  
+  // Middle part - maintain width
+  for (int i = 5; i <= 10; i++) {
+    GLIB_drawLine(context, x+1, y+i, x+9, y+i);   // width 9
   }
-  for (int i = 4; i <= 15; i++) {
-    int width = (i < 12) ? 5 : 5 - (i-12);
-    GLIB_drawLine(context, x+5-width, y+i, x+5+width, y+i);
-  }
-  for (int i = 16; i <= 17; i++) {
-    GLIB_drawLine(context, x+3, y+i, x+7, y+i);
-  }
-  GLIB_drawPixel(context, x+5, y+18); // Bottom point
+  
+  // Lower part - gradually narrowing to rounded bottom
+  GLIB_drawLine(context, x+2, y+11, x+8, y+11);   // width 7
+  GLIB_drawLine(context, x+2, y+12, x+8, y+12);   // width 7
+  GLIB_drawLine(context, x+3, y+13, x+7, y+13);   // width 5
+  GLIB_drawLine(context, x+4, y+14, x+6, y+14);   // width 3
+  GLIB_drawPixel(context, x+5, y+15);             // bottom point
 }
 
 // Helper function to draw air quality indicator
