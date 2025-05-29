@@ -214,6 +214,10 @@ static void draw_co2_history_chart(GLIB_Context_t *context, int x, int y, int wi
     GLIB_drawPixel(context, i, mid_y);
   }
   
+  // Draw maximum value label (3000) at top right of chart
+  GLIB_setFont(context, (GLIB_Font_t *)&GLIB_FontNarrow6x8);
+  GLIB_drawString(context, "3000", 4, x + width - 26, y - 8, false);
+  
   // Draw the CO2 history data if available
   if (handle->history_count > 1) {
     int chart_area_height = height;
