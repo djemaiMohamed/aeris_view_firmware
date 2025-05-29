@@ -18,7 +18,7 @@ extern uint8_t connection_handle;
 extern bool suspend_lcd;
 
 // Variables for LCD display data
-static memlcd_handle_t lcd_data;
+memlcd_handle_t lcd_data;
 static char measurement_interval_str[32];
 
 /**************************************************************************//**
@@ -68,6 +68,8 @@ void lcd_init_display(void)
   lcd_data.co2_value = 0;
   lcd_data.humidity_value = 0;
   lcd_data.temperature_value = 0;
+  lcd_data.history_index = 0;
+  lcd_data.history_count = 0;
   
   // Update measurement interval string with default interval (5 seconds)
   lcd_update_measurement_interval_string(measurement_interval);
@@ -148,6 +150,8 @@ void lcd_update_display(sensor_data_t *sensor_data)
   lcd_update_measurement_interval_string(measurement_interval);
   // Update LCD data structure with measurement interval string
   lcd_data.date = measurement_interval_str;
+
+  memlcd_add_co2_to_history(&lcd_data, lcd_data.co2_value);
 
   // Draw data to LCD
   memlcd_draw_data(&lcd_data);

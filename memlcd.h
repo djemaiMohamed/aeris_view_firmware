@@ -20,18 +20,28 @@
 
 #include <stdint.h>
 
+#define CO2_HISTORY_SIZE 128
+
 typedef struct {
   char  *date;
   uint8_t battery_level;
   uint16_t co2_value;
   uint8_t humidity_value;
   float temperature_value;
+  uint16_t co2_history[CO2_HISTORY_SIZE];
+  uint8_t history_index;
+  uint8_t history_count;
 } memlcd_handle_t;
 
 /***************************************************************************//**
  * Initialize example
  ******************************************************************************/
 void memlcd_draw_data(memlcd_handle_t *handle);
+
+/***************************************************************************//**
+ * Add CO2 value to history
+ ******************************************************************************/
+void memlcd_add_co2_to_history(memlcd_handle_t *handle, uint16_t co2_value);
 
 /***************************************************************************//**
  * Display BLE passkey on LCD
