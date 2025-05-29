@@ -290,8 +290,10 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     // Use largest available font for CO2 value and position it higher up
     set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNumber16x20, &fontWidth, &fontHeight);
     
-    // Calculate centered position for CO2 value (assume max 4 digits)
-    int co2_x = get_centered_x("0000", fontWidth);
+    // Calculate centered position for CO2 value based on actual value length
+    char co2_str[12];
+    snprintf(co2_str, sizeof(co2_str), "%d", co2_value);
+    int co2_x = get_centered_x(co2_str, fontWidth);
     int co2_y = 20; // Moved higher toward battery/measurement interval to create space for chart
     
     draw_integer(co2_value, co2_x, co2_y, true);
@@ -312,8 +314,9 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     draw_centered_string("ppm", co2_y + fontHeight + 2, false);
     
     /* ---------- AIR QUALITY INDICATOR (RIGHT SIDE OF CO2) ---------- */
-    // Position air quality bars to the right of CO2 value (fixed position for max 4 digits)
-    int bars_x = co2_x + (4 * fontWidth) + 12; // Assume max 4 digits
+    // Position air quality bars to the right of CO2 value based on actual value width
+    int co2_width = strlen(co2_str) * fontWidth;
+    int bars_x = co2_x + co2_width + 12; // Position after actual CO2 text
     int bars_y = co2_y + 8;
     if (bars_x + 15 < LCD_WIDTH) { // Ensure bars fit (4 bars * 4 spacing - 1 = 15 pixels)
       draw_air_quality_indicator(&glibContext, bars_x, bars_y, co2_value);
