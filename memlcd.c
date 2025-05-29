@@ -104,9 +104,9 @@ static void draw_integer_with_suffix(int value, const char *suffix, int x, int y
 static void draw_battery_icon(GLIB_Context_t *context, int x, int y, int battery_level)
 {
   GLIB_Rectangle_t rects[] = {
-    {x, y, x+24, y+13},           // Battery outline
-    {x+25, y+4, x+27, y+9},       // Battery terminal
-    {x+2, y+2, x+22, y+11}        // Interior (will be white)
+    {x, y, x+18, y+10},           // Battery outline (smaller)
+    {x+19, y+3, x+20, y+7},       // Battery terminal (smaller)
+    {x+1, y+1, x+17, y+9}         // Interior (will be white)
   };
   
   // Draw outline and terminal
@@ -120,9 +120,9 @@ static void draw_battery_icon(GLIB_Context_t *context, int x, int y, int battery
   context->foregroundColor = original_color;
   
   // Battery level indicator
-  int fill_width = (battery_level * 18) / 100;
+  int fill_width = (battery_level * 14) / 100;
   if (fill_width > 0) {
-    GLIB_Rectangle_t fill = {x+3, y+3, x+2+fill_width, y+10};
+    GLIB_Rectangle_t fill = {x+2, y+2, x+1+fill_width, y+8};
     GLIB_drawRectFilled(context, &fill);
   }
 }
@@ -253,9 +253,8 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     int small_font_width, small_font_height;
     set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNormal8x8, &small_font_width, &small_font_height);
     
-    // Battery icon in top right (much larger, more visible) - adjusted position for larger icon
-    draw_battery_icon(&glibContext, 95, 2, handle->battery_level);
-    draw_integer_with_suffix(handle->battery_level, "%", 65, 6, false);
+    // Battery icon in top right (smaller size) - icon only, no percentage text
+    draw_battery_icon(&glibContext, 107, 2, handle->battery_level);
     
     // Update info in top left
     if (handle->date != NULL && strlen(handle->date) <= 4) {
@@ -263,7 +262,7 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     }
     
     /* ---------- PPM LABEL UNDER CO2 ---------- */
-    draw_centered_string("co2", co2_y + fontHeight + 2, false);
+    draw_centered_string("ppm", co2_y + fontHeight + 2, false);
     
     /* ---------- AIR QUALITY INDICATOR (RIGHT SIDE OF CO2) ---------- */
     // Position air quality bars to the right of CO2 value (fixed position for max 4 digits)
