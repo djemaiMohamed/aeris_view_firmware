@@ -186,6 +186,20 @@ static void send_notifications(void)
   } else {
     app_log_error("Failed to send CO2 notification. Status: 0x%04x\n", sc);
   }
+
+  // Send battery level notification
+  sc = sl_bt_gatt_server_send_notification(
+    connection_handle,
+    gattdb_battery_level,
+    sizeof(sensor_data->battery_percentage),
+    &sensor_data->battery_percentage
+  );
+
+  if (sc == SL_STATUS_OK) {
+    app_log_info("Battery level notification sent successfully: %d%%\n", sensor_data->battery_percentage);
+  } else {
+    app_log_error("Failed to send battery level notification. Status: 0x%04x\n", sc);
+  }
 }
 
 /***************************************************************************//**

@@ -52,7 +52,7 @@ static int16_t pwr_max;
 
 // A semaphore to trigger bonding process
 extern OS_SEM sensor_data_ready_sem;
-extern OS_SEM *ble_notification_sem;
+extern OS_SEM ble_notification_sem;
 extern OS_SEM scan_sem;
 extern OS_TCB *notification_task_tcb_ptr;
 extern OS_TCB *lcd_task_tcb_ptr;

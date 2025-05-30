@@ -7,6 +7,12 @@
 #include "sensirion_i2c_hal.h"
 #include "app_assert.h"
 #include "sl_memory_manager.h" // Added for dynamic allocation
+#include "em_device.h"
+#include "em_cmu.h"
+#include "em_iadc.h"
+
+// Battery measurement defines
+#define MICROVOLTS_PER_STEP 1221
 
 // Semaphores for synchronization
 OS_SEM sensor_data_ready_sem;
@@ -164,6 +170,85 @@ sensor_data_t* sensor_get_latest_readings(void)
 }
 
 /**************************************************************************//**
+ * Initialize IADC for battery voltage measurement.
+ *****************************************************************************/
+void battery_init(void)
+{
+  // Enable IADC0 clock branch
+  CMU_ClockEnable(cmuClock_IADC0, true);
+
+  // Declare init structs
+  IADC_Init_t init = IADC_INIT_DEFAULT;
+  IADC_AllConfigs_t initAllConfigs = IADC_ALLCONFIGS_DEFAULT;
+  IADC_InitSingle_t initSingle = IADC_INITSINGLE_DEFAULT;
+
+  // Single input structure
+  IADC_SingleInput_t singleInput = IADC_SINGLEINPUT_DEFAULT;
+
+  // Initialize IADC
+  IADC_init(IADC0, &init, &initAllConfigs);
+
+  // Configure single input
+  singleInput.posInput = iadcPosInputAvdd;      // Add AVDD to GPIO so it can be measured
+  singleInput.negInput = iadcNegInputGnd;       // Use ground as negative input
+
+  // Initialize single conversion
+  IADC_initSingle(IADC0, &initSingle, &singleInput);
+  
+  app_log_info("Battery IADC initialized\n");
+}
+
+/**************************************************************************//**
+ * Read IADC value for battery voltage.
+ * @return IADC reading
+ *****************************************************************************/
+static uint32_t battery_read_adc(void)
+{
+  IADC_Result_t sample;
+  
+  // Start IADC conversion
+  IADC_command(IADC0, iadcCmdStartSingle);
+
+  // Wait for conversion to be complete
+  while((IADC0->STATUS & (_IADC_STATUS_CONVERTING_MASK | _IADC_STATUS_SINGLEFIFODV_MASK)) != _IADC_STATUS_SINGLEFIFODV_MASK);
+
+  // Get ADC result
+  sample = IADC_pullSingleFifoResult(IADC0);
+
+  // Convert to 12-bit unsigned value for compatibility
+  return sample.data;
+}
+
+/**************************************************************************//**
+ * Read battery voltage in millivolts.
+ * @return Battery voltage in millivolts
+ *****************************************************************************/
+uint32_t battery_read_voltage(void)
+{
+  uint32_t raw_reading = battery_read_adc();
+  uint32_t supply_voltage_mV = raw_reading * MICROVOLTS_PER_STEP / 1000UL;
+  return supply_voltage_mV;
+}
+
+/**************************************************************************//**
+ * Calculate battery percentage from voltage.
+ * @param voltage_mv Battery voltage in millivolts
+ * @return Battery percentage (0-100)
+ *****************************************************************************/
+uint8_t battery_calculate_percentage(uint32_t voltage_mv)
+{
+  // Simple linear calculation: assume 3300mV = 100%
+  // You may need to adjust this based on your battery characteristics
+  if (voltage_mv >= 3300) {
+    return 100;
+  } else if (voltage_mv <= 2500) {
+    return 0;
+  } else {
+    return (uint8_t)((voltage_mv - 2500) * 100 / (3300 - 2500));
+  }
+}
+
+/**************************************************************************//**
  * Initialize the sensor task and related resources.
  *****************************************************************************/
 void sensor_task_init(void)
@@ -223,6 +308,9 @@ void sensor_task(void *p_arg)
     // Continue anyway - will try to recover in the main loop
   }
 
+  // Initialize battery ADC
+  battery_init();
+
   // Start peridic measurement
   error = sensor_trigger_periodic_measurement();
   if (error) {
@@ -246,6 +334,11 @@ void sensor_task(void *p_arg)
     // Step 3: Read the measurement
     error = sensor_read_measurement(&sensor_readings);
     if (error == 0 && sensor_readings.valid_data) {
+      // Add battery measurement
+      sensor_readings.battery_voltage_mv = battery_read_voltage();
+      sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
+      app_log_info("Battery: %lu mV (%d%%)\n", sensor_readings.battery_voltage_mv, sensor_readings.battery_percentage);
+      
       // Signal that new data is available to other tasks
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);
       app_assert(err.Code == RTOS_ERR_NONE, "Sensor data ready semaphore post failed");
