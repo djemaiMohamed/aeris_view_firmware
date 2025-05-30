@@ -140,6 +140,24 @@ static void draw_temp_icon(GLIB_Context_t *context, int x, int y)
   }
 }
 
+// Helper function to draw Bluetooth icon
+static void draw_bluetooth_icon(GLIB_Context_t *context, int x, int y)
+{
+  // Draw Bluetooth symbol - characteristic B-shape with triangular points
+  // Vertical line down the middle
+  GLIB_drawLine(context, x+4, y, x+4, y+10);
+  
+  // Upper triangular section
+  GLIB_drawLine(context, x+4, y, x+7, y+3);    // Upper right diagonal
+  GLIB_drawLine(context, x+7, y+3, x+2, y+5);  // Cross line to left
+  GLIB_drawLine(context, x+2, y+5, x+4, y+5);  // Connect to center
+  
+  // Lower triangular section  
+  GLIB_drawLine(context, x+4, y+5, x+2, y+5);  // Connect from center
+  GLIB_drawLine(context, x+2, y+5, x+7, y+7);  // Cross line to right
+  GLIB_drawLine(context, x+7, y+7, x+4, y+10); // Lower right diagonal
+}
+
 // Helper function to draw humidity icon (water drop)
 static void draw_humidity_icon(GLIB_Context_t *context, int x, int y)
 {
@@ -305,7 +323,7 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     
     draw_integer(co2_value, co2_x, co2_y, true);
     
-    /* ---------- COMPACT TOP ROW: Battery + Update Info ---------- */
+    /* ---------- COMPACT TOP ROW: Measurement Interval + Bluetooth + Battery ---------- */
     int small_font_width, small_font_height;
     set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNormal8x8, &small_font_width, &small_font_height);
     
@@ -317,6 +335,13 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     snprintf(battery_str, sizeof(battery_str), "%d%%", handle->battery_level);
     int battery_text_x = 107 - (strlen(battery_str) * small_font_width) - 2; // Position text to left of icon with 2px spacing
     GLIB_drawString(&glibContext, battery_str, strlen(battery_str), battery_text_x, 6, false);
+    
+    // Bluetooth icon in the middle (only when connected)
+    if (handle->bluetooth_connected) {
+      // Position Bluetooth icon between measurement interval and battery
+      int bt_icon_x = (battery_text_x - 2 - 9) / 2 + 20; // Center between interval and battery, with some offset from left
+      draw_bluetooth_icon(&glibContext, bt_icon_x, 2);
+    }
     
     // Update info in top left
     if (handle->date != NULL && strlen(handle->date) <= 4) {
