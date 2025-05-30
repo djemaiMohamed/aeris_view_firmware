@@ -302,8 +302,14 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     int small_font_width, small_font_height;
     set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNormal8x8, &small_font_width, &small_font_height);
     
-    // Battery icon in top right (smaller size) - icon only, no percentage text
+    // Battery icon and percentage in top right
     draw_battery_icon(&glibContext, 107, 2, handle->battery_level);
+    
+    // Battery percentage text next to icon
+    char battery_str[5]; // "100%" + null terminator
+    snprintf(battery_str, sizeof(battery_str), "%d%%", handle->battery_level);
+    int battery_text_x = 107 - (strlen(battery_str) * small_font_width) - 2; // Position text to left of icon with 2px spacing
+    GLIB_drawString(&glibContext, battery_str, strlen(battery_str), battery_text_x, 6, false);
     
     // Update info in top left
     if (handle->date != NULL && strlen(handle->date) <= 4) {
