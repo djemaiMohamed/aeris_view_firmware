@@ -256,7 +256,7 @@ static void draw_co2_history_chart(GLIB_Context_t *context, int x, int y, int wi
     int chart_area_height = height;
     uint16_t value_range = max_value; // Range is now 0 to max_value
     
-    // Draw the area chart
+    // Draw the area chart with dotted fill and continuous line
     for (int i = 0; i < points_to_show; i++) {
       // Get data point
       int idx = (handle->history_index - points_to_show + i + CO2_HISTORY_SIZE) % CO2_HISTORY_SIZE;
@@ -268,8 +268,15 @@ static void draw_co2_history_chart(GLIB_Context_t *context, int x, int y, int wi
       // Convert CO2 value to Y coordinate (inverted) using 0-based range
       int data_y = y + height - 1 - ((co2_value * chart_area_height) / value_range);
       
-      // Draw vertical line from bottom to data point (area fill)
-      GLIB_drawLine(context, x + i, y + height - 1, x + i, data_y);
+      // Draw dotted vertical line from bottom to data point (grey area fill)
+      for (int dot_y = y + height - 1; dot_y >= data_y; dot_y -= 2) {
+        GLIB_drawPixel(context, x + i, dot_y);
+      }
+      
+      // Draw bold continuous chart line at data point
+      GLIB_drawPixel(context, x + i, data_y);
+      if (data_y > y) GLIB_drawPixel(context, x + i, data_y - 1);  // Above
+      if (data_y < y + height - 1) GLIB_drawPixel(context, x + i, data_y + 1);  // Below
     }
   }
 }
