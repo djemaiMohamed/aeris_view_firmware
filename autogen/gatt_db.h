@@ -27,8 +27,11 @@ extern const sli_bt_gattdb_t gattdb;
 #define gattdb_measurement_interval           35
 #define gattdb_humidity_0                     37
 #define gattdb_air_quality_id                 40
-#define gattdb_ota                            42
-#define gattdb_ota_control                    44
+#define gattdb_battery_service_0              42
+#define gattdb_battery_level                  44
+#define gattdb_characteristic_presentation_format 46
+#define gattdb_ota                            47
+#define gattdb_ota_control                    49
 
 
 #endif // __GATT_DB_H
