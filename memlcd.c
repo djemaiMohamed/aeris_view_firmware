@@ -255,13 +255,6 @@ static void draw_co2_history_chart(GLIB_Context_t *context, int x, int y, int wi
     max_value = 1000;
   }
   
-  // Draw horizontal grid line at middle value - dotted
-  uint16_t mid_value = max_value / 2; // Middle of 0 to max_value
-  int mid_y = y + height/2;
-  for (int i = x; i < x + width; i += 3) {
-    GLIB_drawPixel(context, i, mid_y);
-  }
-  
   // Draw adaptive maximum value label at top right of chart
   GLIB_setFont(context, (GLIB_Font_t *)&GLIB_FontNarrow6x8);
   char max_label[8];
