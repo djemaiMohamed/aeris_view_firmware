@@ -8,9 +8,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "sl_memory_manager.h" // Added for dynamic allocation
+#include "sl_bt_api.h" // Added for SL_BT_INVALID_CONNECTION_HANDLE
 
 // Semaphores for synchronization
 extern OS_SEM sensor_data_ready_sem;
+extern OS_SEM ble_notification_sem;
 OS_TCB *lcd_task_tcb_ptr;
 CPU_STK *lcd_task_stk_ptr;
 extern uint16_t measurement_interval;
@@ -146,6 +148,8 @@ void lcd_update_display(sensor_data_t *sensor_data)
   lcd_data.co2_value = sensor_data->co2_ppm;
   lcd_data.temperature_value = (float)sensor_data->temperature_mdeg_c / 1000.0f; // Convert from milli-degrees to degrees
   lcd_data.humidity_value = sensor_data->humidity_percent;
+  lcd_data.battery_level = sensor_data->battery_percentage; // Update battery level from sensor data
+  lcd_data.bluetooth_connected = (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) ? 1 : 0; // Update bluetooth connection status
   // Update measurement interval string
   lcd_update_measurement_interval_string(measurement_interval);
   // Update LCD data structure with measurement interval string
@@ -156,11 +160,13 @@ void lcd_update_display(sensor_data_t *sensor_data)
   // Draw data to LCD
   memlcd_draw_data(&lcd_data);
   
-  app_log_info("LCD display updated - CO2: %u ppm, Temp: %ld.%ld°C, Humidity: %lu%%\n",
+  app_log_info("LCD display updated - CO2: %u ppm, Temp: %ld.%ld°C, Humidity: %lu%%, Battery: %d%%, BT: %s\n",
                sensor_data->co2_ppm,
                sensor_data->temperature_mdeg_c / 1000,
                (sensor_data->temperature_mdeg_c % 1000) / 100,
-               sensor_data->humidity_percent);
+               sensor_data->humidity_percent,
+               sensor_data->battery_percentage,
+               lcd_data.bluetooth_connected ? "Connected" : "Disconnected");
 }
 
 /**************************************************************************//**
@@ -196,7 +202,7 @@ void lcd_task(void *p_arg)
     lcd_update_display(sensor_data);
 
     // if connection handle is valid and pairing mode is false
-    if (connection_handle != 0xFF) {
+    if (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
       // Trigger BLE notifications to send updated data
       app_log_info("Triggering BLE notifications for updated sensor data.\n");
       // Triger notification task to send notifications

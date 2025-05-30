@@ -183,7 +183,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           break;
         case sl_bt_connection_mode1_level4:
           app_log_info("Authenticated Secure Connections pairing with encryption (BT 4.2 LE Secure Pairing)\r\n");
-          OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
+          // Signal the sensor task to update LCD
+          OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
           break;
         default:
           break;
@@ -210,6 +211,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                          sl_bt_advertiser_connectable_scannable);
       // log start advertising
       app_log_info("Advertising restarted.\n");
+      // Signal the sensor task to update LCD
+      OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
       break;
 
     ///////////////////////////////////////////////////////////////////////////
