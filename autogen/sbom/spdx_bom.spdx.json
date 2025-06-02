@@ -5,7 +5,7 @@
   "name" : "Silicon-Laboratories",
   "documentNamespace" : "https://silabs.com",
   "creationInfo" : {
-    "created" : "2025-05-25T07:10:45.647247Z",
+    "created" : "2025-06-02T00:50:14.800782Z",
     "creators" : [ "Tool: Silicon Labs Configuration Tooling" ]
   },
   "comment" : "TERMS OF USE - SILICON LABORATORIES INC.\n(With respect to Silicon Labs software components, this Software Bill of Materials (SBOM) is based upon Silicon Labs'\nreview and analysis of the code version when released.  It is provided \"AS IS\" and does not modify, change or alter\nthe terms or conditions of your use of Silicon Labs' software and/or SDKs based upon license terms and/or agreements\nassociated with this software or SDKs when distributed to you, received by you, or installed by you.  Further, no\nwarranties or obligations are created by this SBOM.  It is your obligation to comply with the terms of licenses\nreferenced in this SBOM.)",
@@ -180,6 +180,14 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-i2cspm",
     "name" : "I2CSPM",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu",
+    "name" : "In-Place OTA DFU",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -976,6 +984,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-app_timer",
+    "name" : "Timer",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-se_manager_mailbox",
     "name" : "SE mailbox utilities",
     "versionInfo" : "2024.12.2",
@@ -1256,6 +1272,14 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_features",
     "name" : "RAIL Library Features, Core",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "MSLA"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-apploader",
+    "name" : "AppLoader Support for Applications",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -1651,6 +1675,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-apploader_util",
+    "name" : "AppLoader Utility",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "MSLA"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-mbedtls_config",
     "name" : "Configuration",
     "versionInfo" : "2024.12.2",
@@ -1685,32 +1717,8 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu",
-    "name" : "In-Place OTA DFU",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-app_timer",
-    "name" : "Timer",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-apploader",
-    "name" : "AppLoader Support for Applications",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "MSLA"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-apploader_util",
-    "name" : "AppLoader Utility",
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-bluetooth_feature_user_power_control",
+    "name" : "Application-controlled TX Power",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -1804,6 +1812,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-i2cspm",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -2191,6 +2203,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-app_timer",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-se_manager_mailbox",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2328,6 +2344,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_features",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-apploader",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -2511,6 +2531,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-apploader_util",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-mbedtls_config",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2527,19 +2551,7 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-app_timer",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-apploader",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-apploader_util",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-bluetooth_feature_user_power_control",
     "relationshipType" : "CONTAINS"
   } ]
 }

@@ -39,6 +39,7 @@ sensor_data_t* sensor_get_latest_readings(void);
 
 // Battery functions
 void battery_init(void);
+void battery_deinit(void);
 uint32_t battery_read_voltage(void);
 uint8_t battery_calculate_percentage(uint32_t voltage_mv);
 

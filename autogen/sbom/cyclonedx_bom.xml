@@ -10,7 +10,7 @@ referenced in this SBOM.)
 -->
 <bom xmlns="http://cyclonedx.org/schema/bom/1.6" version="1">
   <metadata>
-    <timestamp>2025-05-25T07:10:45.647247Z</timestamp>
+    <timestamp>2025-06-02T00:50:14.800782Z</timestamp>
     <authors>
       <author>
         <name>Silicon Laboratories, Inc.</name>
@@ -227,6 +227,16 @@ referenced in this SBOM.)
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:i2cspm" type="library">
           <name>I2CSPM</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>Zlib</expression>
+          </licenses>
+        </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:in_place_ota_dfu" type="library">
+          <name>In-Place OTA DFU</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>
@@ -1272,6 +1282,16 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:app_timer" type="library">
+          <name>Timer</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>Zlib</expression>
+          </licenses>
+        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:se_manager_mailbox" type="library">
           <name>SE mailbox utilities</name>
           <version>2024.12.2</version>
@@ -1641,6 +1661,16 @@ referenced in this SBOM.)
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:rail_util_features" type="library">
           <name>RAIL Library Features, Core</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>MSLA</expression>
+          </licenses>
+        </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:apploader" type="library">
+          <name>AppLoader Support for Applications</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>
@@ -2165,6 +2195,16 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:apploader_util" type="library">
+          <name>AppLoader Utility</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>MSLA</expression>
+          </licenses>
+        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:mbedtls_config" type="library">
           <name>Configuration</name>
           <version>2024.12.2</version>
@@ -2214,38 +2254,8 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:in_place_ota_dfu" type="library">
-          <name>In-Place OTA DFU</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:app_timer" type="library">
-          <name>Timer</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:apploader" type="library">
-          <name>AppLoader Support for Applications</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>MSLA</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:apploader_util" type="library">
-          <name>AppLoader Utility</name>
+        <component bom-ref="simplicity_sdk:2024.12.2:bluetooth_feature_user_power_control" type="library">
+          <name>Application-controlled TX Power</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>

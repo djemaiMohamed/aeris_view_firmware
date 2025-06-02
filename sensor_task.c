@@ -199,6 +199,21 @@ void battery_init(void)
 }
 
 /**************************************************************************//**
+ * Deinitialize IADC for battery voltage measurement.
+ *****************************************************************************/
+void battery_deinit(void)
+{
+  // Reset IADC to disable the module
+  //IADC_disable(IADC0);
+  IADC0->EN_CLR = IADC_EN_EN;
+  
+  // Disable IADC0 clock branch to save power
+  CMU_ClockEnable(cmuClock_IADC0, false);
+  
+  app_log_info("Battery IADC deinitialized\n");
+}
+
+/**************************************************************************//**
  * Read IADC value for battery voltage.
  * @return IADC reading
  *****************************************************************************/
@@ -239,12 +254,12 @@ uint8_t battery_calculate_percentage(uint32_t voltage_mv)
 {
   // Simple linear calculation: assume 3300mV = 100%
   // You may need to adjust this based on your battery characteristics
-  if (voltage_mv >= 3300) {
+  if (voltage_mv >= 3000) {
     return 100;
-  } else if (voltage_mv <= 2500) {
+  } else if (voltage_mv < 2400) {
     return 0;
   } else {
-    return (uint8_t)((voltage_mv - 2500) * 100 / (3300 - 2500));
+    return (uint8_t)((voltage_mv - 2400) * 100 / (3000 - 2400));
   }
 }
 
@@ -309,33 +324,42 @@ void sensor_task(void *p_arg)
   }
 
   // Initialize battery ADC
-  battery_init();
+  //battery_init();
 
   // Start peridic measurement
-  error = sensor_trigger_periodic_measurement();
+  //error = sensor_trigger_periodic_measurement();
   if (error) {
     app_log_error("Error starting periodic measurement: %d\n", error);
     // Continue anyway - will try to recover in the main loop
   }
   
   while (DEF_TRUE) {
+    // wakeup the sensor if it was in sleep mode
+    error = scd4x_wake_up();
     // Step 1: Trigger a measurement
-    //error = sensor_trigger_measurement();
-    //if (error) {
-    //  app_log_error("Failed to trigger measurement. Will retry after delay.\n");
-    //  // Wait and try again
-    //  OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-    //  continue;
-    //}
-    
-    // Step 2: Wait for measurement to complete
-    OSTimeDlyHMSM(0, 0, measurement_interval + 1, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    error = sensor_trigger_measurement();
+    if (error) {
+      app_log_error("Failed to trigger measurement. Will retry after delay.\n");
+      // Wait and try again
+      OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+      continue;
+    }
+    // sleep for 5 seconds to allow measurement to complete
+    OSTimeDlyHMSM(0, 0, 4, 0, OS_OPT_TIME_HMSM_STRICT, &err);
     
     // Step 3: Read the measurement
     error = sensor_read_measurement(&sensor_readings);
+    // power down the sensor after reading
+    scd4x_power_down();
+
+    // Step 2: Wait for measurement to complete
+    OSTimeDlyHMSM(0, 0, measurement_interval + 1 - 4, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+
     if (error == 0 && sensor_readings.valid_data) {
       // Add battery measurement
+      battery_init();
       sensor_readings.battery_voltage_mv = battery_read_voltage();
+      battery_deinit();
       sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
       app_log_info("Battery: %lu mV (%d%%)\n", sensor_readings.battery_voltage_mv, sensor_readings.battery_percentage);
       

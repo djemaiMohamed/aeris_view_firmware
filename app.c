@@ -131,7 +131,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       sl_bt_sm_store_bonding_configuration(32, 1);
       app_log_info("bondable mode is set");
 
-      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
+      sl_bt_system_set_tx_power(-30, -10, &pwr_min, &pwr_max);
 
       // Create an advertising set.
       sc = sl_bt_advertiser_create_set(&advertising_set_handle);
@@ -141,8 +141,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       // Set advertising interval.
       sc = sl_bt_advertiser_set_timing(
         advertising_set_handle,
-        3200, // min. adv. interval (milliseconds * 1.6)
-        3200, // max. adv. interval (milliseconds * 1.6)
+        6400, // min. adv. interval (milliseconds * 1.6)
+        6400, // max. adv. interval (milliseconds * 1.6)
         0,   // adv. duration (3 minutes)
         0);  // max. num. adv. events
       // Start advertising and enable connections.
@@ -156,7 +156,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
 
-      sl_bt_system_set_tx_power(-30, 80, &pwr_min, &pwr_max);
+      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
 
       // inscrease security level
       sc = sl_bt_sm_increase_security(evt->data.evt_connection_opened.connection);
@@ -204,7 +204,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.reason);
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
 
-      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
+      sl_bt_system_set_tx_power(-30, -10, &pwr_min, &pwr_max);
 
       // Start advertising and enable connections.
       sc = sl_bt_legacy_advertiser_start(advertising_set_handle,
@@ -249,7 +249,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       app_log_error("Device not secure. Closing connection.\n");
       sl_bt_connection_close(evt->data.evt_sm_bonding_failed.connection);
 
-      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
+      sl_bt_system_set_tx_power(-30, -10, &pwr_min, &pwr_max);
 
       sc = sl_bt_legacy_advertiser_start(
           advertising_set_handle,

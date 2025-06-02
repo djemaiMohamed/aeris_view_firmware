@@ -40,6 +40,7 @@ component:
 - {id: bluetooth_feature_legacy_scanner}
 - {id: bluetooth_feature_sm}
 - {id: bluetooth_feature_system}
+- {id: bluetooth_feature_user_power_control}
 - {id: bluetooth_stack}
 - {id: bootloader_interface}
 - {id: brd4001a}
