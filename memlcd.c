@@ -381,10 +381,16 @@ void memlcd_draw_data(memlcd_handle_t *handle)
     int temp_frac = (int)((handle->temperature_value - temp_whole) * 10);
     if (temp_frac < 0) temp_frac = -temp_frac;
     
+    // Round temperature to nearest whole value
+    int temp_rounded = temp_whole;
+    if (temp_frac >= 5) {
+        temp_rounded = (handle->temperature_value >= 0) ? temp_whole + 1 : temp_whole - 1;
+    }
+    
     // Draw temperature icon aligned with text baseline
     draw_temp_icon(&glibContext, 2, bottom_y);
     // Draw temperature value next to icon
-    draw_integer(temp_whole, 16, bottom_y, false);
+    draw_integer(temp_rounded, 16, bottom_y, false);
     
     // Humidity with icon on same row (right side)
     int humidity_width = 2 * large_font_width; // Assume max 2 digits for humidity
