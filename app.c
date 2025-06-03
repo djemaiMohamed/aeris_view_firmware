@@ -271,7 +271,12 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_measurement_interval) {
         handle_measurement_interval_write(evt->data.evt_gatt_server_attribute_value.value.data,
                                           evt->data.evt_gatt_server_attribute_value.value.len);
-        // Signal the sensor task to update the measurement interval
+        // Signal the sensor task to update the measurement interval.
+        OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
+      } else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_temp_unit_id) {
+        handle_temperature_unit_write(evt->data.evt_gatt_server_attribute_value.value.data,
+                                     evt->data.evt_gatt_server_attribute_value.value.len);
+        // Signal the sensor task to update temperature.
         OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
       }
       break;
@@ -280,6 +285,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_measurement_interval) {
         handle_measurement_interval_read(evt->data.evt_gatt_server_user_read_request.connection,
                                          evt->data.evt_gatt_server_user_read_request.characteristic);
+      } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_temp_unit_id) {
+        handle_temperature_unit_read(evt->data.evt_gatt_server_user_read_request.connection,
+                                    evt->data.evt_gatt_server_user_read_request.characteristic);
       }
       break;
     // -------------------------------

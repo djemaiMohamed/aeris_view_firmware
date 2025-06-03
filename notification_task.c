@@ -17,6 +17,7 @@ extern OS_TCB *sensor_task_tcb_ptr;
 OS_SEM ble_notification_sem;
 extern uint8_t connection_handle;
 extern uint16_t measurement_interval;
+extern uint8_t temperature_unit;
 
 // Task function prototype
 static void notification_task(void *p_arg);
@@ -112,10 +113,56 @@ void handle_measurement_interval_read(uint16_t connection, uint16_t characterist
   }
 }
 
+// Function to handle GATT write requests for the temperature unit
+void handle_temperature_unit_write(uint8_t *value, uint16_t length)
+{
+  if (length == sizeof(temperature_unit)) {
+    uint8_t new_unit = value[0];
+    if (new_unit == 0 || new_unit == 1) { // Validate range (0 = Celsius, 1 = Fahrenheit)
+      temperature_unit = new_unit;
+      app_log_info("Temperature unit updated to %s.\n", temperature_unit ? "Fahrenheit" : "Celsius");
+    } else {
+      app_log_warning("Invalid temperature unit: %d. Must be 0 (Celsius) or 1 (Fahrenheit).\n", new_unit);
+    }
+  } else {
+    app_log_warning("Invalid write length for temperature unit.\n");
+  }
+}
+
+// Function to handle GATT read requests for the temperature unit
+void handle_temperature_unit_read(uint16_t connection, uint16_t characteristic)
+{
+  uint8_t value = temperature_unit;
+
+  sl_status_t sc = sl_bt_gatt_server_send_user_read_response(
+    connection,
+    characteristic,
+    0, // Success
+    sizeof(value),
+    &value,
+    NULL
+  );
+
+  if (sc == SL_STATUS_OK) {
+    app_log_info("Temperature unit read: %s.\n", temperature_unit ? "Fahrenheit" : "Celsius");
+  } else {
+    app_log_error("Failed to send temperature unit read response. Status: 0x%04x\n", sc);
+  }
+}
+
 // Function to convert temperature to buffer format
 static void temperature_measurement_val_to_buf(int32_t value, bool fahrenheit, uint8_t *buffer)
 {
-  uint32_t tmp_value = ((uint32_t)value & 0x00ffffffu) | ((uint32_t)(-3) << 24);
+  int32_t temp_value = value;
+  
+  // Convert temperature based on unit
+  if (fahrenheit) {
+    // Convert from Celsius to Fahrenheit: F = C * 1.8 + 32
+    // For milli-degrees: F_mdeg = (C_mdeg * 18) / 10 + 32000
+    temp_value = (value * 18) / 10 + 32000;
+  }
+  
+  uint32_t tmp_value = ((uint32_t)temp_value & 0x00ffffffu) | ((uint32_t)(-3) << 24);
   buffer[0] = fahrenheit ? 1 : 0;
   buffer[1] = tmp_value & 0xff;
   buffer[2] = (tmp_value >> 8) & 0xff;
@@ -135,7 +182,7 @@ static void send_notifications(void)
   sensor_data_t *sensor_data = sensor_get_latest_readings();
 
   // Prepare temperature data for BLE notification
-  temperature_measurement_val_to_buf(sensor_data->temperature_mdeg_c, false, temperature);
+  temperature_measurement_val_to_buf(sensor_data->temperature_mdeg_c, temperature_unit, temperature);
 
   // Send temperature notification
   sc = sl_bt_gatt_server_send_notification(

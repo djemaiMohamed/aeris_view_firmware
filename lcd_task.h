@@ -18,9 +18,5 @@ void lcd_task(void *p_arg);
 void lcd_init_display(void);
 void lcd_update_display(sensor_data_t *sensor_data);
 void lcd_update_measurement_interval_string(uint16_t interval_seconds);
-void lcd_format_measurement_values(sensor_data_t *sensor_data, 
-                                  char *co2_str, 
-                                  char *temp_str, 
-                                  char *humidity_str);
 
 #endif // LCD_TASK_H

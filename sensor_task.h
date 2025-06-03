@@ -43,4 +43,8 @@ void battery_deinit(void);
 uint32_t battery_read_voltage(void);
 uint8_t battery_calculate_percentage(uint32_t voltage_mv);
 
+// Global variables
+extern uint16_t measurement_interval;
+extern uint8_t temperature_unit;
+
 #endif // SENSOR_TASK_H

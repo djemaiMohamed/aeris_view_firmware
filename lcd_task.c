@@ -18,6 +18,7 @@ CPU_STK *lcd_task_stk_ptr;
 extern uint16_t measurement_interval;
 extern uint8_t connection_handle;
 extern bool suspend_lcd;
+extern uint8_t temperature_unit;
 
 // Variables for LCD display data
 memlcd_handle_t lcd_data;
@@ -107,33 +108,6 @@ void lcd_update_measurement_interval_string(uint16_t interval_seconds)
 }
 
 /**************************************************************************//**
- * Format sensor measurement values for display.
- * @param[in] sensor_data Pointer to the sensor data structure
- * @param[out] co2_str Buffer to store CO2 string (can be NULL if not needed)
- * @param[out] temp_str Buffer to store temperature string (can be NULL if not needed)
- * @param[out] humidity_str Buffer to store humidity string (can be NULL if not needed)
- *****************************************************************************/
-void lcd_format_measurement_values(sensor_data_t *sensor_data, 
-                                  char *co2_str, 
-                                  char *temp_str, 
-                                  char *humidity_str)
-{
-  if (co2_str != NULL) {
-    snprintf(co2_str, 16, "%u ppm", sensor_data->co2_ppm);
-  }
-  
-  if (temp_str != NULL) {
-    snprintf(temp_str, 16, "%ld.%ld°C", 
-             sensor_data->temperature_mdeg_c / 1000, 
-             (sensor_data->temperature_mdeg_c % 1000) / 100);
-  }
-  
-  if (humidity_str != NULL) {
-    snprintf(humidity_str, 16, "%lu%%", sensor_data->humidity_percent);
-  }
-}
-
-/**************************************************************************//**
  * Update the LCD display with sensor data.
  * @param[in] sensor_data Pointer to the sensor data structure
  *****************************************************************************/
@@ -146,7 +120,16 @@ void lcd_update_display(sensor_data_t *sensor_data)
   
   // Update LCD data structure with latest measurements
   lcd_data.co2_value = sensor_data->co2_ppm;
-  lcd_data.temperature_value = (float)sensor_data->temperature_mdeg_c / 1000.0f; // Convert from milli-degrees to degrees
+  
+  // Convert temperature based on unit setting
+  if (temperature_unit == 0) {
+    lcd_data.temperature_value = (float)sensor_data->temperature_mdeg_c / 1000.0f; // Celsius
+  } else {
+    // Convert to Fahrenheit: F = C * 1.8 + 32
+    float temp_celsius = (float)sensor_data->temperature_mdeg_c / 1000.0f;
+    lcd_data.temperature_value = temp_celsius * 1.8f + 32.0f; // Fahrenheit
+  }
+  
   lcd_data.humidity_value = sensor_data->humidity_percent;
   lcd_data.battery_level = sensor_data->battery_percentage; // Update battery level from sensor data
   lcd_data.bluetooth_connected = (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) ? 1 : 0; // Update bluetooth connection status
@@ -160,13 +143,27 @@ void lcd_update_display(sensor_data_t *sensor_data)
   // Draw data to LCD
   memlcd_draw_data(&lcd_data);
   
-  app_log_info("LCD display updated - CO2: %u ppm, Temp: %ld.%ld°C, Humidity: %lu%%, Battery: %d%%, BT: %s\n",
-               sensor_data->co2_ppm,
-               sensor_data->temperature_mdeg_c / 1000,
-               (sensor_data->temperature_mdeg_c % 1000) / 100,
-               sensor_data->humidity_percent,
-               sensor_data->battery_percentage,
-               lcd_data.bluetooth_connected ? "Connected" : "Disconnected");
+  // Log temperature in the selected unit for display purposes
+  if (temperature_unit == 0) {
+    // Log in Celsius
+    app_log_info("LCD display updated - CO2: %u ppm, Temp: %ld.%ld°C, Humidity: %lu%%, Battery: %d%%, BT: %s\n",
+                 sensor_data->co2_ppm,
+                 sensor_data->temperature_mdeg_c / 1000,
+                 (sensor_data->temperature_mdeg_c % 1000) / 100,
+                 sensor_data->humidity_percent,
+                 sensor_data->battery_percentage,
+                 lcd_data.bluetooth_connected ? "Connected" : "Disconnected");
+  } else {
+    // Convert to Fahrenheit for logging
+    int32_t temp_fahrenheit_mdeg = (sensor_data->temperature_mdeg_c * 18) / 10 + 32000;
+    app_log_info("LCD display updated - CO2: %u ppm, Temp: %ld.%ld°F, Humidity: %lu%%, Battery: %d%%, BT: %s\n",
+                 sensor_data->co2_ppm,
+                 temp_fahrenheit_mdeg / 1000,
+                 (temp_fahrenheit_mdeg % 1000) / 100,
+                 sensor_data->humidity_percent,
+                 sensor_data->battery_percentage,
+                 lcd_data.bluetooth_connected ? "Connected" : "Disconnected");
+  }
 }
 
 /**************************************************************************//**

@@ -24,6 +24,8 @@ bool notification_task_is_running(void);
 
 void handle_measurement_interval_write(uint8_t *value, uint16_t length);
 void handle_measurement_interval_read(uint16_t connection, uint16_t characteristic);
+void handle_temperature_unit_write(uint8_t *value, uint16_t length);
+void handle_temperature_unit_read(uint16_t connection, uint16_t characteristic);
 
 
 #endif // NOTIFICATION_TASK_H

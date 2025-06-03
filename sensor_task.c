@@ -22,7 +22,9 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 30; // Default to 5 seconds
+uint16_t measurement_interval = 4; // Default to 5 seconds
+// temperature unit (0 = Celsius, 1 = Fahrenheit)
+uint8_t temperature_unit = 0; // Default to Celsius
 
 /**************************************************************************//**
  * Initialize the SCD4x sensor for single shot measurements.
@@ -252,7 +254,7 @@ uint32_t battery_read_voltage(void)
  *****************************************************************************/
 uint8_t battery_calculate_percentage(uint32_t voltage_mv)
 {
-  // Simple linear calculation: assume 3300mV = 100%
+  // Simple linear calculation: assume 3000mV = 100%
   // You may need to adjust this based on your battery characteristics
   if (voltage_mv >= 3000) {
     return 100;

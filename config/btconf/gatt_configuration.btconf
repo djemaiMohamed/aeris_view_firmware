@@ -158,6 +158,15 @@ Summary:
         <notify authenticated="true" bonded="true" encrypted="true"/>
       </properties>
     </characteristic>
+
+    <!--temperature_unit-->
+    <characteristic const="false" id="temp_unit_id" name="temperature_unit" sourceId="" uuid="123c7dfe-ede3-4889-84c5-c0382a32df05">
+      <value length="0" type="hex" variable_length="false">00</value>
+      <properties>
+        <read authenticated="true" bonded="true" encrypted="true"/>
+        <write authenticated="false" bonded="false" encrypted="false"/>
+      </properties>
+    </characteristic>
   </service>
 
   <!--Battery Service-->
