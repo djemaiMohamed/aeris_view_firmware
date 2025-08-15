@@ -39,11 +39,11 @@
 
 // <o SL_MEMLCD_DISPLAY_WIDTH> Memory LCD Diplay's Pixel Width <0-600>
 // <i> Default: 128
-#define SL_MEMLCD_DISPLAY_WIDTH    128
+#define SL_MEMLCD_DISPLAY_WIDTH    400
 
 // <o SL_MEMLCD_DISPLAY_HEIGHT> Memory LCD Diplay's Pixel Height <0-600>
 // <i> Default: 128
-#define SL_MEMLCD_DISPLAY_HEIGHT    128
+#define SL_MEMLCD_DISPLAY_HEIGHT    240
 
 // <o SL_MEMLCD_DISPLAY_BPP> Memory LCD Diplay's BPP (Bits per pixel) <0-8>
 // <i> Default: 1
