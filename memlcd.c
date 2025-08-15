@@ -1,6 +1,6 @@
 /***************************************************************************//**
  * @file memlcd_app.c
- * @brief Memory Liquid Crystal Display (LCD) example functions
+ * @brief Memory Liquid Crystal Display (LCD) direct renderer (no full framebuffer)
  *******************************************************************************
  * # License
  * <b>Copyright 2020 Silicon Laboratories Inc. www.silabs.com</b>
@@ -19,489 +19,342 @@
 #include <string.h>
 
 #include "sl_assert.h"
-#include "glib.h"
-#include "dmd.h"
 #include "sl_memlcd.h"
+#include "sl_memlcd_display.h"
+#include "sl_board_control.h"
+// Keep access to font metadata/bitmaps only (no GLIB/DMD rendering APIs)
+#include "glib.h"
 
-/*******************************************************************************
- *******************************   DEFINES   ***********************************
- ******************************************************************************/
-
+//------------------------------------------------------------------------------
+// Display geometry
 #define LCD_WIDTH           400
 #define LCD_HEIGHT          240
+#define BYTES_PER_ROW       (LCD_WIDTH / 8)
+
 #define CO2_HISTORY_SIZE    400
+#define CO2_POINTS_RENDER_MAX  200
 
-/*******************************************************************************
- ***************************  LOCAL VARIABLES   ********************************
- ******************************************************************************/
-static GLIB_Context_t glibContext;
+//------------------------------------------------------------------------------
+// Local state
+static const sl_memlcd_t *s_memlcd = NULL;
+static uint8_t s_row[BYTES_PER_ROW]; // 400/8 = 50 bytes
 
-/*******************************************************************************
- **************************   GLOBAL FUNCTIONS   *******************************
- ******************************************************************************/
-// Common LCD initialization helper
-static void init_lcd_context(void)
+// Current font pointer (read-only bitmaps in flash)
+static const GLIB_Font_t *s_font = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+
+//------------------------------------------------------------------------------
+// Bit helpers
+static inline void row_clear(uint8_t *row)
 {
-  uint32_t status;
-  status = sl_board_enable_display();
-  EFM_ASSERT(status == SL_STATUS_OK);
-  status = DMD_init(0);
-  EFM_ASSERT(status == DMD_OK);
-  status = GLIB_contextInit(&glibContext);
-  EFM_ASSERT(status == GLIB_OK);
-  glibContext.backgroundColor = White;
-  glibContext.foregroundColor = Black;
-  GLIB_clear(&glibContext);
+  memset(row, 0x00, BYTES_PER_ROW); // 0 = white background; 1-bits = black pixels
 }
 
-// Common display finalization helper
-static void finalize_display(void)
+static inline void set_pixel(uint8_t *row, int x)
 {
-  DMD_updateDisplay();
-  DMD_sleep();
+  if ((unsigned)x >= LCD_WIDTH) return;
+  row[x >> 3] |= (uint8_t)(1u << (x & 0x7));
 }
 
-// Helper to set font and get properties
-static void set_font_and_get_props(GLIB_Font_t *font, int *char_width, int *char_height)
+static inline void draw_hline(uint8_t *row, int x0, int x1)
 {
-  GLIB_setFont(&glibContext, font);
-  const GLIB_Font_t *font_props = &glibContext.font;
-  *char_width = font_props->fontWidth;
-  *char_height = font_props->fontHeight;
+  if (x0 > x1) { int t = x0; x0 = x1; x1 = t; }
+  if (x1 < 0 || x0 >= LCD_WIDTH) return;
+  if (x0 < 0) x0 = 0;
+  if (x1 >= LCD_WIDTH) x1 = LCD_WIDTH - 1;
+  for (int x = x0; x <= x1; ++x) set_pixel(row, x);
 }
 
-// Helper to calculate centered X position
-static int get_centered_x(const char *text, int char_width)
+//------------------------------------------------------------------------------
+// Font helpers (render only the parts that affect the current row)
+static void set_font(const GLIB_Font_t *font)
 {
-  return (LCD_WIDTH - (strlen(text) * char_width)) / 2;
+  s_font = font;
 }
 
-// Helper to draw centered string
-static void draw_centered_string(const char *text, int y, bool opaque)
+// Map ASCII char to font index (subset needed)
+static bool font_char_to_index(const GLIB_Font_t *font, char ch, uint16_t *out_idx)
 {
-  const GLIB_Font_t *font_props = &glibContext.font;
-  int x = get_centered_x(text, font_props->fontWidth);
-  GLIB_drawString(&glibContext, text, strlen(text), x, y, opaque);
+  if (!font || !out_idx) return false;
+  if (font->fontClass == NumbersOnlyFont) {
+    if (ch >= '0' && ch <= '9') { *out_idx = (uint16_t)(ch - '0'); return true; }
+    if (ch == ':') { *out_idx = 10; return true; }
+    if (ch == ' ') { *out_idx = 11; return true; }
+    return false;
+  }
+  if (ch < ' ' || ch > '~') return false;
+  *out_idx = (uint16_t)(ch - ' ');
+  return true;
 }
 
-// Helper to format integer and draw it
-static void draw_integer(int value, int x, int y, bool opaque)
+// Draw a single character contribution into a row (y is row index on screen)
+static void draw_char_row(uint8_t *row, const GLIB_Font_t *font,
+                          char ch, int x0, int y0, uint8_t scale, int y)
 {
-  char buffer[12]; // Enough for any 32-bit integer
-  snprintf(buffer, sizeof(buffer), "%d", value);
-  GLIB_drawString(&glibContext, buffer, strlen(buffer), x, y, opaque);
-}
+  if (!font || scale == 0) return;
+  // Check vertical bounds
+  int char_h = font->fontHeight * scale;
+  if (y < y0 || y >= y0 + char_h) return;
 
-// Helper to format integer with suffix and draw it
-static void draw_integer_with_suffix(int value, const char *suffix, int x, int y, bool opaque)
-{
-  char buffer[16]; // Enough for integer + short suffix
-  snprintf(buffer, sizeof(buffer), "%d%s", value, suffix);
-  GLIB_drawString(&glibContext, buffer, strlen(buffer), x, y, opaque);
-}
+  uint16_t fontIdx;
+  if (!font_char_to_index(font, ch, &fontIdx)) return;
 
-// Helper function to draw battery icon
-static void draw_battery_icon(GLIB_Context_t *context, int x, int y, int battery_level)
-{
-  GLIB_Rectangle_t rects[] = {
-    {x, y, x+18, y+10},           // Battery outline (smaller)
-    {x+19, y+3, x+20, y+7},       // Battery terminal (smaller)
-    {x+1, y+1, x+17, y+9}         // Interior (will be white)
-  };
-  
-  // Draw outline and terminal
-  GLIB_drawRectFilled(context, &rects[0]);
-  GLIB_drawRectFilled(context, &rects[1]);
-  
-  // Draw white interior
-  uint32_t original_color = context->foregroundColor;
-  context->foregroundColor = White;
-  GLIB_drawRectFilled(context, &rects[2]);
-  context->foregroundColor = original_color;
-  
-  // Battery level indicator
-  int fill_width = (battery_level * 14) / 100;
-  if (fill_width > 0) {
-    GLIB_Rectangle_t fill = {x+2, y+2, x+1+fill_width, y+8};
-    GLIB_drawRectFilled(context, &fill);
+  // Which source row(s) of the glyph affect this screen row?
+  int rel_y = y - y0;                // 0..char_h-1
+  int src_row = rel_y / (int)scale;  // 0..fontHeight-1
+
+  // Font storage is interleaved by rows. Compute the element index:
+  // element_index = glyph_index + src_row * fontRowOffset
+  uint32_t row_bits = 0;
+  uint32_t elem_index = (uint32_t)fontIdx + ((uint32_t)src_row * (uint32_t)font->fontRowOffset);
+  switch (font->sizeOfMapElement) {
+    case 1: {
+      const uint8_t *p = (const uint8_t *)font->pFontPixMap;
+      row_bits = (uint32_t)p[elem_index];
+    } break;
+    case 2: {
+      const uint16_t *p = (const uint16_t *)font->pFontPixMap;
+      row_bits = (uint32_t)p[elem_index];
+    } break;
+    default: {
+      const uint32_t *p = (const uint32_t *)font->pFontPixMap;
+      row_bits = p[elem_index];
+    } break;
+  }
+
+  // Draw horizontally with scaling (LSB -> leftmost pixel)
+  int fw = font->fontWidth;
+  for (int sx = 0; sx < fw; ++sx) {
+    if (row_bits & (1u << sx)) {
+      int px0 = x0 + (sx * (int)scale);
+      for (int k = 0; k < (int)scale; ++k) set_pixel(row, px0 + k);
+    }
   }
 }
 
-// Helper function to draw temperature icon (thermometer)
-static void draw_temp_icon(GLIB_Context_t *context, int x, int y)
+static void draw_text_row(uint8_t *row, const GLIB_Font_t *font,
+                          const char *str, int x, int y0, uint8_t scale, int y)
 {
-  GLIB_drawCircleFilled(context, x+4, y+14, 4);
-  GLIB_Rectangle_t stem = {x+2, y, x+6, y+12};
-  GLIB_drawRectFilled(context, &stem);
-  // Temperature indicator lines
-  int lines[][4] = {{x+8,y+1,x+11,y+1}, {x+8,y+3,x+12,y+3}, {x+8,y+5,x+11,y+5}, {x+8,y+7,x+12,y+7}, {x+8,y+9,x+11,y+9}};
-  for (int i = 0; i < 5; i++) {
-    GLIB_drawLine(context, lines[i][0], lines[i][1], lines[i][2], lines[i][3]);
+  if (!str || !font) return;
+  int advance = (font->fontWidth + font->charSpacing) * (int)scale;
+  for (const char *p = str; *p; ++p, x += advance) {
+    draw_char_row(row, font, *p, x, y0, scale, y);
   }
 }
 
-// Helper function to draw Bluetooth icon
-static void draw_bluetooth_icon(GLIB_Context_t *context, int x, int y)
+static int text_width_px(const GLIB_Font_t *font, const char *str, uint8_t scale)
 {
-  // Draw Bluetooth symbol - characteristic B-shape with triangular points
-  // Vertical line down the middle
-  GLIB_drawLine(context, x+4, y, x+4, y+10);
-  
-  // Upper triangular section
-  GLIB_drawLine(context, x+4, y, x+7, y+3);    // Upper right diagonal
-  GLIB_drawLine(context, x+7, y+3, x+2, y+5);  // Cross line to left
-  GLIB_drawLine(context, x+2, y+5, x+4, y+5);  // Connect to center
-  
-  // Lower triangular section  
-  GLIB_drawLine(context, x+4, y+5, x+2, y+5);  // Connect from center
-  GLIB_drawLine(context, x+2, y+5, x+7, y+7);  // Cross line to right
-  GLIB_drawLine(context, x+7, y+7, x+4, y+10); // Lower right diagonal
+  if (!font || !str) return 0;
+  size_t len = strlen(str);
+  return (int)len * (font->fontWidth + font->charSpacing) * (int)scale;
 }
 
-// Helper function to draw humidity icon (water drop)
-static void draw_humidity_icon(GLIB_Context_t *context, int x, int y)
+static int centered_x(const GLIB_Font_t *font, const char *str, uint8_t scale)
 {
-  // Draw a proper water drop shape
-  // Top point
-  GLIB_drawPixel(context, x+5, y);
-  
-  // Upper part - gradually expanding from point
-  GLIB_drawLine(context, x+4, y+1, x+6, y+1);     // width 3
-  GLIB_drawLine(context, x+3, y+2, x+7, y+2);     // width 5
-  GLIB_drawLine(context, x+2, y+3, x+8, y+3);     // width 7
-  GLIB_drawLine(context, x+2, y+4, x+8, y+4);     // width 7
-  
-  // Middle part - maintain width
-  for (int i = 5; i <= 10; i++) {
-    GLIB_drawLine(context, x+1, y+i, x+9, y+i);   // width 9
-  }
-  
-  // Lower part - gradually narrowing to rounded bottom
-  GLIB_drawLine(context, x+2, y+11, x+8, y+11);   // width 7
-  GLIB_drawLine(context, x+2, y+12, x+8, y+12);   // width 7
-  GLIB_drawLine(context, x+3, y+13, x+7, y+13);   // width 5
-  GLIB_drawLine(context, x+4, y+14, x+6, y+14);   // width 3
-  GLIB_drawPixel(context, x+5, y+15);             // bottom point
+  int w = text_width_px(font, str, scale);
+  return (LCD_WIDTH - w) / 2;
 }
 
-// Helper function to draw air quality indicator
-static void draw_air_quality_indicator(GLIB_Context_t *context, int x, int y, int co2_value)
+//------------------------------------------------------------------------------
+// Simple icons (row-by-row drawing)
+static void draw_battery_row(uint8_t *row, int y, int x0, int y0, int level)
 {
-  // Draw 4 quality bars with different heights based on CO2 level - make them larger
-  int bar_heights[4];
-  
-  if (co2_value == 0) {
-    // No data - all bars empty
-    bar_heights[0] = bar_heights[1] = bar_heights[2] = bar_heights[3] = 0;
-  } else if (co2_value < 800) {
-    // Good - all bars full (small to high, left to right)
-    bar_heights[0] = 3; bar_heights[1] = 6; bar_heights[2] = 9; bar_heights[3] = 12;
-  } else if (co2_value <= 1000) {
-    // Moderate - 3 bars (small to high, left to right)
-    bar_heights[0] = 3; bar_heights[1] = 6; bar_heights[2] = 9; bar_heights[3] = 0;
-  } else if (co2_value <= 1500) {
-    // Poor - 2 bars (small to high, left to right)
-    bar_heights[0] = 3; bar_heights[1] = 6; bar_heights[2] = 0; bar_heights[3] = 0;
+  // Outline 18x10, terminal 2x4 at right
+  const int w = 18, h = 10;
+  if (y < y0 || y >= y0 + h) return;
+  int yy = y - y0;
+  if (yy == 0 || yy == h - 1) {
+    draw_hline(row, x0, x0 + w - 1);
   } else {
-    // Very poor - 1 bar (small, left)
-    bar_heights[0] = 3; bar_heights[1] = 0; bar_heights[2] = 0; bar_heights[3] = 0;
+    set_pixel(row, x0);
+    set_pixel(row, x0 + w - 1);
   }
-  
-  // Draw the larger bars with more spacing
-  for (int i = 0; i < 4; i++) {
-    int bar_x = x + i * 4; // Increased spacing
-    if (bar_heights[i] > 0) {
-      GLIB_Rectangle_t bar = {bar_x, y + 12 - bar_heights[i], bar_x + 2, y + 12}; // Wider bars
-      GLIB_drawRectFilled(context, &bar);
-    }
+  // terminal: centered right
+  if (yy >= 3 && yy <= 6) {
+    set_pixel(row, x0 + w);
+    set_pixel(row, x0 + w + 1);
+  }
+  // level fill inside (white background -> draw a bar from left)
+  int fill_w = (level * (w - 4)) / 100; // leave 2px margin each side
+  if (fill_w > 0 && yy >= 2 && yy <= h - 3) {
+    draw_hline(row, x0 + 2, x0 + 1 + 1 + fill_w); // a bit thicker visually
   }
 }
 
-// Helper function to draw CO2 history chart
-static void draw_co2_history_chart(GLIB_Context_t *context, int x, int y, int width, int height, memlcd_handle_t *handle)
+static void draw_ble_row(uint8_t *row, int y, int x0, int y0, bool connected)
 {
-  // Draw dotted top and bottom borders (no left/right borders)
-  for (int i = x; i < x + width; i += 3) {
-    GLIB_drawPixel(context, i, y);                    // Top dotted line
-    GLIB_drawPixel(context, i, y + height - 1);      // Bottom dotted line
+  // Simple antenna symbol + link dot if connected
+  if (y < y0 || y > y0 + 10) return;
+  int yy = y - y0;
+  set_pixel(row, x0 + 4);
+  if (yy <= 10) {
+    // vertical spine
+    set_pixel(row, x0 + 4);
   }
-  
-  // Calculate adaptive chart range based on actual data
-  uint16_t max_value = 0;
-  uint16_t min_value = 0; // Always fixed to 0
-  int points_to_show = 0;
-  
-  if (handle->history_count > 1) {
-    int chart_area_width = width;
-    points_to_show = (chart_area_width < handle->history_count) ? chart_area_width : handle->history_count;
-    
-    // Find max value in the visible data range
-    for (int i = 0; i < points_to_show; i++) {
-      int idx = (handle->history_index - points_to_show + i + CO2_HISTORY_SIZE) % CO2_HISTORY_SIZE;
-      uint16_t co2_value = handle->co2_history[idx];
-      if (co2_value > max_value) max_value = co2_value;
-    }
-    
-    // Ensure we have a reasonable range (minimum 500 ppm range)
-    if (max_value < 500) {
-      max_value = 500;
-    }
-    
-    // Add some padding (10% above max value)
-    uint16_t padding = max_value / 10;
-    max_value += padding;
-  } else {
-    // Default range when no data
-    max_value = 1000;
-  }
-  
-  // Draw adaptive maximum value label at top right of chart
-  GLIB_setFont(context, (GLIB_Font_t *)&GLIB_FontNarrow6x8);
-  char max_label[8];
-  snprintf(max_label, sizeof(max_label), "%d", max_value);
-  int label_width = strlen(max_label) * 6; // FontNarrow6x8 width
-  GLIB_drawString(context, max_label, strlen(max_label), x + width - label_width - 2, y - 8, false);
-  
-  // Draw the CO2 history data if available
-  if (handle->history_count > 1 && max_value > 0) {
-    int chart_area_height = height;
-    uint16_t value_range = max_value; // Range is now 0 to max_value
-    
-    // Draw the area chart with dotted fill and continuous line
-    for (int i = 0; i < points_to_show; i++) {
-      // Get data point
-      int idx = (handle->history_index - points_to_show + i + CO2_HISTORY_SIZE) % CO2_HISTORY_SIZE;
-      uint16_t co2_value = handle->co2_history[idx];
-      
-      // Clamp value to our adaptive range (0 to max_value)
-      if (co2_value > max_value) co2_value = max_value;
-      
-      // Convert CO2 value to Y coordinate (inverted) using 0-based range
-      int data_y = y + height - 1 - ((co2_value * chart_area_height) / value_range);
-      
-      // Draw dotted vertical line from bottom to data point (grey area fill)
-      for (int dot_y = y + height - 1; dot_y >= data_y; dot_y -= 2) {
-        GLIB_drawPixel(context, x + i, dot_y);
-      }
-      
-      // Draw bold continuous chart line at data point
-      GLIB_drawPixel(context, x + i, data_y);
-      if (data_y > y) GLIB_drawPixel(context, x + i, data_y - 1);  // Above
-      if (data_y < y + height - 1) GLIB_drawPixel(context, x + i, data_y + 1);  // Below
-    }
+  // two diagonals roughly
+  if (yy >= 0 && yy <= 5) set_pixel(row, x0 + 4 + (5 - yy) / 2);
+  if (yy >= 5 && yy <= 10) set_pixel(row, x0 + 4 + (yy - 5) / 2);
+  if (connected && yy == 12) {
+    set_pixel(row, x0 + 4);
   }
 }
 
+static void draw_drop_row(uint8_t *row, int y, int x0, int y0)
+{
+  // Small water drop ~ 7x16
+  if (y < y0 || y >= y0 + 16) return;
+  int yy = y - y0;
+  int half = 3;
+  int radius = (yy < 8) ? yy / 2 : (15 - yy) / 2;
+  draw_hline(row, x0 + half - radius, x0 + half + radius);
+}
+
+//------------------------------------------------------------------------------
+// Layout constants
+static const int TOP_BAR_Y = 4;
+static const int LEFT_MARGIN = 8;
+
+//------------------------------------------------------------------------------
+// Direct display init/clear
+static void init_display(void)
+{
+  sl_status_t st;
+  st = sl_board_enable_display();
+  EFM_ASSERT(st == SL_STATUS_OK);
+  st = sl_memlcd_init();
+  EFM_ASSERT(st == SL_STATUS_OK);
+  s_memlcd = sl_memlcd_get();
+  EFM_ASSERT(s_memlcd != NULL);
+
+  // Clear to white
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
+}
+
+//------------------------------------------------------------------------------
+// One-frame renderer: compose each row and stream to LCD
+static void render_frame(memlcd_handle_t *handle)
+{
+  // Cache values
+  int co2 = (int)handle->co2_value;
+  int hum = (int)handle->humidity_value;
+  int batt = (int)handle->battery_level;
+  bool bt = handle->bluetooth_connected != 0;
+
+  // Text setup
+  const GLIB_Font_t *small = (const GLIB_Font_t *)&GLIB_FontNarrow6x8;
+  const GLIB_Font_t *num   = (const GLIB_Font_t *)&GLIB_FontNumber16x20;
+  const GLIB_Font_t *mono8 = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+
+  // Precompute strings and positions
+  char co2_str[8]; snprintf(co2_str, sizeof(co2_str), "%d", co2);
+  char hum_str[8]; snprintf(hum_str, sizeof(hum_str), "%d%%", hum);
+
+  uint8_t co2_scale = 3; // 16x20 -> 48x60
+  int co2_y = 70;
+  int co2_x = centered_x(num, co2_str, co2_scale);
+
+  int unit_y = co2_y + (num->fontHeight * co2_scale) + 8;
+  const char *ppm = "ppm";
+  int unit_x = centered_x(small, ppm, 2);
+
+  // Optional date/interval at bottom
+  const char *bottom_text = handle->date ? handle->date : "";
+  int bottom_y = LCD_HEIGHT - (mono8->fontHeight * 1) - 4;
+  int bottom_x = centered_x(mono8, bottom_text, 1);
+
+  // Iterate rows
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+
+    // Top bar: battery, BLE, labels
+    draw_battery_row(s_row, y, LEFT_MARGIN, TOP_BAR_Y, batt);
+    draw_ble_row(s_row, y, LEFT_MARGIN + 26, TOP_BAR_Y, bt);
+
+    // Humidity icon + value on right
+    draw_drop_row(s_row, y, LCD_WIDTH - 40, TOP_BAR_Y);
+    set_font(small); draw_text_row(s_row, small, hum_str, LCD_WIDTH - 28, TOP_BAR_Y, 1, y);
+
+    // Big CO2 value centered
+    set_font(num);   draw_text_row(s_row, num, co2_str, co2_x, co2_y, co2_scale, y);
+    // ppm unit
+    set_font(small); draw_text_row(s_row, small, ppm, unit_x, unit_y, 2, y);
+
+    // Bottom centered text (measurement interval / date)
+    set_font(mono8); draw_text_row(s_row, mono8, bottom_text, bottom_x, bottom_y, 1, y);
+
+    // Stream this row to LCD
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
+}
+
+//------------------------------------------------------------------------------
+// Public API
 void memlcd_draw_data(memlcd_handle_t *handle)
 {
-  /* Enable the memory lcd */
-  init_lcd_context();
-
-  // CO2 value to display from the handle
-  int co2_value = handle->co2_value;
-  int fontWidth, fontHeight; // Declare at function scope for reuse
-  
-  /* ---------- OPTIMIZED LAYOUT FOR MAXIMUM VISIBILITY ---------- */
-  
-  if(co2_value != 0) {
-    /* ---------- MASSIVE CO2 DISPLAY (CENTER OF SCREEN) ---------- */
-    // Use largest available font for CO2 value and position it higher up
-    set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNumber16x20, &fontWidth, &fontHeight);
-    
-    // Calculate centered position for CO2 value based on actual value length
-    char co2_str[12];
-    snprintf(co2_str, sizeof(co2_str), "%d", co2_value);
-    int co2_x = get_centered_x(co2_str, fontWidth);
-    int co2_y = 20; // Moved higher toward battery/measurement interval to create space for chart
-    
-    draw_integer(co2_value, co2_x, co2_y, true);
-    
-    /* ---------- COMPACT TOP ROW: Measurement Interval + Bluetooth + Battery ---------- */
-    int small_font_width, small_font_height;
-    set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNormal8x8, &small_font_width, &small_font_height);
-    
-    // Battery icon and percentage in top right
-    draw_battery_icon(&glibContext, 107, 2, handle->battery_level);
-    
-    // Battery percentage text next to icon
-    char battery_str[5]; // "100%" + null terminator
-    snprintf(battery_str, sizeof(battery_str), "%d%%", handle->battery_level);
-    int battery_text_x = 107 - (strlen(battery_str) * small_font_width) - 2; // Position text to left of icon with 2px spacing
-    GLIB_drawString(&glibContext, battery_str, strlen(battery_str), battery_text_x, 6, false);
-    
-    // Bluetooth icon in the middle (only when connected)
-    if (handle->bluetooth_connected) {
-      // Position Bluetooth icon between measurement interval and battery
-      int bt_icon_x = (battery_text_x - 2 - 9) / 2 + 20; // Center between interval and battery, with some offset from left
-      draw_bluetooth_icon(&glibContext, bt_icon_x, 2);
-    }
-    
-    // Update info in top left
-    if (handle->date != NULL && strlen(handle->date) <= 4) {
-      GLIB_drawString(&glibContext, handle->date, strlen(handle->date), 2, 6, false);
-    }
-    
-    /* ---------- PPM LABEL UNDER CO2 ---------- */
-    draw_centered_string("ppm", co2_y + fontHeight + 2, false);
-    
-    /* ---------- AIR QUALITY INDICATOR (RIGHT SIDE OF CO2) ---------- */
-    // Position air quality bars to the right of CO2 value based on actual value width
-    int co2_width = strlen(co2_str) * fontWidth;
-    int bars_x = co2_x + co2_width + 12; // Position after actual CO2 text
-    int bars_y = co2_y + 8;
-    if (bars_x + 15 < LCD_WIDTH) { // Ensure bars fit (4 bars * 4 spacing - 1 = 15 pixels)
-      draw_air_quality_indicator(&glibContext, bars_x, bars_y, co2_value);
-    }
-    
-    /* ---------- CO2 HISTORY CHART (MIDDLE SECTION) ---------- */
-    // Center chart vertically between CO2 section and temperature/humidity section
-    int co2_section_bottom = co2_y + fontHeight + 10; // Bottom of CO2 + co2 label
-    int temp_section_top = LCD_HEIGHT - 25; // Top of temperature/humidity section
-    int available_space = temp_section_top - co2_section_bottom;
-    int chart_height = 35; // Chart height
-    int chart_y = co2_section_bottom + (available_space - chart_height) / 2; // Centered position
-    int chart_width = LCD_WIDTH; // Full screen width (128 pixels)
-    int chart_x = 0; // Start from left edge
-    
-    // Only draw chart if we have history data
-    if (handle->history_count > 0) {
-      draw_co2_history_chart(&glibContext, chart_x, chart_y, chart_width, chart_height, handle);
-    }
-    
-    /* ---------- BOTTOM SECTION: Large Temperature and Humidity ---------- */
-    // Position bottom elements much lower to utilize full screen
-    int bottom_y = LCD_HEIGHT - 25; // Adjusted for larger font
-    
-    // Use large font for both temperature and humidity values
-    int large_font_width, large_font_height;
-    set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNumber16x20, &large_font_width, &large_font_height);
-    
-    // Temperature with icon on same row (left side)
-    int temp_whole = (int)handle->temperature_value;
-    int temp_frac = (int)((handle->temperature_value - temp_whole) * 10);
-    if (temp_frac < 0) temp_frac = -temp_frac;
-    
-    // Round temperature to nearest whole value
-    int temp_rounded = temp_whole;
-    if (temp_frac >= 5) {
-        temp_rounded = (handle->temperature_value >= 0) ? temp_whole + 1 : temp_whole - 1;
-    }
-    
-    // Draw temperature icon aligned with text baseline
-    draw_temp_icon(&glibContext, 2, bottom_y);
-    // Draw temperature value next to icon
-    draw_integer(temp_rounded, 16, bottom_y, false);
-    
-    // Humidity with icon on same row (right side)
-    int humidity_width = 2 * large_font_width; // Assume max 2 digits for humidity
-    int humidity_text_x = LCD_WIDTH - humidity_width - 2;
-    
-    // Draw humidity icon aligned with text baseline (to the left of the text)
-    draw_humidity_icon(&glibContext, humidity_text_x - 12, bottom_y);
-    // Draw humidity value
-    draw_integer(handle->humidity_value, humidity_text_x, bottom_y, false);
-                   
-  } else {
-    // No data available - show large message in center
-    set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNumber16x20, &fontWidth, &fontHeight);
-    draw_centered_string("NO DATA", LCD_HEIGHT / 2 - 10, true);
-  }
-  
-  /* Update the display */
-  finalize_display();
+  if (!s_memlcd) init_display();
+  if (!handle) return;
+  render_frame(handle);
 }
 
-/***************************************************************************//**
- * @brief Displays the BLE passkey on the LCD.
- * @param[in] passkey The passkey to display.
- ******************************************************************************/
 void memlcd_display_passkey(uint32_t passkey)
 {
-  /* Enable the memory lcd */
-  init_lcd_context();
+  if (!s_memlcd) init_display();
+  char msg[] = "Enter on phone:";
+  char key[7]; snprintf(key, sizeof(key), "%06lu", (unsigned long)(passkey % 1000000));
 
-  // Message: "Enter on phone:"
-  char msg_str[] = "Enter on phone:";
-  int msg_char_width, msg_char_height;
-  set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNarrow6x8, &msg_char_width, &msg_char_height);
-  int msg_x_pos = get_centered_x(msg_str, msg_char_width);
+  const GLIB_Font_t *small = (const GLIB_Font_t *)&GLIB_FontNarrow6x8;
+  const GLIB_Font_t *num   = (const GLIB_Font_t *)&GLIB_FontNumber16x20;
 
-  // Passkey
-  char passkey_str[7]; // 6 digits + null terminator
-  snprintf(passkey_str, sizeof(passkey_str), "%06lu", (unsigned long)passkey % 1000000);
+  uint8_t msg_scale = 2;
+  uint8_t key_scale = 3;
+  int total_h = (small->fontHeight * msg_scale) + 12 + (num->fontHeight * key_scale);
+  int start_y = (LCD_HEIGHT - total_h) / 2;
+  int msg_y = start_y;
+  int key_y = msg_y + (small->fontHeight * msg_scale) + 12;
+  int msg_x = centered_x(small, msg, msg_scale);
+  int key_x = centered_x(num, key, key_scale);
 
-  // Set font for passkey and get its properties
-  int passkey_char_width, passkey_char_height;
-  set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNumber16x20, &passkey_char_width, &passkey_char_height);
-  int passkey_x_pos = get_centered_x(passkey_str, passkey_char_width);
-
-  // Calculate Y positions for vertical centering
-  int total_content_height = msg_char_height + 10 + passkey_char_height;
-  int start_y_pos = (LCD_HEIGHT - total_content_height) / 2;
-  int msg_y_pos = start_y_pos;
-  int passkey_y_pos = msg_y_pos + msg_char_height + 10;
-
-  // Draw message
-  set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNarrow6x8, &msg_char_width, &msg_char_height);
-  GLIB_drawString(&glibContext, msg_str, strlen(msg_str), msg_x_pos, msg_y_pos, false);
-
-  // Draw passkey
-  set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNumber16x20, &passkey_char_width, &passkey_char_height);
-  GLIB_drawString(&glibContext, passkey_str, strlen(passkey_str), passkey_x_pos, passkey_y_pos, true);
-
-  /* Update the display */
-  finalize_display();
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+    draw_text_row(s_row, small, msg, msg_x, msg_y, msg_scale, y);
+    draw_text_row(s_row, num,   key, key_x, key_y, key_scale, y);
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
 }
 
-/***************************************************************************//**
- * @brief Displays a waiting for measurement message on the LCD.
- ******************************************************************************/
 void memlcd_display_waiting_message(void)
 {
-  /* Enable the memory lcd */
-  init_lcd_context();
+  if (!s_memlcd) init_display();
+  const GLIB_Font_t *mono8 = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+  const char *main_msg = "MEASURING...";
+  const char *sub_msg  = "Please wait";
+  uint8_t main_scale = 3; // 8x8 -> 24x24
+  uint8_t sub_scale  = 2; // 8x8 -> 16x16
+  int total_h = (mono8->fontHeight * main_scale) + 12 + (mono8->fontHeight * sub_scale);
+  int start_y = (LCD_HEIGHT - total_h) / 2;
+  int main_y  = start_y;
+  int sub_y   = main_y + (mono8->fontHeight * main_scale) + 12;
+  int main_x  = centered_x(mono8, main_msg, main_scale);
+  int sub_x   = centered_x(mono8, sub_msg,  sub_scale);
 
-  // Main message: "Measuring..."
-  char main_msg[] = "MEASURING...";
-  char sub_msg[] = "PLEASE WAIT";
-  
-  // Get font properties for Normal8x8 (both messages use same font)
-  int char_width, char_height;
-  set_font_and_get_props((GLIB_Font_t *)&GLIB_FontNormal8x8, &char_width, &char_height);
-
-  // Calculate positions
-  int main_x_pos = get_centered_x(main_msg, char_width);
-  int sub_x_pos = get_centered_x(sub_msg, char_width);
-
-  // Calculate Y positions for vertical centering
-  int total_content_height = char_height + 8 + char_height; // main + spacing + sub
-  int start_y_pos = (LCD_HEIGHT - total_content_height) / 2;
-  int main_y_pos = start_y_pos;
-  int sub_y_pos = main_y_pos + char_height + 8;
-
-  // Draw messages
-  GLIB_drawString(&glibContext, main_msg, strlen(main_msg), main_x_pos, main_y_pos, true);
-  GLIB_drawString(&glibContext, sub_msg, strlen(sub_msg), sub_x_pos, sub_y_pos, false);
-
-  /* Update the display */
-  finalize_display();
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+    draw_text_row(s_row, mono8, main_msg, main_x, main_y, main_scale, y);
+    draw_text_row(s_row, mono8, sub_msg,  sub_x,  sub_y,  sub_scale,  y);
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
 }
 
-/***************************************************************************//**
- * @brief Add CO2 value to history buffer
- * @param[in] handle The handle containing the history buffer
- * @param[in] co2_value The CO2 value to add
- ******************************************************************************/
 void memlcd_add_co2_to_history(memlcd_handle_t *handle, uint16_t co2_value)
 {
-  // Add the new value to the circular buffer
-  handle->co2_history[handle->history_index] = co2_value;
-  
-  // Move to next position
-  handle->history_index = (handle->history_index + 1) % CO2_HISTORY_SIZE;
-  
-  // Update count (max at CO2_HISTORY_SIZE)
+  if (!handle) return;
   if (handle->history_count < CO2_HISTORY_SIZE) {
-    handle->history_count++;
+    handle->co2_history[handle->history_count++] = co2_value;
+    handle->history_index = handle->history_count % CO2_HISTORY_SIZE;
+  } else {
+    handle->co2_history[handle->history_index] = co2_value;
+    handle->history_index = (handle->history_index + 1) % CO2_HISTORY_SIZE;
   }
 }

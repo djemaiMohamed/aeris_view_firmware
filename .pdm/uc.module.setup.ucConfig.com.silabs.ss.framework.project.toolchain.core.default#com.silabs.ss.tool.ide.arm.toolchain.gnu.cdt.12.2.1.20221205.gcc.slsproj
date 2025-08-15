@@ -18,7 +18,6 @@
     <file name="sl_iostream_usart_exp_config.h" generated="true" linked="false"/>
     <file name="sl_memlcd_display_custom_config.h" generated="true" linked="false"/>
     <file name="sl_memlcd_usart_config.h" generated="true" linked="false"/>
-    <file name="sl_memory_manager_config.h" generated="true" linked="false"/>
     <file name="os_cfg.h" generated="true" linked="false"/>
     <file name="sl_mx25_flash_shutdown_usart_config.h" generated="true" linked="false"/>
     <file name="sl_rail_util_pti_config.h" generated="true" linked="false"/>
@@ -49,6 +48,7 @@
     <file name="sl_mbedtls_device_config.h" generated="true" linked="false"/>
     <file name="sl_clock_manager_oscillator_config.h" generated="true" linked="false"/>
     <file name="sl_clock_manager_tree_config.h" generated="true" linked="false"/>
+    <file name="sl_memory_manager_config.h" generated="true" linked="false"/>
   </folder>
   <includePath uri="studio:/project/config"/>
   <includePath uri="studio:/project/config/btconf"/>

@@ -3,7 +3,7 @@
   "specVersion" : "1.6",
   "version" : 1,
   "metadata" : {
-    "timestamp" : "2025-08-01T08:22:03.142711Z",
+    "timestamp" : "2025-08-15T22:05:31.018593Z",
     "authors" : [ {
       "name" : "Silicon Laboratories, Inc."
     } ],
@@ -314,18 +314,6 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:memlcd_usart",
       "name" : "Memory LCD with usart SPI driver",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:memory_manager",
-      "name" : "Memory Manager",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -2578,6 +2566,18 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:clock_manager_init_hal_s2",
       "name" : "Clock Manager Init HAL Series 2",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:memory_manager",
+      "name" : "Memory Manager",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."

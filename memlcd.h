@@ -20,7 +20,7 @@
 
 #include <stdint.h>
 
-#define CO2_HISTORY_SIZE 128
+#define CO2_HISTORY_SIZE 400
 
 typedef struct {
   char  *date;
@@ -30,8 +30,8 @@ typedef struct {
   uint8_t humidity_value;
   float temperature_value;
   uint16_t co2_history[CO2_HISTORY_SIZE];
-  uint8_t history_index;
-  uint8_t history_count;
+  uint16_t history_index;
+  uint16_t history_count;
 } memlcd_handle_t;
 
 /***************************************************************************//**
