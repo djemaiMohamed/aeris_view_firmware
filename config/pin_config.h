@@ -184,3 +184,6 @@
 
 #endif // PIN_CONFIG_H
 
+// $[LFXO]
+// [LFXO]$
+

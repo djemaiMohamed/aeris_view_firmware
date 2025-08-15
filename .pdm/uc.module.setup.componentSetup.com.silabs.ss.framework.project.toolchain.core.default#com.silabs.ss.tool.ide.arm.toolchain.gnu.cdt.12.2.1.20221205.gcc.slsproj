@@ -17,7 +17,7 @@
               <file name="startup_bgm22.c" linked="false" uri="studio:/sdk/platform/Device/SiliconLabs/BGM22/Source/startup_bgm22.c"/>
             </folder>
             <folder name="Include">
-              <file name="bgm220pc22hna.h" linked="false" uri="studio:/sdk/platform/Device/SiliconLabs/BGM22/Include/bgm220pc22hna.h"/>
+              <file name="bgm220pc22wga.h" linked="false" uri="studio:/sdk/platform/Device/SiliconLabs/BGM22/Include/bgm220pc22wga.h"/>
               <file name="bgm22_aes.h" linked="false" uri="studio:/sdk/platform/Device/SiliconLabs/BGM22/Include/bgm22_aes.h"/>
               <file name="bgm22_buram.h" linked="false" uri="studio:/sdk/platform/Device/SiliconLabs/BGM22/Include/bgm22_buram.h"/>
               <file name="bgm22_burtc.h" linked="false" uri="studio:/sdk/platform/Device/SiliconLabs/BGM22/Include/bgm22_burtc.h"/>
@@ -501,7 +501,7 @@
           </folder>
           <folder name="autogen">
             <folder name="librail_release">
-              <file name="librail_config_bgm220pc22hna_gcc.a" linked="false" uri="studio:/sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22hna_gcc.a"/>
+              <file name="librail_config_bgm220pc22wga_gcc.a" linked="false" uri="studio:/sdk/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22wga_gcc.a"/>
               <file name="librail_module_efr32xg22_gcc_release.a" linked="false" uri="studio:/sdk/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg22_gcc_release.a"/>
             </folder>
           </folder>
@@ -938,7 +938,7 @@
       <folder name="board">
         <folder name="src">
           <file name="sl_board_init.c" linked="false" uri="studio:/sdk/hardware/board/src/sl_board_init.c"/>
-          <file name="sl_board_control_gpio.c" linked="false" uri="studio:/sdk/hardware/board/src/sl_board_control_gpio.c"/>
+          <file name="sl_board_control_stub.c" linked="false" uri="studio:/sdk/hardware/board/src/sl_board_control_stub.c"/>
         </folder>
         <folder name="inc">
           <file name="sl_board_control.h" linked="false" uri="studio:/sdk/hardware/board/inc/sl_board_control.h"/>
@@ -956,8 +956,8 @@
         </folder>
         <folder name="memlcd">
           <folder name="src">
-            <folder name="ls013b7dh03">
-              <file name="sl_memlcd_display.h" linked="false" uri="studio:/sdk/hardware/driver/memlcd/src/ls013b7dh03/sl_memlcd_display.h"/>
+            <folder name="memlcd_display_custom">
+              <file name="sl_memlcd_display.h" linked="false" uri="studio:/sdk/hardware/driver/memlcd/src/memlcd_display_custom/sl_memlcd_display.h"/>
             </folder>
             <folder name="memlcd_usart">
               <file name="sl_memlcd_spi.c" linked="false" uri="studio:/sdk/hardware/driver/memlcd/src/memlcd_usart/sl_memlcd_spi.c"/>
@@ -1283,12 +1283,12 @@
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/iostream/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/crypto_ip/libcryptosoc/include"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/crypto_ip/libcryptosoc/src"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/src/ls013b7dh03"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_mbedtls_support/config"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_mbedtls_support/config/preset"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_mbedtls_support/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/mbedtls/include"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/mbedtls/library"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/src/memlcd_display_custom"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/driver/memlcd/inc/memlcd_usart"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/memory_manager/inc"/>
@@ -1326,17 +1326,10 @@
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sl_protocol_crypto/src"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/sli_psec_osal/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/udelay/inc"/>
-  <macroDefinition name="BGM220PC22HNA"/>
+  <macroDefinition name="BGM220PC22WGA"/>
   <macroDefinition name="SL_CODE_COMPONENT_SYSTEM" value="system"/>
   <macroDefinition name="SL_APP_PROPERTIES"/>
   <macroDefinition name="BOOTLOADER_APPLOADER" value="1"/>
-  <macroDefinition name="SL_BOARD_NAME" value="&quot;BRD4001A&quot;"/>
-  <macroDefinition name="SL_BOARD_REV" value="&quot;A02&quot;"/>
-  <macroDefinition name="HARDWARE_BOARD_DEFAULT_RF_BAND_2400"/>
-  <macroDefinition name="HARDWARE_BOARD_SUPPORTS_1_RF_BAND"/>
-  <macroDefinition name="HARDWARE_BOARD_SUPPORTS_RF_BAND_2400"/>
-  <macroDefinition name="SL_BOARD_NAME" value="&quot;BRD4311A&quot;"/>
-  <macroDefinition name="SL_BOARD_REV" value="&quot;A01&quot;"/>
   <macroDefinition name="SL_CODE_COMPONENT_CLOCK_MANAGER" value="clock_manager"/>
   <macroDefinition name="configNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS" value="2"/>
   <macroDefinition name="SL_COMPONENT_CATALOG_PRESENT"/>
@@ -1373,7 +1366,7 @@
   <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/hal/release/libble_host_hal_series2.a"/>
   <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/hci/release/libble_host_hci.a"/>
   <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/build/gcc/cortex-m33/ble_host/system/release/libble_system.a"/>
-  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22hna_gcc.a"/>
+  <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/autogen/librail_release/librail_config_bgm220pc22wga_gcc.a"/>
   <libraryFile uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/autogen/librail_release/librail_module_efr32xg22_gcc_release.a"/>
   <libraryFile name="gcc"/>
   <libraryFile name="c"/>
@@ -1453,7 +1446,7 @@
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.clibs" value="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.nanospec"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.c.linker.map" value="true"/>
   <toolOption toolId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.base" optionId="com.silabs.ide.si32.gcc.cdt.managedbuild.tool.gnu.cpp.linker.map" value="true"/>
-  <toolOption toolId="studio.ide.project" optionId="device_opn" value="bgm220pc22hna"/>
+  <toolOption toolId="studio.ide.project" optionId="device_opn" value="bgm220pc22wga"/>
   <toolOption toolId="makefile.arm.gcc.linker" optionId="misc">
     <toolListOption value="-Wl,--wrap=_free_r -Wl,--wrap=_malloc_r -Wl,--wrap=_calloc_r -Wl,--wrap=_realloc_r"/>
     <toolListOption value="-Wl,--no-warn-rwx-segments"/>

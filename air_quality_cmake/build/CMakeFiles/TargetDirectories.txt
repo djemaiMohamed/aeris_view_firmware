@@ -1,0 +1,4 @@
+/Users/modjemai/SimplicityStudio/v5_workspace/air_quality/air_quality_cmake/build/CMakeFiles/slc_air_quality.dir
+/Users/modjemai/SimplicityStudio/v5_workspace/air_quality/air_quality_cmake/build/CMakeFiles/air_quality.dir
+/Users/modjemai/SimplicityStudio/v5_workspace/air_quality/air_quality_cmake/build/CMakeFiles/edit_cache.dir
+/Users/modjemai/SimplicityStudio/v5_workspace/air_quality/air_quality_cmake/build/CMakeFiles/rebuild_cache.dir

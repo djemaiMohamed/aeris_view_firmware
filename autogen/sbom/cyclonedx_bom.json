@@ -3,7 +3,7 @@
   "specVersion" : "1.6",
   "version" : 1,
   "metadata" : {
-    "timestamp" : "2025-06-02T00:50:14.800782Z",
+    "timestamp" : "2025-08-01T08:22:03.142711Z",
     "authors" : [ {
       "name" : "Silicon Laboratories, Inc."
     } ],
@@ -24,8 +24,8 @@
     "components" : [ {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:BGM220PC22HNA",
-      "name" : "BGM220PC22HNA",
+      "bom-ref" : "simplicity_sdk:2024.12.2:BGM220PC22WGA",
+      "name" : "BGM220PC22WGA",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -144,6 +144,18 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:bluetooth_feature_user_power_control",
+      "name" : "Application-controlled TX Power",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:bluetooth_stack",
       "name" : "Bluetooth Core",
       "version" : "2024.12.2",
@@ -152,6 +164,18 @@
       },
       "licenses" : [ {
         "expression" : "Zlib AND MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:board_control",
+      "name" : "Board Control",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
       } ]
     }, {
       "scope" : "required",
@@ -168,32 +192,8 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:brd4001a",
-      "name" : "BRD4001A",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:brd4311a_a01",
-      "name" : "BRD4311A rev A01",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:clock_manager",
-      "name" : "Clock Manager",
+      "bom-ref" : "simplicity_sdk:2024.12.2:configuration_over_swo",
+      "name" : "Configuration Over SWO",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -300,6 +300,30 @@
     }, {
       "scope" : "required",
       "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:memlcd_display_custom",
+      "name" : "Custom Memory LCD",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:memlcd_usart",
+      "name" : "Memory LCD with usart SPI driver",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:memory_manager",
       "name" : "Memory Manager",
       "version" : "2024.12.2",
@@ -326,6 +350,18 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:mpu",
       "name" : "Simple MPU",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:mx25_flash_shutdown_usart",
+      "name" : "MX25 Flash Shutdown with usart",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -545,18 +581,6 @@
       },
       "licenses" : [ {
         "expression" : "MSLA"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:clock_manager_init_hal_s2",
-      "name" : "Clock Manager Init HAL Series 2",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
       } ]
     }, {
       "scope" : "required",
@@ -935,18 +959,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:configuration_over_swo",
-      "name" : "Configuration Over SWO",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:micriumos_common_collections",
       "name" : "Micrium OS Common Collections",
       "version" : "2024.12.2",
@@ -1079,18 +1091,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:ls013b7dh03",
-      "name" : "Monochrome Sharp Memory LCD",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:cmsis_os2_ext_task_register",
       "name" : "Task registers abstraction layer",
       "version" : "2024.12.2",
@@ -1173,18 +1173,6 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:emlib_syscfg",
       "name" : "SYSCFG",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:memlcd_usart",
-      "name" : "Memory LCD with usart SPI driver",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -1284,18 +1272,6 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:device_peripheral_hal",
       "name" : "Device Manager Peripheral HAL",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:brd4311a_config",
-      "name" : "brd4311a config",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -1634,18 +1610,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:board_control",
-      "name" : "Board Control",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:device_init_core",
       "name" : "Core",
       "version" : "2024.12.2",
@@ -1749,18 +1713,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:rail_lib",
-      "name" : "RAIL Library, Core",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "MSLA"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:hal_gpio",
       "name" : "GPIO",
       "version" : "2024.12.2",
@@ -1775,18 +1727,6 @@
       "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:se_manager",
       "name" : "SE Manager",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:brd4311a",
-      "name" : "BRD4311A",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
@@ -1865,6 +1805,18 @@
       },
       "licenses" : [ {
         "expression" : "Zlib AND MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:BGM220PC22WGA_config",
+      "name" : "BGM220PC22WGA config",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
       } ]
     }, {
       "scope" : "required",
@@ -1985,18 +1937,6 @@
       },
       "licenses" : [ {
         "expression" : "Zlib AND MSLA"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:mx25_flash_shutdown_usart",
-      "name" : "MX25 Flash Shutdown with usart",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
       } ]
     }, {
       "scope" : "required",
@@ -2355,18 +2295,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:rail_util_built_in_phys",
-      "name" : "RAIL Utility, Built-in PHYs Across HFXO Frequencies",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:bluetooth_common_release",
       "name" : "Bluetooth Low Energy Common Component",
       "version" : "2024.12.2",
@@ -2600,18 +2528,6 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:BGM220PC22HNA_config",
-      "name" : "BGM220PC22HNA config",
-      "version" : "2024.12.2",
-      "supplier" : {
-        "name" : "Silicon Laboratories, Inc."
-      },
-      "licenses" : [ {
-        "expression" : "Zlib"
-      } ]
-    }, {
-      "scope" : "required",
-      "type" : "library",
       "bom-ref" : "simplicity_sdk:2024.12.2:gpio",
       "name" : "GPIO Driver",
       "version" : "2024.12.2",
@@ -2624,14 +2540,50 @@
     }, {
       "scope" : "required",
       "type" : "library",
-      "bom-ref" : "simplicity_sdk:2024.12.2:bluetooth_feature_user_power_control",
-      "name" : "Application-controlled TX Power",
+      "bom-ref" : "simplicity_sdk:2024.12.2:rail_lib",
+      "name" : "RAIL Library, Core",
       "version" : "2024.12.2",
       "supplier" : {
         "name" : "Silicon Laboratories, Inc."
       },
       "licenses" : [ {
         "expression" : "MSLA"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:rail_util_built_in_phys",
+      "name" : "RAIL Utility, Built-in PHYs Across HFXO Frequencies",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:clock_manager",
+      "name" : "Clock Manager",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
+      } ]
+    }, {
+      "scope" : "required",
+      "type" : "library",
+      "bom-ref" : "simplicity_sdk:2024.12.2:clock_manager_init_hal_s2",
+      "name" : "Clock Manager Init HAL Series 2",
+      "version" : "2024.12.2",
+      "supplier" : {
+        "name" : "Silicon Laboratories, Inc."
+      },
+      "licenses" : [ {
+        "expression" : "Zlib"
       } ]
     } ]
   } ]

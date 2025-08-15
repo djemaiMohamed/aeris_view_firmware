@@ -28,7 +28,7 @@ include:
 sdk: {id: simplicity_sdk, version: 2024.12.2}
 toolchain_settings: []
 component:
-- {id: BGM220PC22HNA}
+- {id: BGM220PC22WGA}
 - {id: app_assert}
 - {id: app_log}
 - {id: bluetooth_feature_connection}
@@ -42,10 +42,10 @@ component:
 - {id: bluetooth_feature_system}
 - {id: bluetooth_feature_user_power_control}
 - {id: bluetooth_stack}
+- {id: board_control}
 - {id: bootloader_interface}
-- {id: brd4001a}
-- {id: brd4311a_a01}
 - {id: clock_manager}
+- {id: configuration_over_swo}
 - {id: device_init}
 - {id: dmd_memlcd}
 - {id: gatt_configuration}
@@ -56,9 +56,12 @@ component:
 - {id: in_place_ota_dfu}
 - instance: [exp]
   id: iostream_usart
+- {id: memlcd_display_custom}
+- {id: memlcd_usart}
 - {id: memory_manager}
 - {id: micriumos_kernel}
 - {id: mpu}
+- {id: mx25_flash_shutdown_usart}
 - {id: rail_util_pti}
 - {id: sl_common}
 - {id: sl_system}

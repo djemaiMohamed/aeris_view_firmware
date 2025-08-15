@@ -6,11 +6,11 @@
     <properties key="universalConfig.generationDirectory" value=""/>
     <properties key="universalConfig.toolchainCompatibility" value="iar gcc"/>
     <properties key="projectCommon.overwriteCopiedSources" value="false"/>
-    <properties key="projectCommon.boardIds" value="brd4311a:0.0.0.A01 brd4001a:0.0.0.A01"/>
+    <properties key="projectCommon.boardIds" value="com.silabs.board.none:0.0.0"/>
     <properties key="projectCommon.kitId" value=""/>
-    <properties key="projectCommon.partId" value="mcu.arm.efr32.bg22.bgm220pc22hna"/>
+    <properties key="projectCommon.partId" value="mcu.arm.efr32.bg22.bgm220pc22wga"/>
     <properties key="projectCommon.toolchainId" value="com.silabs.ss.tool.ide.arm.toolchain.gnu.cdt:12.2.1.20221205"/>
-    <properties key="universalConfig.projectTypeIds" value="com.silabs.ss.framework.ide.project.core.cdtMbsProjectType"/>
+    <properties key="universalConfig.projectTypeIds" value="visual-studio-code com.silabs.ss.framework.ide.project.core.cdtMbsProjectType"/>
     <properties key="projectCommon.importModeId" value="COPY"/>
     <properties key="universalConfig.compSelProjInstanceId" value="1746587663994"/>
     <properties key="universalConfig.previousSdkId" value="com.silabs.sdk.stack.sisdk:2024.12.0._-723280918"/>
