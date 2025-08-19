@@ -337,7 +337,7 @@ void sensor_task(void *p_arg)
   
   while (DEF_TRUE) {
     // wakeup the sensor if it was in sleep mode
-    error = scd4x_wake_up();
+    //error = scd4x_wake_up();
     // Step 1: Trigger a measurement
     error = sensor_trigger_measurement();
     if (error) {
@@ -352,9 +352,7 @@ void sensor_task(void *p_arg)
     // Step 3: Read the measurement
     error = sensor_read_measurement(&sensor_readings);
     // power down the sensor after reading
-    scd4x_power_down();
-
-    OSTimeDlyHMSM(0, 0, measurement_interval + 1 - 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    //scd4x_power_down();
 
     if (error == 0 && sensor_readings.valid_data) {
       // Add battery measurement
@@ -370,5 +368,7 @@ void sensor_task(void *p_arg)
     } else if (error != 1) { // error=1 means data not ready, which is not a critical error
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
     }
+
+    OSTimeDlyHMSM(0, 0, measurement_interval + 1 - 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
   }
 }

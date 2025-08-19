@@ -585,6 +585,9 @@ void memlcd_draw_data(memlcd_handle_t *handle)
   if (!s_memlcd) init_display();
   if (!handle) return;
   render_frame(handle);
+  // sleep memlcd
+  sl_memlcd_power_on(s_memlcd, false);
+
 }
 
 void memlcd_display_passkey(uint32_t passkey)
