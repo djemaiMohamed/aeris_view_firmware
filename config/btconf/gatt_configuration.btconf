@@ -167,6 +167,16 @@ Summary:
         <write authenticated="false" bonded="false" encrypted="false"/>
       </properties>
     </characteristic>
+
+    <!--run_calibration-->
+    <characteristic const="false" id="run_calibration_id" name="run_calibration" sourceId="" uuid="bf40623a-300b-4793-b4ad-7a9970f6732d">
+      <value length="0" type="hex" variable_length="false">00</value>
+      <properties>
+        <read authenticated="false" bonded="false" encrypted="false"/>
+        <write authenticated="false" bonded="false" encrypted="false"/>
+        <notify authenticated="true" bonded="true" encrypted="true"/>
+      </properties>
+    </characteristic>
   </service>
 
   <!--Battery Service-->

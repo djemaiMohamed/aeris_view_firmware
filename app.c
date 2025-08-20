@@ -278,6 +278,13 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                      evt->data.evt_gatt_server_attribute_value.value.len);
         // Signal the sensor task to update temperature.
         OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
+      } 
+      // run calibration
+      else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_run_calibration_id) {
+        handle_calibration_write(evt->data.evt_gatt_server_attribute_value.value.data,
+                                 evt->data.evt_gatt_server_attribute_value.value.len);
+        // Signal the calibration task to run calibration.
+        OSSemPost(&calibration_task_sem, OS_OPT_POST_1, &local_err);
       }
       break;
 
@@ -288,6 +295,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_temp_unit_id) {
         handle_temperature_unit_read(evt->data.evt_gatt_server_user_read_request.connection,
                                     evt->data.evt_gatt_server_user_read_request.characteristic);
+      } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_run_calibration_id) {
+        handle_calibration_read(evt->data.evt_gatt_server_user_read_request.connection,
+                                evt->data.evt_gatt_server_user_read_request.characteristic);
       }
       break;
     // -------------------------------
