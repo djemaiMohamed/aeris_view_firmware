@@ -158,7 +158,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
 
-      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
+      sl_bt_system_set_tx_power(-30, 80, &pwr_min, &pwr_max);
 
       // inscrease security level
       sc = sl_bt_sm_increase_security(evt->data.evt_connection_opened.connection);
@@ -206,7 +206,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.reason);
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
 
-      sl_bt_system_set_tx_power(-30, -10, &pwr_min, &pwr_max);
+      sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
 
       // Start advertising and enable connections.
       sc = sl_bt_legacy_advertiser_start(advertising_set_handle,

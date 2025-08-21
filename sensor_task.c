@@ -22,7 +22,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 5; // Default to 10 seconds
+uint16_t measurement_interval = 30; // Default to 30 seconds
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
 
@@ -369,6 +369,6 @@ void sensor_task(void *p_arg)
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
     }
 
-    OSTimeDlyHMSM(0, 0, measurement_interval + 1 - 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    OSTimeDlyHMSM(0, 0, measurement_interval - 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
   }
 }

@@ -191,6 +191,10 @@ static void calibration_task(void *p_arg)
       }
     }
 
+    // Signal that new data is available to other tasks
+    OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);
+    app_assert(err.Code == RTOS_ERR_NONE, "Sensor data ready semaphore post failed");
+
     // Resume sensor task
     OSTaskResume(sensor_task_tcb_ptr, &err);
     if (err.Code != RTOS_ERR_NONE) {

@@ -7,7 +7,7 @@
 #include "os.h"
 
 // Task configuration
-#define CALIBRATION_TASK_PRIO       22u
+#define CALIBRATION_TASK_PRIO       21u
 #define CALIBRATION_TASK_STK_SIZE   256u
 
 // Semaphore used to trigger calibration from GATT write
