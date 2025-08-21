@@ -6,6 +6,7 @@
 #include "sl_memory_manager.h" // Added for dynamic allocation
 #include "sensor_task.h"
 #include "gatt_db.h"
+#include "calibration_task.h"
 
 OS_TCB *notification_task_tcb_ptr;
 CPU_STK *notification_task_stk_ptr;
@@ -110,6 +111,30 @@ void handle_measurement_interval_read(uint16_t connection, uint16_t characterist
     app_log_info("Measurement interval read: %d seconds.\n", measurement_interval);
   } else {
     app_log_error("Failed to send measurement interval read response. Status: 0x%04x\n", sc);
+  }
+}
+
+// Function to handle GATT read requests for the calibration status
+void handle_calibration_read(uint16_t connection, uint16_t characteristic)
+{
+  // status: 0 = idle, 1 = running
+  uint16_t status = calibration_task_is_running() ? 1 : 0;
+  uint8_t value[2];
+  value[0] = status & 0xFF;
+  value[1] = (status >> 8) & 0xFF;
+
+  sl_status_t sc = sl_bt_gatt_server_send_user_read_response(
+    connection,
+    characteristic,
+    0, // Success
+    sizeof(value),
+    value,
+    NULL);
+
+  if (sc == SL_STATUS_OK) {
+    app_log_info("Calibration status read: %u.\n", (unsigned int)status);
+  } else {
+    app_log_error("Failed to send calibration read response (0x%lx).\n", (unsigned long)sc);
   }
 }
 

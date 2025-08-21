@@ -139,7 +139,7 @@ Summary:
       <value length="2" type="hex" variable_length="false">1E</value>
       <properties>
         <read authenticated="true" bonded="true" encrypted="true"/>
-        <write authenticated="false" bonded="false" encrypted="false"/>
+        <write authenticated="true" bonded="true" encrypted="true"/>
       </properties>
     </characteristic>
 
@@ -164,16 +164,16 @@ Summary:
       <value length="0" type="hex" variable_length="false">00</value>
       <properties>
         <read authenticated="true" bonded="true" encrypted="true"/>
-        <write authenticated="false" bonded="false" encrypted="false"/>
+        <write authenticated="true" bonded="true" encrypted="true"/>
       </properties>
     </characteristic>
 
     <!--run_calibration-->
     <characteristic const="false" id="run_calibration_id" name="run_calibration" sourceId="" uuid="bf40623a-300b-4793-b4ad-7a9970f6732d">
-      <value length="0" type="hex" variable_length="false">00</value>
+      <value length="2" type="hex" variable_length="false">00</value>
       <properties>
-        <read authenticated="false" bonded="false" encrypted="false"/>
-        <write authenticated="false" bonded="false" encrypted="false"/>
+        <read authenticated="true" bonded="true" encrypted="true"/>
+        <write authenticated="true" bonded="true" encrypted="true"/>
         <notify authenticated="true" bonded="true" encrypted="true"/>
       </properties>
     </characteristic>

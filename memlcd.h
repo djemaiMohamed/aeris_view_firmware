@@ -54,4 +54,13 @@ void memlcd_display_passkey(uint32_t passkey);
  ******************************************************************************/
 void memlcd_display_waiting_message(void);
 
+/***************************************************************************//**
+ * Display calibration progress message on LCD
+ ******************************************************************************/
+void memlcd_display_calibration_message(const char *line1, const char *line2);
+
+// Display calibration progress with a progress bar and time remaining
+void memlcd_display_calibration_progress(uint8_t percent, uint16_t seconds_remaining,
+                                         uint8_t sample_idx, uint8_t sample_total);
+
 #endif // MEMLCD_APP_H

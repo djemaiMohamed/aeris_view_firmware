@@ -34,6 +34,7 @@
 #include "app_assert.h"
 #include "app.h"
 #include "lcd_task.h"
+#include "calibration_task.h"
 
 // Application Runtime Init.
 void app_init_runtime(void)
@@ -44,6 +45,8 @@ void app_init_runtime(void)
   lcd_task_init();
   // init ble task
   notification_task_init();
+  // init calibration task
+  calibration_task_init();
   // init bond task
   //bond_task_init();
 

@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include "sl_status.h"
+#include "calibration_task.h"
 
 // Task configuration
 #define NOTIFICATION_TASK_PRIO       23u
@@ -26,6 +27,9 @@ void handle_measurement_interval_write(uint8_t *value, uint16_t length);
 void handle_measurement_interval_read(uint16_t connection, uint16_t characteristic);
 void handle_temperature_unit_write(uint8_t *value, uint16_t length);
 void handle_temperature_unit_read(uint16_t connection, uint16_t characteristic);
+
+// Read handler for calibration characteristic (returns status: 0=idle,1=running)
+void handle_calibration_read(uint16_t connection, uint16_t characteristic);
 
 
 #endif // NOTIFICATION_TASK_H

@@ -639,6 +639,83 @@ void memlcd_display_waiting_message(void)
   }
 }
 
+void memlcd_display_calibration_message(const char *line1, const char *line2)
+{
+  if (!s_memlcd) init_display();
+  if (!line1) line1 = "";
+  if (!line2) line2 = "";
+  const GLIB_Font_t *mono8 = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+  uint8_t l1_scale = 3;
+  uint8_t l2_scale = 2;
+  int total_h = (mono8->fontHeight * l1_scale) + 12 + (mono8->fontHeight * l2_scale);
+  int start_y = (LCD_HEIGHT - total_h) / 2;
+  int l1_y  = start_y;
+  int l2_y  = l1_y + (mono8->fontHeight * l1_scale) + 12;
+  int l1_x  = centered_x(mono8, line1, l1_scale);
+  int l2_x  = centered_x(mono8, line2, l2_scale);
+
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+    draw_text_row(s_row, mono8, line1, l1_x, l1_y, l1_scale, y);
+    draw_text_row(s_row, mono8, line2, l2_x, l2_y, l2_scale, y);
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
+}
+
+void memlcd_display_calibration_progress(uint8_t percent, uint16_t seconds_remaining,
+                                         uint8_t sample_idx, uint8_t sample_total)
+{
+  if (!s_memlcd) init_display();
+  if (percent > 100) percent = 100;
+  const GLIB_Font_t *mono8 = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+
+  char title[] = "CALIBRATION";
+  char timer_str[24];
+  snprintf(timer_str, sizeof(timer_str), "%u:%02u left", (unsigned)(seconds_remaining/60), (unsigned)(seconds_remaining%60));
+  char sample_str[24];
+  snprintf(sample_str, sizeof(sample_str), "%u/%u samples", (unsigned)sample_idx, (unsigned)sample_total);
+
+  // Layout
+  uint8_t title_scale = 2;
+  uint8_t text_scale  = 2;
+  int title_y = 30;
+  int title_x = centered_x(mono8, title, title_scale);
+  int sample_y = title_y + mono8->fontHeight * title_scale + 12;
+  int sample_x = centered_x(mono8, sample_str, text_scale);
+  int timer_y = sample_y + mono8->fontHeight * text_scale + 8;
+  int timer_x = centered_x(mono8, timer_str, text_scale);
+
+  // Progress bar geometry
+  int bar_w = LCD_WIDTH - 80;
+  int bar_h = 14;
+  int bar_x = (LCD_WIDTH - bar_w) / 2;
+  int bar_y = timer_y + mono8->fontHeight * text_scale + 16;
+  int fill_w = (bar_w * percent) / 100;
+
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+    // Title
+    draw_text_row(s_row, mono8, title, title_x, title_y, title_scale, y);
+    // Sample counter
+    draw_text_row(s_row, mono8, sample_str, sample_x, sample_y, text_scale, y);
+    // Timer
+    draw_text_row(s_row, mono8, timer_str, timer_x, timer_y, text_scale, y);
+    // Progress bar outline (simple top/bottom lines)
+    if (y == bar_y || y == (bar_y + bar_h)) {
+      draw_hline(s_row, bar_x, bar_x + bar_w);
+    }
+    // Fill area
+    if (y > bar_y && y < (bar_y + bar_h)) {
+      // left and right border pixels
+      set_pixel(s_row, bar_x);
+      set_pixel(s_row, bar_x + bar_w);
+      // fill
+      draw_hline(s_row, bar_x + 2, bar_x + 2 + fill_w);
+    }
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
+}
+
 void memlcd_add_co2_to_history(memlcd_handle_t *handle, uint16_t co2_value)
 {
   if (!handle) return;
