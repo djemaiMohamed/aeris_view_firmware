@@ -41,6 +41,7 @@
 #include <stdbool.h>
 #include "nvm3_default.h"
 #include "calibration_task.h"
+#include "sync_data_task.h"
 
 // The advertising set handle allocated from Bluetooth stack.
 uint8_t advertising_set_handle = 0xff; // Removed static
@@ -56,9 +57,11 @@ extern OS_SEM sensor_data_ready_sem;
 extern OS_SEM ble_notification_sem;
 extern OS_SEM scan_sem;
 extern OS_SEM calibration_task_sem;
+extern OS_SEM sync_data_task_sem;
 extern OS_TCB *notification_task_tcb_ptr;
 extern OS_TCB *lcd_task_tcb_ptr;
 extern OS_TCB *sensor_task_tcb_ptr;
+extern OS_TCB *sync_data_task_tcb_ptr;
 
 // Application Init.
 SL_WEAK void app_init(void)
@@ -288,6 +291,12 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         // Signal the calibration task to run calibration.
         OSSemPost(&calibration_task_sem, OS_OPT_POST_1, &local_err);
       }
+      // sync data request
+      else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_sync_data_id) {
+        handle_sync_data_write(evt->data.evt_gatt_server_attribute_value.value.data,
+                               evt->data.evt_gatt_server_attribute_value.value.len);
+        // Semaphore is posted by handle_sync_data_write
+      }
       break;
 
     case sl_bt_evt_gatt_server_user_read_request_id:
@@ -300,6 +309,9 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_run_calibration_id) {
         handle_calibration_read(evt->data.evt_gatt_server_user_read_request.connection,
                                 evt->data.evt_gatt_server_user_read_request.characteristic);
+      } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_sync_data_id) {
+        handle_sync_data_read(evt->data.evt_gatt_server_user_read_request.connection,
+                              evt->data.evt_gatt_server_user_read_request.characteristic);
       }
       break;
     // -------------------------------

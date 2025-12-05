@@ -10,6 +10,7 @@
 #include "em_device.h"
 #include "em_cmu.h"
 #include "em_iadc.h"
+#include "sync_data_task.h"
 
 // Battery measurement defines
 #define MICROVOLTS_PER_STEP 1221
@@ -361,6 +362,13 @@ void sensor_task(void *p_arg)
       battery_deinit();
       sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
       app_log_info("Battery: %lu mV (%d%%)\n", sensor_readings.battery_voltage_mv, sensor_readings.battery_percentage);
+      
+      // Save measurement to NVM3 for later sync
+      uint32_t uptime = sync_data_get_uptime_sec();
+      sync_data_save_sample(uptime, 
+                            sensor_readings.co2_ppm, 
+                            sensor_readings.temperature_mdeg_c, 
+                            sensor_readings.humidity_percent);
       
       // Signal that new data is available to other tasks
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);

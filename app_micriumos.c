@@ -35,10 +35,13 @@
 #include "app.h"
 #include "lcd_task.h"
 #include "calibration_task.h"
+#include "sync_data_task.h"
 
 // Application Runtime Init.
 void app_init_runtime(void)
 {
+  // init sync data task first (to record boot time)
+  sync_data_task_init();
   // init sensor task
   sensor_task_init();
   // init lcd task
