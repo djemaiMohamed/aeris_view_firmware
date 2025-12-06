@@ -7,7 +7,7 @@
 
 // Task constants
 #define SENSOR_TASK_PRIO              20u
-#define SENSOR_TASK_STK_SIZE          256u
+#define SENSOR_TASK_STK_SIZE          128u
 
 // SCD I2C ADDRESS
 #define SCD_ADDR                      0x62

@@ -7,6 +7,7 @@
 #include "sensor_task.h"
 #include "gatt_db.h"
 #include "calibration_task.h"
+#include "sync_data_task.h"
 
 OS_TCB *notification_task_tcb_ptr;
 CPU_STK *notification_task_stk_ptr;
@@ -198,79 +199,56 @@ static void temperature_measurement_val_to_buf(int32_t value, bool fahrenheit, u
 static void send_notifications(void)
 {
   sl_status_t sc;
-  RTOS_ERR err;
-  // Handle BLE notifications if needed
-  uint8_t temperature[5];
-  uint8_t co2_data[2];
-  uint8_t humidity_data[2];
   // get sensor data
   sensor_data_t *sensor_data = sensor_get_latest_readings();
-
-  // Prepare temperature data for BLE notification
-  temperature_measurement_val_to_buf(sensor_data->temperature_mdeg_c, temperature_unit, temperature);
-
-  // Send temperature notification
+  
+  // Use unified 12-byte format for sync_data_id characteristic
+  // Format: timestamp(4) + co2(2) + temperature(2) + humidity(2) + flags(2)
+  // Flag 0x00 = live data, 0x01 = historical data, 0x02 = sync complete
+  uint8_t data[12];
+  
+  // Calculate current timestamp
+  uint32_t timestamp = sync_data_get_epoch() + sync_data_get_uptime_sec();
+  
+  // Pack timestamp (4 bytes, little-endian)
+  data[0] = (uint8_t)(timestamp & 0xFF);
+  data[1] = (uint8_t)((timestamp >> 8) & 0xFF);
+  data[2] = (uint8_t)((timestamp >> 16) & 0xFF);
+  data[3] = (uint8_t)((timestamp >> 24) & 0xFF);
+  
+  // Pack CO2 (2 bytes, little-endian)
+  data[4] = (uint8_t)(sensor_data->co2_ppm & 0xFF);
+  data[5] = (uint8_t)((sensor_data->co2_ppm >> 8) & 0xFF);
+  
+  // Pack temperature (2 bytes, little-endian, centi-degrees Celsius)
+  int16_t temp_centi = (int16_t)(sensor_data->temperature_mdeg_c / 10);
+  data[6] = (uint8_t)(temp_centi & 0xFF);
+  data[7] = (uint8_t)((temp_centi >> 8) & 0xFF);
+  
+  // Pack humidity (2 bytes, little-endian, percent)
+  data[8] = (uint8_t)(sensor_data->humidity_percent & 0xFF);
+  data[9] = (uint8_t)((sensor_data->humidity_percent >> 8) & 0xFF);
+  
+  // Flags: 0x00 = live data
+  data[10] = 0x00;
+  data[11] = sensor_data->battery_percentage;
+  
+  // Send unified notification using sync_data_id characteristic
   sc = sl_bt_gatt_server_send_notification(
     connection_handle,
-    gattdb_temperature_measurement,
-    sizeof(temperature),
-    temperature
+    gattdb_sync_data_id,
+    sizeof(data),
+    data
   );
   
   if (sc == SL_STATUS_OK) {
-    app_log_info("Temperature notification sent successfully.\n");
+    app_log_info("Live data notification sent: CO2=%u, Temp=%d.%02d, Hum=%lu%%, Bat=%u%%\n",
+                 sensor_data->co2_ppm,
+                 temp_centi / 100, (temp_centi >= 0 ? temp_centi : -temp_centi) % 100,
+                 (unsigned long)sensor_data->humidity_percent,
+                 sensor_data->battery_percentage);
   } else {
-    app_log_error("Failed to send temperature notification. Status: 0x%04x\n", sc);
-  }
-
-  // Prepare Humidity data for BLE notifications
-  humidity_data[0] = (uint8_t)(sensor_data->humidity_percent & 0xFF);
-  humidity_data[1] = (uint8_t)((sensor_data->humidity_percent >> 8) & 0xFF);
-
-  // Send humidity notification
-  sc = sl_bt_gatt_server_send_notification(
-    connection_handle,
-    gattdb_humidity_0,
-    sizeof(humidity_data),
-    humidity_data
-  );
-  
-  if (sc == SL_STATUS_OK) {
-    app_log_info("Humidity notification sent successfully: %d%%\n", sensor_data->humidity_percent);
-  } else {
-    app_log_error("Failed to send humidity notification. Status: 0x%04x\n", sc);
-  }
-
-  // Prepare CO2 data for BLE notifications
-  co2_data[0] = (uint8_t)(sensor_data->co2_ppm & 0xFF);
-  co2_data[1] = (uint8_t)((sensor_data->co2_ppm >> 8) & 0xFF);
-
-  // Send CO2 notification
-  sc = sl_bt_gatt_server_send_notification(
-    connection_handle,
-    gattdb_air_quality_id,
-    sizeof(co2_data),
-    co2_data
-  );
-
-  if (sc == SL_STATUS_OK) {
-    app_log_info("CO2 notification sent successfully: %d ppm\n", sensor_data->co2_ppm);
-  } else {
-    app_log_error("Failed to send CO2 notification. Status: 0x%04x\n", sc);
-  }
-
-  // Send battery level notification
-  sc = sl_bt_gatt_server_send_notification(
-    connection_handle,
-    gattdb_battery_level,
-    sizeof(sensor_data->battery_percentage),
-    &sensor_data->battery_percentage
-  );
-
-  if (sc == SL_STATUS_OK) {
-    app_log_info("Battery level notification sent successfully: %d%%\n", sensor_data->battery_percentage);
-  } else {
-    app_log_error("Failed to send battery level notification. Status: 0x%04x\n", sc);
+    app_log_error("Failed to send live data notification. Status: 0x%04x\n", sc);
   }
 }
 

@@ -7,8 +7,8 @@
 #include "os.h"
 
 // Task configuration
-#define SYNC_DATA_TASK_PRIO       22u
-#define SYNC_DATA_TASK_STK_SIZE   512u
+#define SYNC_DATA_TASK_PRIO       24u
+#define SYNC_DATA_TASK_STK_SIZE   128u
 
 // NVM3 key definitions for sample storage
 // Using a range of keys for sample data (circular buffer)
@@ -27,6 +27,8 @@ typedef struct {
     uint16_t co2;             // CO2 in ppm
     int16_t temperature_c;    // Temperature in centi-degrees Celsius (e.g., 2500 = 25.00°C)
     uint16_t humidity;        // Humidity in percent
+    uint8_t battery_percent;  // Battery percentage (0-100)
+    uint8_t reserved;         // Reserved for alignment
 } sample_t;
 
 // Semaphore used to trigger sync from GATT write
@@ -50,10 +52,12 @@ bool sync_data_task_is_running(void);
  * @param co2         CO2 value in ppm
  * @param temp_mdeg_c Temperature in milli-degrees Celsius
  * @param humidity    Humidity in percent
+ * @param battery     Battery percentage (0-100)
  * @return SL_STATUS_OK on success, error code otherwise
  */
 sl_status_t sync_data_save_sample(uint32_t uptime_sec, uint16_t co2, 
-                                   int32_t temp_mdeg_c, uint32_t humidity);
+                                   int32_t temp_mdeg_c, uint32_t humidity,
+                                   uint8_t battery);
 
 /**
  * @brief Handle write to sync_data_id characteristic

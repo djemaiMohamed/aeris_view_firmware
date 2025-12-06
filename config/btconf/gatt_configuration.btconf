@@ -180,7 +180,7 @@ Summary:
 
     <!--sync_data-->
     <characteristic const="false" id="sync_data_id" name="sync_data" sourceId="" uuid="475f3487-c251-4fbe-b006-37eba1d6c42e">
-      <value length="8" type="hex" variable_length="false">00</value>
+      <value length="12" type="hex" variable_length="false">00</value>
       <properties>
         <read authenticated="true" bonded="true" encrypted="true"/>
         <write authenticated="true" bonded="true" encrypted="true"/>

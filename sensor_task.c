@@ -368,7 +368,8 @@ void sensor_task(void *p_arg)
       sync_data_save_sample(uptime, 
                             sensor_readings.co2_ppm, 
                             sensor_readings.temperature_mdeg_c, 
-                            sensor_readings.humidity_percent);
+                            sensor_readings.humidity_percent,
+                            sensor_readings.battery_percentage);
       
       // Signal that new data is available to other tasks
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);

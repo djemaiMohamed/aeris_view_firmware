@@ -136,7 +136,8 @@ static sl_status_t save_metadata_to_nvm3(void)
  * Save a sensor sample to NVM3 storage
  ******************************************************************************/
 sl_status_t sync_data_save_sample(uint32_t uptime_sec, uint16_t co2, 
-                                   int32_t temp_mdeg_c, uint32_t humidity)
+                                   int32_t temp_mdeg_c, uint32_t humidity,
+                                   uint8_t battery)
 {
     sample_t sample;
     Ecode_t status;
@@ -147,6 +148,8 @@ sl_status_t sync_data_save_sample(uint32_t uptime_sec, uint16_t co2,
     // Convert from milli-degrees to centi-degrees (divide by 10)
     sample.temperature_c = (int16_t)(temp_mdeg_c / 10);
     sample.humidity = (uint16_t)humidity;
+    sample.battery_percent = battery;
+    sample.reserved = 0;
     
     // Calculate NVM3 key for this sample
     nvm3_ObjectKey_t key = NVM3_SAMPLE_KEY_BASE + write_index;
@@ -216,8 +219,9 @@ static sl_status_t read_sample_from_nvm3(uint16_t index, sample_t *sample)
 }
 
 /***************************************************************************//**
- * Delete a sample from NVM3
+ * Delete a sample from NVM3 (currently unused - samples are kept until overwritten)
  ******************************************************************************/
+__attribute__((unused))
 static sl_status_t delete_sample_from_nvm3(uint16_t index)
 {
     Ecode_t status;
@@ -262,7 +266,8 @@ static sl_status_t send_sample_notification(const sample_t *sample, uint32_t tim
     
     // Flags: 0x01 = historical data
     data[10] = 0x01;
-    data[11] = 0x00;
+    // Battery percentage
+    data[11] = sample->battery_percent;
     
     // Send notification using sync_data_id characteristic
     sc = sl_bt_gatt_server_send_notification(
@@ -450,7 +455,6 @@ static void sync_data_task(void *p_arg)
     RTOS_ERR err;
     sample_t sample;
     uint16_t samples_sent = 0;
-    uint16_t samples_deleted = 0;
     
     for (;;) {
         // Wait for sync request
@@ -467,7 +471,6 @@ static void sync_data_task(void *p_arg)
         
         sync_running = true;
         samples_sent = 0;
-        samples_deleted = 0;
         
         app_log_info("Starting sync: looking for samples after timestamp %lu\n",
                      (unsigned long)last_sync_timestamp);
@@ -498,11 +501,8 @@ static void sync_data_task(void *p_arg)
                     samples_sent++;
                     app_log_info("Sent sample %u: ts=%lu, co2=%u\n",
                                  samples_sent, (unsigned long)sample_timestamp, sample.co2);
-                    
-                    // Delete sent sample from NVM3
-                    if (delete_sample_from_nvm3(idx) == SL_STATUS_OK) {
-                        samples_deleted++;
-                    }
+                    // Note: Samples are NOT deleted after sending.
+                    // They will only be overwritten when the circular buffer is full.
                 } else {
                     // Failed to send, stop trying
                     app_log_error("Failed to send sample, stopping sync\n");
@@ -520,23 +520,13 @@ static void sync_data_task(void *p_arg)
             }
         }
         
-        // Update sample count after deletions
-        if (samples_deleted > 0) {
-            if (sample_count >= samples_deleted) {
-                sample_count -= samples_deleted;
-            } else {
-                sample_count = 0;
-            }
-            save_metadata_to_nvm3();
-        }
-        
         // Send sync complete notification
         if (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
             send_sync_complete_notification(samples_sent);
         }
         
-        app_log_info("Sync complete: sent %u samples, deleted %u, remaining %u\n",
-                     samples_sent, samples_deleted, sample_count);
+        app_log_info("Sync complete: sent %u samples, remaining %u\n",
+                     samples_sent, sample_count);
         
         sync_running = false;
     }
