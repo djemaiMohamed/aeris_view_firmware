@@ -10,7 +10,6 @@
 #include "pa_conversions_efr32.h"
 #include "sl_rail_util_power_manager_init.h"
 #include "sl_rail_util_pti.h"
-#include "btl_interface.h"
 #include "sl_fem_util.h"
 #include "sl_board_control.h"
 #include "sl_bt_rtos_adaptation.h"
@@ -45,7 +44,6 @@ void sl_platform_init(void)
   sl_clock_manager_runtime_init();
   sl_memory_init();
   sl_board_init();
-  bootloader_init();
   CPU_Init();
   osKernelInitialize();
   nvm3_initDefault();

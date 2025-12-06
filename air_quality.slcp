@@ -43,7 +43,6 @@ component:
 - {id: bluetooth_feature_user_power_control}
 - {id: bluetooth_stack}
 - {id: board_control}
-- {id: bootloader_interface}
 - {id: clock_manager}
 - {id: configuration_over_swo}
 - {id: device_init}
@@ -53,7 +52,6 @@ component:
 - {id: glib}
 - instance: [sensor]
   id: i2cspm
-- {id: in_place_ota_dfu}
 - instance: [exp]
   id: iostream_usart
 - {id: memlcd_display_custom}

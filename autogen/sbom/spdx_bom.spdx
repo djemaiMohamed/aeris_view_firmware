@@ -13,7 +13,7 @@ DocumentNamespace: https://silabs.com
 
 ## Creation Information
 Creator: Organization: Silicon Laboratories, Inc.
-Created: 2025-08-15T22:05:31.018593Z
+Created: 2025-12-06T17:36:17.819104Z
 ## Relationships
 Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-simplicity_sdk-2024.12.2
 
@@ -38,7 +38,7 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bluetooth_feature_user_power_control
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bluetooth_stack
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-board_control
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface
+Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-clock_manager
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-configuration_over_swo
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-device_init
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-dmd_memlcd
@@ -46,10 +46,10 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-gatt_service_device_information
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-glib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-i2cspm
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-iostream_usart
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-memlcd_display_custom
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-memlcd_usart
+Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-memory_manager
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-micriumos_kernel
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-mpu
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-mx25_flash_shutdown_usart
@@ -66,6 +66,7 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bit
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-psa_driver_common
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bluetooth_controller_libraries
+Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-hal_system
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-psa_crypto_trng
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-slist
@@ -131,7 +132,6 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-sli_psec_osal
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-nvm3_default
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-device_peripheral
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-app_timer
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-se_manager_mailbox
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-se_manager_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-psa_crypto_ecc
@@ -146,13 +146,12 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-psa_crypto_cmac
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-mbedtls_slcrypto_driver
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-emlib_system
+Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-rail_lib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-hal_gpio
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-se_manager
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-event_handler
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-memory_manager_region
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bootloader_app_properties
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-emlib_msc
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface_s2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bluetooth_feature_advertiser
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-BGM220PC22WGA_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-sli_crypto
@@ -162,7 +161,6 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-micriumos_common_lib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-interrupt_manager_cortexm
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-rail_util_features
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-apploader
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-sl_string
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bluetooth_host_adaptation
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-emlib_usart
@@ -188,6 +186,7 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-micriumos_kernel_port_generic
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-mbedtls_core
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-sl_core
+Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-bluetooth_common_release
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-iostream_stdlib_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-mbedtls_platform_dynamic_memory_allocation_config_default
@@ -199,14 +198,8 @@ Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-emlib_timer
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-psa_crypto_common
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-sleeptimer
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-apploader_util
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-mbedtls_config
 Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-gpio
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-rail_lib
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-clock_manager
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2
-Relationship: SPDXRef-simplicity_sdk-2024.12.2 CONTAINS SPDXRef-simplicity_sdk-2024.12.2-memory_manager
 
 ## Package Information
 PackageName: BGM220PC22WGA
@@ -352,15 +345,15 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-board_control CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
-PackageName: Bootloader Application Interface
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface
+PackageName: Clock Manager
+SPDXID: SPDXRef-simplicity_sdk-2024.12.2-clock_manager
 PackageVersion: 2024.12.2
 PrimaryPackagePurpose: LIBRARY
 PackageDownloadLocation: NOASSERTION
 PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: MSLA
+PackageLicenseConcluded: Zlib
 ## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
+Relationship: SPDXRef-simplicity_sdk-2024.12.2-clock_manager CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
 PackageName: Configuration Over SWO
@@ -440,17 +433,6 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-i2cspm CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
-PackageName: In-Place OTA DFU
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
 PackageName: IO Stream: USART
 SPDXID: SPDXRef-simplicity_sdk-2024.12.2-iostream_usart
 PackageVersion: 2024.12.2
@@ -482,6 +464,17 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-memlcd_usart CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
+
+## Package Information
+PackageName: Memory Manager
+SPDXID: SPDXRef-simplicity_sdk-2024.12.2-memory_manager
+PackageVersion: 2024.12.2
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.2-memory_manager CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
 PackageName: Micrium OS Kernel
@@ -700,6 +693,17 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: MSLA
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-bluetooth_controller_libraries CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
+
+## Package Information
+PackageName: Clock Manager Init HAL Series 2
+SPDXID: SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2
+PackageVersion: 2024.12.2
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2 CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
 PackageName: SYSTEM
@@ -1501,17 +1505,6 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-device_peripheral CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
-PackageName: Timer
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-app_timer
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-app_timer CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
 PackageName: SE mailbox utilities
 SPDXID: SPDXRef-simplicity_sdk-2024.12.2-se_manager_mailbox
 PackageVersion: 2024.12.2
@@ -1708,6 +1701,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-emlib_system CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
+PackageName: RAIL Library, Core
+SPDXID: SPDXRef-simplicity_sdk-2024.12.2-rail_lib
+PackageVersion: 2024.12.2
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: MSLA
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.2-rail_lib CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
+
+## Package Information
 PackageName: GPIO
 SPDXID: SPDXRef-simplicity_sdk-2024.12.2-hal_gpio
 PackageVersion: 2024.12.2
@@ -1752,17 +1756,6 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-memory_manager_region CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
-PackageName: App Properties
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-bootloader_app_properties
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-bootloader_app_properties CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
 PackageName: MSC
 SPDXID: SPDXRef-simplicity_sdk-2024.12.2-emlib_msc
 PackageVersion: 2024.12.2
@@ -1772,17 +1765,6 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-emlib_msc CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: Bootloader Application Interface Series 2
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface_s2
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: MSLA
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface_s2 CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
 PackageName: Advertising Base Feature
@@ -1882,17 +1864,6 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: MSLA
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-rail_util_features CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: AppLoader Support for Applications
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-apploader
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: MSLA
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-apploader CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
 PackageName: String Functions
@@ -2228,6 +2199,17 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-sl_core CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
+PackageName: RAIL Utility, Built-in PHYs Across HFXO Frequencies
+SPDXID: SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys
+PackageVersion: 2024.12.2
+PrimaryPackagePurpose: LIBRARY
+PackageDownloadLocation: NOASSERTION
+PackageSupplier: Organization: Silicon Laboratories, Inc.
+PackageLicenseConcluded: Zlib
+## Relationships
+Relationship: SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
+
+## Package Information
 PackageName: Bluetooth Low Energy Common Component
 SPDXID: SPDXRef-simplicity_sdk-2024.12.2-bluetooth_common_release
 PackageVersion: 2024.12.2
@@ -2392,17 +2374,6 @@ PackageLicenseConcluded: Zlib
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-sleeptimer CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
 
 ## Package Information
-PackageName: AppLoader Utility
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-apploader_util
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: MSLA
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-apploader_util CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
 PackageName: Configuration
 SPDXID: SPDXRef-simplicity_sdk-2024.12.2-mbedtls_config
 PackageVersion: 2024.12.2
@@ -2437,58 +2408,3 @@ PackageSupplier: Organization: Silicon Laboratories, Inc.
 PackageLicenseConcluded: Zlib
 ## Relationships
 Relationship: SPDXRef-simplicity_sdk-2024.12.2-gpio CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: RAIL Library, Core
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-rail_lib
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: MSLA
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-rail_lib CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: RAIL Utility, Built-in PHYs Across HFXO Frequencies
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: Clock Manager
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-clock_manager
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-clock_manager CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: Clock Manager Init HAL Series 2
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2 CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2
-
-## Package Information
-PackageName: Memory Manager
-SPDXID: SPDXRef-simplicity_sdk-2024.12.2-memory_manager
-PackageVersion: 2024.12.2
-PrimaryPackagePurpose: LIBRARY
-PackageDownloadLocation: NOASSERTION
-PackageSupplier: Organization: Silicon Laboratories, Inc.
-PackageLicenseConcluded: Zlib
-## Relationships
-Relationship: SPDXRef-simplicity_sdk-2024.12.2-memory_manager CONTAINED_BY SPDXRef-simplicity_sdk-2024.12.2

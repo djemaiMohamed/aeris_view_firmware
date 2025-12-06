@@ -95,28 +95,6 @@
           </folder>
         </folder>
       </folder>
-      <folder name="bootloader">
-        <folder name="app_properties">
-          <file name="app_properties.c" linked="false" uri="studio:/sdk/platform/bootloader/app_properties/app_properties.c"/>
-        </folder>
-        <folder name="api">
-          <file name="btl_interface.c" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface.c"/>
-          <file name="btl_interface_storage.c" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface_storage.c"/>
-          <file name="application_properties.h" linked="false" uri="studio:/sdk/platform/bootloader/api/application_properties.h"/>
-          <file name="btl_errorcode.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_errorcode.h"/>
-          <file name="btl_interface.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface.h"/>
-          <file name="btl_interface_parser.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface_parser.h"/>
-          <file name="btl_interface_storage.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_interface_storage.h"/>
-          <file name="btl_reset_info.h" linked="false" uri="studio:/sdk/platform/bootloader/api/btl_reset_info.h"/>
-        </folder>
-        <folder name="core">
-          <folder name="flash">
-            <file name="btl_internal_flash.c" linked="false" uri="studio:/sdk/platform/bootloader/core/flash/btl_internal_flash.c"/>
-            <file name="btl_internal_flash.h" linked="false" uri="studio:/sdk/platform/bootloader/core/flash/btl_internal_flash.h"/>
-          </folder>
-          <file name="btl_util.h" linked="false" uri="studio:/sdk/platform/bootloader/core/btl_util.h"/>
-        </folder>
-      </folder>
       <folder name="service">
         <folder name="clock_manager">
           <folder name="src">
@@ -782,14 +760,6 @@
             <file name="app_log.h" linked="false" uri="studio:/sdk/app/common/util/app_log/app_log.h"/>
             <file name="sl_app_log.h" linked="false" uri="studio:/sdk/app/common/util/app_log/sl_app_log.h"/>
           </folder>
-          <folder name="app_timer">
-            <folder name="micriumos">
-              <file name="app_timer_micriumos.c" linked="false" uri="studio:/sdk/app/common/util/app_timer/micriumos/app_timer_micriumos.c"/>
-              <file name="app_timer_types.h" linked="false" uri="studio:/sdk/app/common/util/app_timer/micriumos/app_timer_types.h"/>
-            </folder>
-            <file name="app_timer.h" linked="false" uri="studio:/sdk/app/common/util/app_timer/app_timer.h"/>
-            <file name="sl_simple_timer.h" linked="false" uri="studio:/sdk/app/common/util/app_timer/sl_simple_timer.h"/>
-          </folder>
         </folder>
       </folder>
       <folder name="bluetooth">
@@ -797,17 +767,33 @@
           <folder name="gatt_service_device_information">
             <file name="sl_gatt_service_device_information.h" linked="false" uri="studio:/sdk/app/bluetooth/common/gatt_service_device_information/sl_gatt_service_device_information.h"/>
           </folder>
-          <folder name="in_place_ota_dfu">
-            <file name="sl_bt_in_place_ota_dfu.c" linked="false" uri="studio:/sdk/app/bluetooth/common/in_place_ota_dfu/sl_bt_in_place_ota_dfu.c"/>
-            <file name="sl_bt_in_place_ota_dfu.h" linked="false" uri="studio:/sdk/app/bluetooth/common/in_place_ota_dfu/sl_bt_in_place_ota_dfu.h"/>
-          </folder>
         </folder>
       </folder>
     </folder>
     <folder name="protocol">
       <folder name="bluetooth">
+        <folder name="bgcommon">
+          <folder name="src">
+            <file name="sli_bgcommon_debug_efr32.c" linked="false" uri="studio:/sdk/protocol/bluetooth/bgcommon/src/sli_bgcommon_debug_efr32.c"/>
+          </folder>
+          <folder name="inc">
+            <file name="sli_bgcommon_debug.h" linked="false" uri="studio:/sdk/protocol/bluetooth/bgcommon/inc/sli_bgcommon_debug.h"/>
+          </folder>
+          <folder name="lib">
+            <folder name="build">
+              <folder name="gcc">
+                <folder name="cortex-m33">
+                  <folder name="bgcommon">
+                    <folder name="release">
+                      <file name="libbgcommon.a" linked="false" uri="studio:/sdk/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a"/>
+                    </folder>
+                  </folder>
+                </folder>
+              </folder>
+            </folder>
+          </folder>
+        </folder>
         <folder name="src">
-          <file name="sl_apploader_util_s2.c" linked="false" uri="studio:/sdk/protocol/bluetooth/src/sl_apploader_util_s2.c"/>
           <file name="sli_bt_advertiser_config.c" linked="false" uri="studio:/sdk/protocol/bluetooth/src/sli_bt_advertiser_config.c"/>
           <file name="sli_bt_connection_config.c" linked="false" uri="studio:/sdk/protocol/bluetooth/src/sli_bt_connection_config.c"/>
           <file name="sli_bt_dynamic_gattdb_config.c" linked="false" uri="studio:/sdk/protocol/bluetooth/src/sli_bt_dynamic_gattdb_config.c"/>
@@ -821,7 +807,6 @@
           <file name="sl_bt_stack_init.c" linked="false" uri="studio:/sdk/protocol/bluetooth/src/sl_bt_stack_init.c"/>
         </folder>
         <folder name="inc">
-          <file name="sl_apploader_util.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sl_apploader_util.h"/>
           <file name="sli_bt_config_defs.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sli_bt_config_defs.h"/>
           <file name="sli_bt_advertiser_config.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sli_bt_advertiser_config.h"/>
           <file name="sli_bt_connection_config.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sli_bt_connection_config.h"/>
@@ -843,27 +828,6 @@
           <file name="sl_bt_stack_init.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sl_bt_stack_init.h"/>
           <file name="sl_bt_types.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sl_bt_types.h"/>
           <file name="sl_bt_version.h" linked="false" uri="studio:/sdk/protocol/bluetooth/inc/sl_bt_version.h"/>
-        </folder>
-        <folder name="bgcommon">
-          <folder name="src">
-            <file name="sli_bgcommon_debug_efr32.c" linked="false" uri="studio:/sdk/protocol/bluetooth/bgcommon/src/sli_bgcommon_debug_efr32.c"/>
-          </folder>
-          <folder name="inc">
-            <file name="sli_bgcommon_debug.h" linked="false" uri="studio:/sdk/protocol/bluetooth/bgcommon/inc/sli_bgcommon_debug.h"/>
-          </folder>
-          <folder name="lib">
-            <folder name="build">
-              <folder name="gcc">
-                <folder name="cortex-m33">
-                  <folder name="bgcommon">
-                    <folder name="release">
-                      <file name="libbgcommon.a" linked="false" uri="studio:/sdk/protocol/bluetooth/bgcommon/lib/build/gcc/cortex-m33/bgcommon/release/libbgcommon.a"/>
-                    </folder>
-                  </folder>
-                </folder>
-              </folder>
-            </folder>
-          </folder>
         </folder>
         <folder name="bgstack">
           <folder name="ll">
@@ -1247,16 +1211,11 @@
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/Device/SiliconLabs/BGM22/Include"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_assert"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_log"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_timer"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/common/util/app_timer/micriumos"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/common/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/bgcommon/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/protocol/bluetooth/bgstack/ll/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/hardware/board/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/bootloader"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/bootloader/api"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/bootloader/core/flash"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/clock_manager/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/clock_manager/src"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/CMSIS/Core/Include"/>
@@ -1277,7 +1236,6 @@
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/driver/gpio/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/peripheral/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/driver/i2cspm/inc"/>
-  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/app/bluetooth/common/in_place_ota_dfu"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/interrupt_manager/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/interrupt_manager/inc/arm"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/iostream/inc"/>
@@ -1328,8 +1286,6 @@
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/udelay/inc"/>
   <macroDefinition name="BGM220PC22WGA"/>
   <macroDefinition name="SL_CODE_COMPONENT_SYSTEM" value="system"/>
-  <macroDefinition name="SL_APP_PROPERTIES"/>
-  <macroDefinition name="BOOTLOADER_APPLOADER" value="1"/>
   <macroDefinition name="SL_CODE_COMPONENT_CLOCK_MANAGER" value="clock_manager"/>
   <macroDefinition name="configNUM_SDK_THREAD_LOCAL_STORAGE_POINTERS" value="2"/>
   <macroDefinition name="SL_COMPONENT_CATALOG_PRESENT"/>

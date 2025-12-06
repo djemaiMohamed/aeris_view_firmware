@@ -19,7 +19,8 @@
 #define NVM3_META_KEY_BOOT_TIME   0x0F03    // Key for boot timestamp offset
 
 // Maximum number of samples to store in NVM3 (circular buffer size)
-#define MAX_SAMPLES               200
+// With 80KB NVM3 and ~20 bytes per sample, we can store ~3500 samples
+#define MAX_SAMPLES               3500
 
 // Sample data structure stored in NVM3
 typedef struct {

@@ -5,7 +5,7 @@
   "name" : "Silicon-Laboratories",
   "documentNamespace" : "https://silabs.com",
   "creationInfo" : {
-    "created" : "2025-08-15T22:05:31.018593Z",
+    "created" : "2025-12-06T17:36:17.819104Z",
     "creators" : [ "Tool: Silicon Labs Configuration Tooling" ]
   },
   "comment" : "TERMS OF USE - SILICON LABORATORIES INC.\n(With respect to Silicon Labs software components, this Software Bill of Materials (SBOM) is based upon Silicon Labs'\nreview and analysis of the code version when released.  It is provided \"AS IS\" and does not modify, change or alter\nthe terms or conditions of your use of Silicon Labs' software and/or SDKs based upon license terms and/or agreements\nassociated with this software or SDKs when distributed to you, received by you, or installed by you.  Further, no\nwarranties or obligations are created by this SBOM.  It is your obligation to comply with the terms of licenses\nreferenced in this SBOM.)",
@@ -122,13 +122,13 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface",
-    "name" : "Bootloader Application Interface",
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager",
+    "name" : "Clock Manager",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
     "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "MSLA"
+    "licenseConcluded" : "Zlib"
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-configuration_over_swo",
     "name" : "Configuration Over SWO",
@@ -186,14 +186,6 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu",
-    "name" : "In-Place OTA DFU",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-iostream_usart",
     "name" : "IO Stream: USART",
     "versionInfo" : "2024.12.2",
@@ -212,6 +204,14 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-memlcd_usart",
     "name" : "Memory LCD with usart SPI driver",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-memory_manager",
+    "name" : "Memory Manager",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -375,6 +375,14 @@
     "downloadLocation" : "NOASSERTION",
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "MSLA"
+  }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2",
+    "name" : "Clock Manager Init HAL Series 2",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-hal_system",
     "name" : "SYSTEM",
@@ -960,14 +968,6 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-app_timer",
-    "name" : "Timer",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-se_manager_mailbox",
     "name" : "SE mailbox utilities",
     "versionInfo" : "2024.12.2",
@@ -1110,6 +1110,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-rail_lib",
+    "name" : "RAIL Library, Core",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "MSLA"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-hal_gpio",
     "name" : "GPIO",
     "versionInfo" : "2024.12.2",
@@ -1142,14 +1150,6 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-bootloader_app_properties",
-    "name" : "App Properties",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-emlib_msc",
     "name" : "MSC",
     "versionInfo" : "2024.12.2",
@@ -1157,14 +1157,6 @@
     "downloadLocation" : "NOASSERTION",
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface_s2",
-    "name" : "Bootloader Application Interface Series 2",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "MSLA"
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-bluetooth_feature_advertiser",
     "name" : "Advertising Base Feature",
@@ -1232,14 +1224,6 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_features",
     "name" : "RAIL Library Features, Core",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "MSLA"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-apploader",
-    "name" : "AppLoader Support for Applications",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -1496,6 +1480,14 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
+    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys",
+    "name" : "RAIL Utility, Built-in PHYs Across HFXO Frequencies",
+    "versionInfo" : "2024.12.2",
+    "primaryPackagePurpose" : "LIBRARY",
+    "downloadLocation" : "NOASSERTION",
+    "supplier" : "Organization: Silicon Laboratories, Inc.",
+    "licenseConcluded" : "Zlib"
+  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-bluetooth_common_release",
     "name" : "Bluetooth Low Energy Common Component",
     "versionInfo" : "2024.12.2",
@@ -1619,14 +1611,6 @@
     "supplier" : "Organization: Silicon Laboratories, Inc.",
     "licenseConcluded" : "Zlib"
   }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-apploader_util",
-    "name" : "AppLoader Utility",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "MSLA"
-  }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-mbedtls_config",
     "name" : "Configuration",
     "versionInfo" : "2024.12.2",
@@ -1647,46 +1631,6 @@
   }, {
     "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-gpio",
     "name" : "GPIO Driver",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-rail_lib",
-    "name" : "RAIL Library, Core",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "MSLA"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys",
-    "name" : "RAIL Utility, Built-in PHYs Across HFXO Frequencies",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager",
-    "name" : "Clock Manager",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2",
-    "name" : "Clock Manager Init HAL Series 2",
-    "versionInfo" : "2024.12.2",
-    "primaryPackagePurpose" : "LIBRARY",
-    "downloadLocation" : "NOASSERTION",
-    "supplier" : "Organization: Silicon Laboratories, Inc.",
-    "licenseConcluded" : "Zlib"
-  }, {
-    "SPDXID" : "SPDXRef-simplicity_sdk-2024.12.2-memory_manager",
-    "name" : "Memory Manager",
     "versionInfo" : "2024.12.2",
     "primaryPackagePurpose" : "LIBRARY",
     "downloadLocation" : "NOASSERTION",
@@ -1751,7 +1695,7 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -1783,10 +1727,6 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-in_place_ota_dfu",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-iostream_usart",
     "relationshipType" : "CONTAINS"
   }, {
@@ -1796,6 +1736,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-memlcd_usart",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-memory_manager",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -1872,6 +1816,10 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-bluetooth_controller_libraries",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -2159,10 +2107,6 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-app_timer",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-se_manager_mailbox",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2231,6 +2175,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-rail_lib",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-hal_gpio",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2247,15 +2195,7 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-bootloader_app_properties",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-emlib_msc",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-bootloader_interface_s2",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -2292,10 +2232,6 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_features",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-apploader",
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
@@ -2415,6 +2351,10 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
+    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys",
+    "relationshipType" : "CONTAINS"
+  }, {
+    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-bluetooth_common_release",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2471,10 +2411,6 @@
     "relationshipType" : "CONTAINS"
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-apploader_util",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-mbedtls_config",
     "relationshipType" : "CONTAINS"
   }, {
@@ -2484,26 +2420,6 @@
   }, {
     "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
     "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-gpio",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-rail_lib",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-rail_util_built_in_phys",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-clock_manager_init_hal_s2",
-    "relationshipType" : "CONTAINS"
-  }, {
-    "spdxElementId" : "SPDXRef-simplicity_sdk-2024.12.2",
-    "relatedSpdxElement" : "SPDXRef-simplicity_sdk-2024.12.2-memory_manager",
     "relationshipType" : "CONTAINS"
   } ]
 }

@@ -10,7 +10,7 @@ referenced in this SBOM.)
 -->
 <bom xmlns="http://cyclonedx.org/schema/bom/1.6" version="1">
   <metadata>
-    <timestamp>2025-08-15T22:05:31.018593Z</timestamp>
+    <timestamp>2025-12-06T17:36:17.819104Z</timestamp>
     <authors>
       <author>
         <name>Silicon Laboratories, Inc.</name>
@@ -155,14 +155,14 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:bootloader_interface" type="library">
-          <name>Bootloader Application Interface</name>
+        <component bom-ref="simplicity_sdk:2024.12.2:clock_manager" type="library">
+          <name>Clock Manager</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>
 	      </supplier>
           <licenses>
-            <expression>MSLA</expression>
+            <expression>Zlib</expression>
           </licenses>
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:configuration_over_swo" type="library">
@@ -235,16 +235,6 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:in_place_ota_dfu" type="library">
-          <name>In-Place OTA DFU</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:iostream_usart" type="library">
           <name>IO Stream: USART</name>
           <version>2024.12.2</version>
@@ -267,6 +257,16 @@ referenced in this SBOM.)
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:memlcd_usart" type="library">
           <name>Memory LCD with usart SPI driver</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>Zlib</expression>
+          </licenses>
+        </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:memory_manager" type="library">
+          <name>Memory Manager</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>
@@ -490,6 +490,16 @@ referenced in this SBOM.)
 	      </supplier>
           <licenses>
             <expression>MSLA</expression>
+          </licenses>
+        </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:clock_manager_init_hal_s2" type="library">
+          <name>Clock Manager Init HAL Series 2</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>Zlib</expression>
           </licenses>
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:hal_system" type="library">
@@ -1252,16 +1262,6 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:app_timer" type="library">
-          <name>Timer</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:se_manager_mailbox" type="library">
           <name>SE mailbox utilities</name>
           <version>2024.12.2</version>
@@ -1459,6 +1459,16 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:rail_lib" type="library">
+          <name>RAIL Library, Core</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>MSLA</expression>
+          </licenses>
+        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:hal_gpio" type="library">
           <name>GPIO</name>
           <version>2024.12.2</version>
@@ -1499,16 +1509,6 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:bootloader_app_properties" type="library">
-          <name>App Properties</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:emlib_msc" type="library">
           <name>MSC</name>
           <version>2024.12.2</version>
@@ -1517,16 +1517,6 @@ referenced in this SBOM.)
 	      </supplier>
           <licenses>
             <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:bootloader_interface_s2" type="library">
-          <name>Bootloader Application Interface Series 2</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>MSLA</expression>
           </licenses>
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:bluetooth_feature_advertiser" type="library">
@@ -1611,16 +1601,6 @@ referenced in this SBOM.)
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:rail_util_features" type="library">
           <name>RAIL Library Features, Core</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>MSLA</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:apploader" type="library">
-          <name>AppLoader Support for Applications</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>
@@ -1957,6 +1937,16 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
+        <component bom-ref="simplicity_sdk:2024.12.2:rail_util_built_in_phys" type="library">
+          <name>RAIL Utility, Built-in PHYs Across HFXO Frequencies</name>
+          <version>2024.12.2</version>
+	      <supplier>
+	        <name>Silicon Laboratories, Inc.</name>
+	      </supplier>
+          <licenses>
+            <expression>Zlib</expression>
+          </licenses>
+        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:bluetooth_common_release" type="library">
           <name>Bluetooth Low Energy Common Component</name>
           <version>2024.12.2</version>
@@ -2125,16 +2115,6 @@ referenced in this SBOM.)
             <expression>Zlib</expression>
           </licenses>
         </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:apploader_util" type="library">
-          <name>AppLoader Utility</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>MSLA</expression>
-          </licenses>
-        </component>
         <component bom-ref="simplicity_sdk:2024.12.2:mbedtls_config" type="library">
           <name>Configuration</name>
           <version>2024.12.2</version>
@@ -2166,56 +2146,6 @@ referenced in this SBOM.)
         </component>
         <component bom-ref="simplicity_sdk:2024.12.2:gpio" type="library">
           <name>GPIO Driver</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:rail_lib" type="library">
-          <name>RAIL Library, Core</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>MSLA</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:rail_util_built_in_phys" type="library">
-          <name>RAIL Utility, Built-in PHYs Across HFXO Frequencies</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:clock_manager" type="library">
-          <name>Clock Manager</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:clock_manager_init_hal_s2" type="library">
-          <name>Clock Manager Init HAL Series 2</name>
-          <version>2024.12.2</version>
-	      <supplier>
-	        <name>Silicon Laboratories, Inc.</name>
-	      </supplier>
-          <licenses>
-            <expression>Zlib</expression>
-          </licenses>
-        </component>
-        <component bom-ref="simplicity_sdk:2024.12.2:memory_manager" type="library">
-          <name>Memory Manager</name>
           <version>2024.12.2</version>
 	      <supplier>
 	        <name>Silicon Laboratories, Inc.</name>

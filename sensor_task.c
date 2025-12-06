@@ -23,7 +23,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 45; // Default to 30 seconds
+uint16_t measurement_interval = 30; // Default to 10 seconds
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
 
