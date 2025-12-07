@@ -37,6 +37,7 @@ sl_fem_util_config.h=2029249486
 sl_i2cspm_sensor_config.h=-201565955
 sl_interrupt_manager_s2_config.h=2041388134
 sl_iostream_eusart_vcom_config.h=97647517
+sl_iostream_swo_config.h=748883309
 sl_iostream_usart_exp_config.h=657732000
 sl_mbedtls_config.h=-887671824
 sl_mbedtls_device_config.h=-1083250924

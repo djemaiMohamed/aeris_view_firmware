@@ -65,6 +65,21 @@ int16_t sensor_init(void)
     return error;
   }
   
+  // Set temperature offset to compensate for device enclosure effects
+  // Default is 4°C (raw value 1498). Reduce to 1°C (raw value 375) to 
+  // increase reported temperature by ~3°C based on comparison with reference devices.
+  // Formula: raw_value = (offset_celsius * 65535) / 175
+  // 1°C offset = (1 * 65535) / 175 = 375
+  uint16_t temp_offset_raw = 375;  // 1°C offset (adjust as needed)
+  error = scd4x_set_temperature_offset_raw(temp_offset_raw);
+  if (error) {
+    app_log_error("Error setting temperature offset: %d\n", error);
+    // Continue despite this error
+  } else {
+    app_log_info("Temperature offset set to raw value %u (~%.1f°C)\n", 
+                 temp_offset_raw, (float)(temp_offset_raw * 175) / 65535.0f);
+  }
+  
   // Enable automatic self-calibration
   error = scd4x_set_automatic_self_calibration_enabled(1);
   if (error) {
