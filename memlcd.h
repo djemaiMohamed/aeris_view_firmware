@@ -24,6 +24,7 @@
 
 typedef struct {
   char  *date;
+  uint16_t measurement_interval_s;
   uint8_t battery_level;
   uint8_t bluetooth_connected;  // 1 if connected, 0 if disconnected
   uint16_t co2_value;

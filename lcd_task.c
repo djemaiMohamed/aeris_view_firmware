@@ -137,6 +137,7 @@ void lcd_update_display(sensor_data_t *sensor_data)
   lcd_update_measurement_interval_string(measurement_interval);
   // Update LCD data structure with measurement interval string
   lcd_data.date = measurement_interval_str;
+  lcd_data.measurement_interval_s = measurement_interval;
 
   memlcd_add_co2_to_history(&lcd_data, lcd_data.co2_value);
 
