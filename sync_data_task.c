@@ -14,9 +14,10 @@ extern uint8_t connection_handle;
 
 // Local state
 static bool sync_running = false;
-static uint32_t epoch_actual = 0;           // Current epoch timestamp from phone
+static uint32_t epoch_actual = 0;           // Epoch at device boot time
 static uint32_t last_sync_timestamp = 0;    // Last sync timestamp from phone
 static uint32_t boot_tick_count = 0;        // Tick count at boot for uptime calculation
+static bool epoch_valid = false;            // Whether epoch has been set by phone
 
 // NVM3 circular buffer indices
 static uint16_t write_index = 0;            // Next position to write
@@ -93,13 +94,18 @@ static sl_status_t load_metadata_from_nvm3(void)
         status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_EPOCH, &epoch_actual, sizeof(epoch_actual));
         if (status != ECODE_NVM3_OK) {
             epoch_actual = 0;
+            epoch_valid = false;
+        } else {
+            // Epoch is valid if it was previously saved (non-zero value)
+            epoch_valid = (epoch_actual != 0);
         }
     } else {
         epoch_actual = 0;
+        epoch_valid = false;
     }
     
-    app_log_info("NVM3 metadata loaded: write_idx=%u, sample_count=%u, epoch=%lu\n", 
-                 write_index, sample_count, (unsigned long)epoch_actual);
+    app_log_info("NVM3 metadata loaded: write_idx=%u, sample_count=%u, epoch=%lu, valid=%d\n", 
+                 write_index, sample_count, (unsigned long)epoch_actual, epoch_valid);
     
     return SL_STATUS_OK;
 }
@@ -133,17 +139,49 @@ static sl_status_t save_metadata_to_nvm3(void)
 }
 
 /***************************************************************************//**
+ * Get current absolute timestamp (epoch + uptime)
+ ******************************************************************************/
+uint32_t sync_data_get_current_timestamp(void)
+{
+    if (!epoch_valid) {
+        return 0;
+    }
+    return epoch_actual + sync_data_get_uptime_sec();
+}
+
+/***************************************************************************//**
+ * Check if epoch time has been set by phone
+ ******************************************************************************/
+bool sync_data_epoch_is_valid(void)
+{
+    return epoch_valid;
+}
+
+/***************************************************************************//**
  * Save a sensor sample to NVM3 storage
  ******************************************************************************/
-sl_status_t sync_data_save_sample(uint32_t uptime_sec, uint16_t co2, 
+sl_status_t sync_data_save_sample(uint16_t co2, 
                                    int32_t temp_mdeg_c, uint32_t humidity,
                                    uint8_t battery)
 {
     sample_t sample;
     Ecode_t status;
     
+    // Calculate absolute timestamp
+    uint32_t current_timestamp = sync_data_get_current_timestamp();
+    
+    // If epoch is not set, we cannot save with valid timestamp
+    // Still save with timestamp=0, will be updated on first sync
+    if (!epoch_valid) {
+        // Store uptime temporarily - will need special handling
+        // Use a marker (high bit set) to indicate this is uptime, not absolute
+        current_timestamp = sync_data_get_uptime_sec() | 0x80000000;
+        app_log_warning("Saving sample without valid epoch (uptime=%lu)\n", 
+                       (unsigned long)(current_timestamp & 0x7FFFFFFF));
+    }
+    
     // Fill sample structure
-    sample.uptime_sec = uptime_sec;
+    sample.timestamp = current_timestamp;
     sample.co2 = co2;
     // Convert from milli-degrees to centi-degrees (divide by 10)
     sample.temperature_c = (int16_t)(temp_mdeg_c / 10);
@@ -173,8 +211,8 @@ sl_status_t sync_data_save_sample(uint32_t uptime_sec, uint16_t co2,
     // Save metadata every sample (could optimize to save less frequently)
     save_metadata_to_nvm3();
     
-    app_log_info("Sample saved: uptime=%lu, co2=%u, temp_c=%d, humidity=%u (count=%u)\n",
-                 (unsigned long)uptime_sec, co2, sample.temperature_c, sample.humidity, sample_count);
+    app_log_info("Sample saved: ts=%lu, co2=%u, temp_c=%d, humidity=%u (count=%u)\n",
+                 (unsigned long)sample.timestamp, co2, sample.temperature_c, sample.humidity, sample_count);
     
     // Perform NVM3 repack if needed
     if (nvm3_repackNeeded(nvm3_defaultHandle)) {
@@ -341,8 +379,9 @@ void handle_sync_data_write(const uint8_t *value, uint16_t length)
     app_log_info("Sync data write: current_epoch=%lu, last_sync=%lu\n",
                  (unsigned long)current_epoch, (unsigned long)last_sync);
     
-    // Update device epoch
+    // Update device epoch (this is the epoch at boot time)
     epoch_actual = current_epoch - sync_data_get_uptime_sec();
+    epoch_valid = true;
     last_sync_timestamp = last_sync;
     
     // Save updated epoch to NVM3
@@ -484,6 +523,9 @@ static void sync_data_task(void *p_arg)
             start_index = write_index; // Oldest sample in circular buffer
         }
         
+        uint8_t retry_count = 0;
+        const uint8_t MAX_RETRIES = 3;
+        
         for (uint16_t i = 0; i < sample_count; i++) {
             uint16_t idx = (start_index + i) % MAX_SAMPLES;
             
@@ -491,26 +533,59 @@ static void sync_data_task(void *p_arg)
                 continue;
             }
             
-            // Calculate actual timestamp for this sample
-            uint32_t sample_timestamp = epoch_actual + sample.uptime_sec;
+            // Get the sample timestamp
+            // Check if this is an old-format sample (uptime with marker bit)
+            uint32_t sample_timestamp = sample.timestamp;
+            if (sample_timestamp & 0x80000000) {
+                // This sample was saved before epoch was set
+                // Skip it if we can't calculate proper timestamp
+                if (!epoch_valid) {
+                    app_log_warning("Skipping sample %u: no valid epoch to calculate timestamp\n", i);
+                    continue;
+                }
+                // Calculate approximate absolute timestamp using stored uptime
+                // This works if the device hasn't been rebooted since the sample was saved
+                uint32_t sample_uptime = sample_timestamp & 0x7FFFFFFF;
+                sample_timestamp = epoch_actual + sample_uptime;
+                app_log_info("Sample %u: converted uptime %lu to timestamp %lu\n", 
+                            i, (unsigned long)sample_uptime, (unsigned long)sample_timestamp);
+            }
             
             // Check if sample is newer than last sync
             if (sample_timestamp > last_sync_timestamp) {
-                // Send this sample
-                if (send_sample_notification(&sample, sample_timestamp) == SL_STATUS_OK) {
-                    samples_sent++;
-                    app_log_info("Sent sample %u: ts=%lu, co2=%u\n",
-                                 samples_sent, (unsigned long)sample_timestamp, sample.co2);
-                    // Note: Samples are NOT deleted after sending.
-                    // They will only be overwritten when the circular buffer is full.
-                } else {
-                    // Failed to send, stop trying
-                    app_log_error("Failed to send sample, stopping sync\n");
+                // Send this sample with retry logic
+                sl_status_t send_status;
+                retry_count = 0;
+                
+                do {
+                    send_status = send_sample_notification(&sample, sample_timestamp);
+                    if (send_status == SL_STATUS_OK) {
+                        samples_sent++;
+                        app_log_info("Sent sample %u: ts=%lu, co2=%u\n",
+                                     samples_sent, (unsigned long)sample_timestamp, sample.co2);
+                        break;
+                    } else if (send_status == SL_STATUS_NO_MORE_RESOURCE) {
+                        // BLE buffer is full, wait and retry
+                        retry_count++;
+                        app_log_warning("BLE buffer full, retry %d/%d\n", retry_count, MAX_RETRIES);
+                        OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &err);
+                    } else {
+                        // Other error, stop trying
+                        app_log_error("Failed to send sample (0x%04lx), stopping sync\n", 
+                                     (unsigned long)send_status);
+                        retry_count = MAX_RETRIES + 1; // Force exit
+                    }
+                } while (retry_count < MAX_RETRIES && 
+                         connection_handle != SL_BT_INVALID_CONNECTION_HANDLE);
+                
+                if (retry_count >= MAX_RETRIES) {
+                    app_log_error("Max retries exceeded, stopping sync\n");
                     break;
                 }
                 
-                // Small delay between notifications to avoid flooding
-                OSTimeDlyHMSM(0, 0, 0, 50, OS_OPT_TIME_HMSM_STRICT, &err);
+                // Increased delay between notifications to avoid overwhelming BLE stack
+                // 200ms gives the BLE stack time to actually transmit the notification
+                OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_HMSM_STRICT, &err);
             }
             
             // Check if connection was lost

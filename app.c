@@ -51,6 +51,8 @@ uint8_t connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
 bool suspend_lcd = false;
 static int16_t pwr_min;
 static int16_t pwr_max;
+// Track if client has subscribed to sync_data_id notifications
+uint8_t sync_data_id_notification_enabled = 0;
 
 // A semaphore to trigger bonding process
 extern OS_SEM sensor_data_ready_sem;
@@ -171,6 +173,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       sl_bt_advertiser_stop(advertising_set_handle);
       app_log_info("Advertising stopped.\n");
 
+      suspend_lcd = true;
+
       //sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
       break;
 
@@ -189,7 +193,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         case sl_bt_connection_mode1_level4:
           app_log_info("Authenticated Secure Connections pairing with encryption (BT 4.2 LE Secure Pairing)\r\n");
           // Signal the sensor task to update LCD
-          OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
+          //suspend_lcd = false;
+          //OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
           break;
         default:
           break;
@@ -216,8 +221,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                          sl_bt_advertiser_connectable_scannable);
       // log start advertising
       app_log_info("Advertising restarted.\n");
-      // Signal the sensor task to update LCD
-      OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
+      suspend_lcd = false;
       break;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -243,6 +247,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_sm_bonded.bonding);
 
       suspend_lcd = false;
+      sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
       break;
 
@@ -260,14 +265,17 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           advertising_set_handle,
           sl_bt_advertiser_connectable_scannable);
       app_log_info("Restarted advertising after bonding failure.\n");
+      suspend_lcd = false;
       break;
 
     case sl_bt_evt_gatt_server_characteristic_status_id:
       if (evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config) {
-        if (evt->data.evt_gatt_server_characteristic_status.client_config_flags & sl_bt_gatt_server_notification) {
-          //app_log_info("Notifications enabled by client.\n");
-        } else {
-          //app_log_info("Notifications disabled by client.\n");
+        // Track subscription for sync_data_id characteristic
+        if (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_sync_data_id) {
+          sync_data_id_notification_enabled = 
+            (evt->data.evt_gatt_server_characteristic_status.client_config_flags & sl_bt_gatt_server_notification) ? 1 : 0;
+          app_log_info("Sync data notifications %s\n", 
+                       sync_data_id_notification_enabled ? "enabled" : "disabled");
         }
       }
       break;

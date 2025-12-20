@@ -8,7 +8,7 @@
 
 // Task configuration
 #define CALIBRATION_TASK_PRIO       21u
-#define CALIBRATION_TASK_STK_SIZE   128u
+#define CALIBRATION_TASK_STK_SIZE   192u
 
 // Semaphore used to trigger calibration from GATT write
 extern OS_SEM calibration_task_sem;

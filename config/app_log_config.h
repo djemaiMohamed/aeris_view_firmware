@@ -159,7 +159,7 @@
 
 // <s APP_LOG_STREAM_INSTANCE> Preferred instance
 // <i> Preferred IOStream instance name
-#define APP_LOG_STREAM_INSTANCE    "vcom"
+#define APP_LOG_STREAM_INSTANCE    "exp"
 
 // </e>
 

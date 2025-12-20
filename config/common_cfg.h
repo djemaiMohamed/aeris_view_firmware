@@ -48,7 +48,7 @@
 // <o LIB_MEM_CFG_HEAP_SIZE> Size of heap memory (in octets).
 // <i> Size, in octets, of the general-purpose heap memory used as default memory segment.
 // <i> Default: 9216
-#define  LIB_MEM_CFG_HEAP_SIZE                              6500
+#define  LIB_MEM_CFG_HEAP_SIZE                              4500
 
 // <o LIB_MEM_CFG_HEAP_PADDING_ALIGN> Padding alignment for hardware allocations on heap (in octets)
 // <i> Padding alignment that will be added at the end of each memory allocation on heap when "HW" functions are used.

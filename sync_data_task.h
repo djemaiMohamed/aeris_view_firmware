@@ -8,7 +8,7 @@
 
 // Task configuration
 #define SYNC_DATA_TASK_PRIO       24u
-#define SYNC_DATA_TASK_STK_SIZE   128u
+#define SYNC_DATA_TASK_STK_SIZE   192u
 
 // NVM3 key definitions for sample storage
 // Using a range of keys for sample data (circular buffer)
@@ -24,7 +24,7 @@
 
 // Sample data structure stored in NVM3
 typedef struct {
-    uint32_t uptime_sec;      // Seconds since device boot
+    uint32_t timestamp;       // Absolute Unix timestamp (seconds since 1970)
     uint16_t co2;             // CO2 in ppm
     int16_t temperature_c;    // Temperature in centi-degrees Celsius (e.g., 2500 = 25.00°C)
     uint16_t humidity;        // Humidity in percent
@@ -49,16 +49,28 @@ bool sync_data_task_is_running(void);
 
 /**
  * @brief Save a sensor sample to NVM3 storage
- * @param uptime_sec  Seconds since boot when sample was taken
  * @param co2         CO2 value in ppm
  * @param temp_mdeg_c Temperature in milli-degrees Celsius
  * @param humidity    Humidity in percent
  * @param battery     Battery percentage (0-100)
  * @return SL_STATUS_OK on success, error code otherwise
+ * @note Timestamp is automatically calculated from epoch + uptime
  */
-sl_status_t sync_data_save_sample(uint32_t uptime_sec, uint16_t co2, 
+sl_status_t sync_data_save_sample(uint16_t co2, 
                                    int32_t temp_mdeg_c, uint32_t humidity,
                                    uint8_t battery);
+
+/**
+ * @brief Get current absolute timestamp (epoch + uptime)
+ * @return Current Unix timestamp, or 0 if epoch not set
+ */
+uint32_t sync_data_get_current_timestamp(void);
+
+/**
+ * @brief Check if epoch time has been set by phone
+ * @return true if epoch is valid, false otherwise
+ */
+bool sync_data_epoch_is_valid(void);
 
 /**
  * @brief Handle write to sync_data_id characteristic

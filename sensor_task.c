@@ -15,6 +15,8 @@
 // Battery measurement defines
 #define MICROVOLTS_PER_STEP 1221
 
+extern bool suspend_lcd;
+
 // Semaphores for synchronization
 OS_SEM sensor_data_ready_sem;
 OS_TCB *sensor_task_tcb_ptr;
@@ -23,7 +25,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 30; // Default to 10 seconds
+uint16_t measurement_interval = 60; // Default to 60 seconds
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
 
@@ -66,11 +68,10 @@ int16_t sensor_init(void)
   }
   
   // Set temperature offset to compensate for device enclosure effects
-  // Default is 4°C (raw value 1498). Reduce to 1°C (raw value 375) to 
-  // increase reported temperature by ~3°C based on comparison with reference devices.
   // Formula: raw_value = (offset_celsius * 65535) / 175
-  // 1°C offset = (1 * 65535) / 175 = 375
-  uint16_t temp_offset_raw = 375;  // 1°C offset (adjust as needed)
+  // Reduced from 4°C to 2°C offset because sensor was reading 2°C below actual.
+  // 2°C offset = (2 * 65535) / 175 = 749
+  uint16_t temp_offset_raw = 749;  // 2°C offset (adjusted: sensor was reading 2°C low)
   error = scd4x_set_temperature_offset_raw(temp_offset_raw);
   if (error) {
     app_log_error("Error setting temperature offset: %d\n", error);
@@ -352,6 +353,13 @@ void sensor_task(void *p_arg)
   }
   
   while (DEF_TRUE) {
+    if (suspend_lcd) {
+      // Skip updating LCD and sending notifications.
+      app_log_error(" Wait for LCD to be updated, Skip sensor measurement.\n");
+      OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+      continue;
+    }
+
     // wakeup the sensor if it was in sleep mode
     //error = scd4x_wake_up();
     // Step 1: Trigger a measurement
@@ -376,12 +384,11 @@ void sensor_task(void *p_arg)
       sensor_readings.battery_voltage_mv = battery_read_voltage();
       battery_deinit();
       sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
-      app_log_info("Battery: %lu mV (%d%%)\n", sensor_readings.battery_voltage_mv, sensor_readings.battery_percentage);
+      //app_log_info("Battery: %lu mV (%d%%)\\n\", sensor_readings.battery_voltage_mv, sensor_readings.battery_percentage);
       
       // Save measurement to NVM3 for later sync
-      uint32_t uptime = sync_data_get_uptime_sec();
-      sync_data_save_sample(uptime, 
-                            sensor_readings.co2_ppm, 
+      // Timestamp is calculated automatically from epoch + uptime
+      sync_data_save_sample(sensor_readings.co2_ppm, 
                             sensor_readings.temperature_mdeg_c, 
                             sensor_readings.humidity_percent,
                             sensor_readings.battery_percentage);

@@ -7,7 +7,7 @@
 
 // Task configuration
 #define NOTIFICATION_TASK_PRIO       23u
-#define NOTIFICATION_TASK_STK_SIZE   256u
+#define NOTIFICATION_TASK_STK_SIZE   192u
 
 /**
  * @brief Initialize the NOTIFICATION task

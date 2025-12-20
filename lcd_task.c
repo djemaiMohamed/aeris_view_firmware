@@ -17,8 +17,8 @@ OS_TCB *lcd_task_tcb_ptr;
 CPU_STK *lcd_task_stk_ptr;
 extern uint16_t measurement_interval;
 extern uint8_t connection_handle;
-extern bool suspend_lcd;
 extern uint8_t temperature_unit;
+extern bool suspend_lcd;
 
 // Variables for LCD display data
 memlcd_handle_t lcd_data;
@@ -193,6 +193,7 @@ void lcd_task(void *p_arg)
     
     if (suspend_lcd) {
       // Skip updating LCD and sending notifications.
+      app_log_info(" Skip LCD update.\n");
       continue;
     }
     // Update the LCD with the new data

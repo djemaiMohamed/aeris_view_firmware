@@ -7,7 +7,7 @@
 
 // Task constants
 #define SENSOR_TASK_PRIO              20u
-#define SENSOR_TASK_STK_SIZE          128u
+#define SENSOR_TASK_STK_SIZE          192u
 
 // SCD I2C ADDRESS
 #define SCD_ADDR                      0x62
@@ -46,5 +46,6 @@ uint8_t battery_calculate_percentage(uint32_t voltage_mv);
 // Global variables
 extern uint16_t measurement_interval;
 extern uint8_t temperature_unit;
+extern int16_t temperature_offset_mdeg;
 
 #endif // SENSOR_TASK_H

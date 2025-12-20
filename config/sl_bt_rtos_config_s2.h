@@ -58,7 +58,7 @@
 // <i> Default: 2000
 // <i> Define the stack size of the Bluetooth host stack task. The value is in bytes
 // <i> and will be word aligned when it is applied at the task creation.
-#define SL_BT_RTOS_HOST_STACK_TASK_STACK_SIZE   (2000)
+#define SL_BT_RTOS_HOST_STACK_TASK_STACK_SIZE   (1500)
 
 // <o SL_BT_RTOS_EVENT_HANDLER_TASK_PRIORITY> Bluetooth event handler task priority
 // <i> Default: 50 (CMSIS-RTOS2 osPriorityRealtime2)
@@ -75,7 +75,7 @@
 // <i> and will be word aligned when it is applied at the task creation.
 // <i> The event task is not created and this configuration is unused if the
 // <i> Bluetooth Event System IPC component is included in the application
-#define SL_BT_RTOS_EVENT_HANDLER_STACK_SIZE     (1000)
+#define SL_BT_RTOS_EVENT_HANDLER_STACK_SIZE     (750)
 
 // </h> End Priority Configuration for Bluetooth RTOS Tasks
 

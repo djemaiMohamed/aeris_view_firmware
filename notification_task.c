@@ -20,6 +20,7 @@ OS_SEM ble_notification_sem;
 extern uint8_t connection_handle;
 extern uint16_t measurement_interval;
 extern uint8_t temperature_unit;
+extern uint8_t sync_data_id_notification_enabled;
 
 // Task function prototype
 static void notification_task(void *p_arg);
@@ -199,6 +200,7 @@ static void temperature_measurement_val_to_buf(int32_t value, bool fahrenheit, u
 static void send_notifications(void)
 {
   sl_status_t sc;
+  
   // get sensor data
   sensor_data_t *sensor_data = sensor_get_latest_readings();
   
@@ -234,21 +236,44 @@ static void send_notifications(void)
   data[11] = sensor_data->battery_percentage;
   
   // Send unified notification using sync_data_id characteristic
-  sc = sl_bt_gatt_server_send_notification(
-    connection_handle,
-    gattdb_sync_data_id,
-    sizeof(data),
-    data
-  );
+  sc = SL_STATUS_FAIL;
+  int retry_count = 0;
+  const int MAX_RETRIES = 10;  // Increased to 10 retries
+  RTOS_ERR retry_err;
+  
+  while (sc != SL_STATUS_OK && retry_count < MAX_RETRIES) {
+    sc = sl_bt_gatt_server_send_notification(
+      connection_handle,
+      gattdb_sync_data_id,
+      sizeof(data),
+      data
+    );
+    // log fail and retry
+    if (sc != SL_STATUS_OK) {
+      retry_count++;
+      app_log_error("Failed to send live data notification: 0x%04lx. Retry %d/%d\n", 
+                    (unsigned long)sc, retry_count, MAX_RETRIES);
+      // Add longer delay before retry to give client time to subscribe
+      // First few retries wait 1 second, then increase to 2 seconds
+      if (retry_count < MAX_RETRIES) {
+        if (retry_count < 3) {
+          OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &retry_err);  // 1 second
+        } else {
+          OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &retry_err);  // 2 seconds
+        }
+      }
+    }
+  }
   
   if (sc == SL_STATUS_OK) {
     app_log_info("Live data notification sent: CO2=%u, Temp=%d.%02d, Hum=%lu%%, Bat=%u%%\n",
-                 sensor_data->co2_ppm,
-                 temp_centi / 100, (temp_centi >= 0 ? temp_centi : -temp_centi) % 100,
-                 (unsigned long)sensor_data->humidity_percent,
-                 sensor_data->battery_percentage);
+                   sensor_data->co2_ppm,
+                   temp_centi / 100, (temp_centi >= 0 ? temp_centi : -temp_centi) % 100,
+                   (unsigned long)sensor_data->humidity_percent,
+                   sensor_data->battery_percentage);
   } else {
-    app_log_error("Failed to send live data notification. Status: 0x%04x\n", sc);
+    app_log_error("Failed to send live data notification after %d attempts. Status: 0x%04lx\n", 
+                  MAX_RETRIES, (unsigned long)sc);
   }
 }
 
@@ -276,11 +301,12 @@ static void notification_task(void *p_arg)
     app_log_info("Notification task triggered.\n");
 
     if(connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
-      sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
-      app_log_info("Connection parameters set: min_interval=160, max_interval=200, latency=4, timeout=600.\n");
-      OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+      //sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
+      //app_log_info("Connection parameters set: min_interval=160, max_interval=200, latency=4, timeout=600.\n");
+      //OSTimeDlyHMSM(0, 0, 4, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+      
+      send_notifications();
     }
 
-    send_notifications();
   }
 }
