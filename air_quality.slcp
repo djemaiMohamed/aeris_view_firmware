@@ -52,6 +52,7 @@ component:
 - {id: glib}
 - instance: [sensor]
   id: i2cspm
+- {id: iostream_rtt}
 - instance: [exp]
   id: iostream_usart
 - {id: memlcd_display_custom}

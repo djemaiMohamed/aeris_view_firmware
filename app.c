@@ -48,7 +48,6 @@ uint8_t advertising_set_handle = 0xff; // Removed static
 static RTOS_ERR err;
 // connection handle
 uint8_t connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
-bool suspend_lcd = false;
 static int16_t pwr_min;
 static int16_t pwr_max;
 // Track if client has subscribed to sync_data_id notifications
@@ -160,6 +159,8 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     // -------------------------------
     // This event indicates that a new connection was opened.
     case sl_bt_evt_connection_opened_id:
+      // suspend tasks until secure connection is established
+      suspend_tasks();
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
 
@@ -172,13 +173,10 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       // Stop advertising
       sl_bt_advertiser_stop(advertising_set_handle);
       app_log_info("Advertising stopped.\n");
-
-      suspend_lcd = true;
-
-      //sl_bt_connection_set_parameters(evt->data.evt_connection_opened.connection, 160, 200, 4, 600, 0, 0xffff);
       break;
 
     case sl_bt_evt_connection_parameters_id:
+      bool authenticated =false;
       switch (evt->data.evt_connection_parameters.security_mode)
       {
         case sl_bt_connection_mode1_level1:
@@ -191,18 +189,31 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           app_log_info("Authenticated pairing with encryption (Legacy Pairing)\r\n");
           break;
         case sl_bt_connection_mode1_level4:
-          app_log_info("Authenticated Secure Connections pairing with encryption (BT 4.2 LE Secure Pairing)\r\n");
-          // Signal the sensor task to update LCD
-          //suspend_lcd = false;
-          //OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
+          app_log_info("Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key (Secure Connections)\r\n");
+          authenticated = true;
           break;
         default:
           break;
       }
+
       uint16_t interval = evt->data.evt_connection_parameters.interval, latency = evt->data.evt_connection_parameters.latency, timeout = evt->data.evt_connection_parameters.timeout;
       app_log_info("connection interval %d, latency %d, timeout %d ms\n", interval, latency, timeout * 10);
+      if (authenticated) {
+        if (latency != 4) {
+          app_log_info("Changing connection parameters to desired latency of 4. Suspending tasks.\n");
+          sl_bt_connection_set_parameters(evt->data.evt_connection_parameters.connection, 160, 200, 4, 600, 0, 0xffff);
+          app_log_info("Re-setting connection parameters to desired latency of 4.\n");
+        } else {
+          app_log_info("Desired connection parameters already set. Resuming tasks.\n");
+          // resume tasks
+          resume_tasks();
+          // trigger notification task to send data
+          OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
+        }
+      }
 
       break;
+
     case sl_bt_evt_connection_set_parameters_failed_id:
       app_log_error("Failed to set connection parameters");
       break;
@@ -221,7 +232,6 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                                          sl_bt_advertiser_connectable_scannable);
       // log start advertising
       app_log_info("Advertising restarted.\n");
-      suspend_lcd = false;
       break;
 
     ///////////////////////////////////////////////////////////////////////////
@@ -230,7 +240,6 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     case sl_bt_evt_sm_passkey_display_id:
       app_log_info("Passkey: %lu\n", evt->data.evt_sm_passkey_display.passkey);
       memlcd_display_passkey(evt->data.evt_sm_passkey_display.passkey);
-      suspend_lcd = true;
       break;
 
     case sl_bt_evt_sm_confirm_bonding_id:
@@ -246,8 +255,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_sm_bonded.security_mode,
                    evt->data.evt_sm_bonded.bonding);
 
-      suspend_lcd = false;
-      sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
+      //sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
       break;
 
@@ -265,7 +273,6 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
           advertising_set_handle,
           sl_bt_advertiser_connectable_scannable);
       app_log_info("Restarted advertising after bonding failure.\n");
-      suspend_lcd = false;
       break;
 
     case sl_bt_evt_gatt_server_characteristic_status_id:

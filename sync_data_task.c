@@ -11,6 +11,8 @@
 
 // External handles
 extern uint8_t connection_handle;
+// Defined in app.c
+extern uint8_t sync_data_id_notification_enabled;
 
 // Local state
 static bool sync_running = false;
@@ -18,6 +20,8 @@ static uint32_t epoch_actual = 0;           // Epoch at device boot time
 static uint32_t last_sync_timestamp = 0;    // Last sync timestamp from phone
 static uint32_t boot_tick_count = 0;        // Tick count at boot for uptime calculation
 static bool epoch_valid = false;            // Whether epoch has been set by phone
+
+// Connection parameter tuning removed; rely on default stack behavior.
 
 // NVM3 circular buffer indices
 static uint16_t write_index = 0;            // Next position to write
@@ -29,6 +33,45 @@ CPU_STK *sync_data_task_stk_ptr;
 OS_SEM sync_data_task_sem;
 
 static void sync_data_task(void *p_arg);
+static sl_status_t read_sample_from_nvm3(uint16_t index, sample_t *sample);
+static void purge_legacy_nvm3_keys(void);
+
+static uint16_t count_samples_newer_than(uint32_t after_timestamp)
+{
+    sample_t sample;
+
+    // Calculate the starting index based on sample count and write index
+    uint16_t start_index;
+    if (sample_count < MAX_SAMPLES) {
+        start_index = 0;
+    } else {
+        start_index = write_index; // Oldest sample in circular buffer
+    }
+
+    uint16_t eligible = 0;
+    for (uint16_t i = 0; i < sample_count; i++) {
+        uint16_t idx = (start_index + i) % MAX_SAMPLES;
+
+        if (read_sample_from_nvm3(idx, &sample) != SL_STATUS_OK) {
+            continue;
+        }
+
+        uint32_t sample_timestamp = sample.timestamp;
+        if (sample_timestamp & 0x80000000) {
+            if (!epoch_valid) {
+                continue;
+            }
+            uint32_t sample_uptime = sample_timestamp & 0x7FFFFFFF;
+            sample_timestamp = epoch_actual + sample_uptime;
+        }
+
+        if (sample_timestamp > after_timestamp) {
+            eligible++;
+        }
+    }
+
+    return eligible;
+}
 
 /***************************************************************************//**
  * Get current uptime in seconds using sleeptimer
@@ -39,6 +82,25 @@ uint32_t sync_data_get_uptime_sec(void)
     uint32_t elapsed_ticks = current_ticks - boot_tick_count;
     uint32_t freq = sl_sleeptimer_get_timer_frequency();
     return elapsed_ticks / freq;
+}
+
+// Delete any legacy keys that were in the Bluetooth-reserved range to reclaim space
+// and prevent overlap with bonding data. This runs once at startup.
+static void purge_legacy_nvm3_keys(void)
+{
+    // Legacy metadata keys
+    const nvm3_ObjectKey_t legacy_meta_keys[] = { 0x0F00, 0x0F01, 0x0F02, 0x0F03 };
+    for (size_t i = 0; i < (sizeof(legacy_meta_keys) / sizeof(legacy_meta_keys[0])); i++) {
+        (void)nvm3_deleteObject(nvm3_defaultHandle, legacy_meta_keys[i]);
+    }
+
+    // Legacy sample range starting at 0x1000
+    const nvm3_ObjectKey_t legacy_sample_base = 0x1000;
+    for (uint16_t i = 0; i < MAX_SAMPLES; i++) {
+        (void)nvm3_deleteObject(nvm3_defaultHandle, legacy_sample_base + i);
+    }
+
+    app_log_info("Legacy NVM3 keys purged\n");
 }
 
 /***************************************************************************//**
@@ -212,13 +274,8 @@ sl_status_t sync_data_save_sample(uint16_t co2,
     save_metadata_to_nvm3();
     
     app_log_info("Sample saved: ts=%lu, co2=%u, temp_c=%d, humidity=%u (count=%u)\n",
-                 (unsigned long)sample.timestamp, co2, sample.temperature_c, sample.humidity, sample_count);
-    
-    // Perform NVM3 repack if needed
-    if (nvm3_repackNeeded(nvm3_defaultHandle)) {
-        app_log_info("NVM3 repack needed, performing repack...\n");
-        nvm3_repack(nvm3_defaultHandle);
-    }
+                 (unsigned long)sample.timestamp, co2, sample.temperature_c, sample.humidity,
+                 sample_count);
     
     return SL_STATUS_OK;
 }
@@ -448,6 +505,9 @@ sl_status_t sync_data_task_init(void)
     
     // Record boot tick count for uptime calculation
     boot_tick_count = sl_sleeptimer_get_tick_count();
+
+    // Clear any legacy keys that overlapped BT-reserved space to protect bonding data.
+    purge_legacy_nvm3_keys();
     
     // Load metadata from NVM3
     load_metadata_from_nvm3();
@@ -507,9 +567,19 @@ static void sync_data_task(void *p_arg)
             app_log_warning("Sync requested but no connection\n");
             continue;
         }
+
+        // Notifications must be enabled by client (CCCD) before we can sync.
+        if (!sync_data_id_notification_enabled) {
+            app_log_warning("Sync requested but notifications are disabled (CCCD not set)\n");
+            continue;
+        }
         
         sync_running = true;
         samples_sent = 0;
+
+        // Pre-count how many samples we intend to send so remaining can be accurate,
+        // and to avoid logging "complete" when the connection drops mid-sync.
+        const uint16_t total_to_send = count_samples_newer_than(last_sync_timestamp);
         
         app_log_info("Starting sync: looking for samples after timestamp %lu\n",
                      (unsigned long)last_sync_timestamp);
@@ -526,6 +596,7 @@ static void sync_data_task(void *p_arg)
         uint8_t retry_count = 0;
         const uint8_t MAX_RETRIES = 3;
         
+        bool aborted = false;
         for (uint16_t i = 0; i < sample_count; i++) {
             uint16_t idx = (start_index + i) % MAX_SAMPLES;
             
@@ -580,6 +651,7 @@ static void sync_data_task(void *p_arg)
                 
                 if (retry_count >= MAX_RETRIES) {
                     app_log_error("Max retries exceeded, stopping sync\n");
+                    aborted = true;
                     break;
                 }
                 
@@ -591,17 +663,24 @@ static void sync_data_task(void *p_arg)
             // Check if connection was lost
             if (connection_handle == SL_BT_INVALID_CONNECTION_HANDLE) {
                 app_log_warning("Connection lost during sync\n");
+                aborted = true;
                 break;
             }
         }
         
-        // Send sync complete notification
-        if (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
+        // If we finished without abort and are still connected, signal completion to client.
+        if (!aborted && connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
             send_sync_complete_notification(samples_sent);
         }
-        
-        app_log_info("Sync complete: sent %u samples, remaining %u\n",
-                     samples_sent, sample_count);
+
+        const uint16_t remaining = (total_to_send > samples_sent) ? (uint16_t)(total_to_send - samples_sent) : 0;
+        if (aborted) {
+            app_log_warning("Sync aborted: sent %u/%u samples, remaining %u\n",
+                            samples_sent, total_to_send, remaining);
+        } else {
+            app_log_info("Sync complete: sent %u/%u samples, remaining %u\n",
+                         samples_sent, total_to_send, remaining);
+        }
         
         sync_running = false;
     }

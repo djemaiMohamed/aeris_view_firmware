@@ -84,7 +84,15 @@ void handle_measurement_interval_write(uint8_t *value, uint16_t length)
     uint16_t new_interval = (value[1] << 8) | value[0]; // Convert from little-endian
     if (new_interval >= 1 && new_interval <= 3600) { // Validate range (1 second to 1 hour)
       measurement_interval = new_interval;
-      app_log_info("Measurement interval updated to %d seconds.\n", measurement_interval);
+      sl_status_t st = sensor_restart_measurement_timer(measurement_interval);
+      if (st == SL_STATUS_OK) {
+        app_log_info("Measurement interval updated to %d seconds; timer restarted and measurement triggered.\n",
+                     measurement_interval);
+      } else {
+        app_log_error("Failed to restart measurement timer (status=0x%lx) for interval %u s.\n",
+                      (unsigned long)st,
+                      (unsigned int)measurement_interval);
+      }
     } else {
       app_log_warning("Invalid measurement interval: %d seconds. Must be between 1 and 3600.\n", new_interval);
     }
@@ -301,10 +309,6 @@ static void notification_task(void *p_arg)
     app_log_info("Notification task triggered.\n");
 
     if(connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
-      //sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
-      //app_log_info("Connection parameters set: min_interval=160, max_interval=200, latency=4, timeout=600.\n");
-      //OSTimeDlyHMSM(0, 0, 4, 0, OS_OPT_TIME_HMSM_STRICT, &err);
-      
       send_notifications();
     }
 

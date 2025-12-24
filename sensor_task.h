@@ -4,6 +4,7 @@
 #include <os.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "sl_status.h"
 
 // Task constants
 #define SENSOR_TASK_PRIO              20u
@@ -15,6 +16,7 @@
 // Semaphores for synchronization
 extern OS_SEM sensor_data_ready_sem;
 extern OS_SEM ble_notification_sem;
+extern OS_SEM measurement_sem;
 
 // Sensor data structure
 typedef struct {
@@ -42,6 +44,7 @@ void battery_init(void);
 void battery_deinit(void);
 uint32_t battery_read_voltage(void);
 uint8_t battery_calculate_percentage(uint32_t voltage_mv);
+sl_status_t sensor_restart_measurement_timer(uint16_t interval_sec);
 
 // Global variables
 extern uint16_t measurement_interval;

@@ -10,17 +10,18 @@
 #define SYNC_DATA_TASK_PRIO       24u
 #define SYNC_DATA_TASK_STK_SIZE   192u
 
-// NVM3 key definitions for sample storage
-// Using a range of keys for sample data (circular buffer)
-#define NVM3_SAMPLE_KEY_BASE      0x1000    // Base key for sample storage
-#define NVM3_META_KEY_WRITE_IDX   0x0F00    // Key for write index
-#define NVM3_META_KEY_READ_IDX    0x0F01    // Key for read index (last sent)
-#define NVM3_META_KEY_EPOCH       0x0F02    // Key for epoch timestamp
-#define NVM3_META_KEY_BOOT_TIME   0x0F03    // Key for boot timestamp offset
+// NVM3 key definitions for sample storage (application range >= 0x8000 to avoid BT keys)
+// Reserve metadata in the 0x8000 range and samples starting at 0x9000.
+#define NVM3_META_KEY_WRITE_IDX   0x8000    // Key for write index
+#define NVM3_META_KEY_READ_IDX    0x8001    // Key for read index (last sent)
+#define NVM3_META_KEY_EPOCH       0x8002    // Key for epoch timestamp
+#define NVM3_META_KEY_BOOT_TIME   0x8003    // Key for boot timestamp offset
+#define NVM3_SAMPLE_KEY_BASE      0x9000    // Base key for sample storage
 
 // Maximum number of samples to store in NVM3 (circular buffer size)
-// With 80KB NVM3 and ~20 bytes per sample, we can store ~3500 samples
-#define MAX_SAMPLES               3500
+// With ~72KB available, reserving >=2 pages for bonding and ~20 bytes per sample,
+// cap at 3000 to avoid collisions with Bluetooth data.
+#define MAX_SAMPLES               3000
 
 // Sample data structure stored in NVM3
 typedef struct {

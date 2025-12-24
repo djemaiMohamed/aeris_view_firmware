@@ -73,7 +73,7 @@
 
 // <e APP_LOG_ENABLE> Application Logging
 // <i> Enables Logging.
-#define APP_LOG_ENABLE            0
+#define APP_LOG_ENABLE            1
 
 // <h> General
 
@@ -147,7 +147,7 @@
 
 // <e APP_LOG_OVERRIDE_DEFAULT_STREAM> Override default stream
 // <i> Enable overriding the system level default stream to use for logging.
-#define APP_LOG_OVERRIDE_DEFAULT_STREAM            0
+#define APP_LOG_OVERRIDE_DEFAULT_STREAM            1
 
 // <o APP_LOG_STREAM_TYPE> Stream type
 // <SL_IOSTREAM_TYPE_SWO=> SWO
@@ -155,7 +155,7 @@
 // <SL_IOSTREAM_TYPE_UART=> UART
 // <SL_IOSTREAM_TYPE_VUART=> VUART
 // <i> Default: UART
-#define APP_LOG_STREAM_TYPE        SL_IOSTREAM_TYPE_UART
+#define APP_LOG_STREAM_TYPE        SL_IOSTREAM_TYPE_RTT
 
 // <s APP_LOG_STREAM_INSTANCE> Preferred instance
 // <i> Preferred IOStream instance name

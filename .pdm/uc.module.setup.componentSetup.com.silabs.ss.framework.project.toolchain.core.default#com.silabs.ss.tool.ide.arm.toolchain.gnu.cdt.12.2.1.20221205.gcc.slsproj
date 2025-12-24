@@ -154,12 +154,14 @@
           <folder name="src">
             <file name="sl_iostream.c" linked="false" uri="studio:/sdk/platform/service/iostream/src/sl_iostream.c"/>
             <file name="sl_iostream_retarget_stdio.c" linked="false" uri="studio:/sdk/platform/service/iostream/src/sl_iostream_retarget_stdio.c"/>
+            <file name="sl_iostream_rtt.c" linked="false" uri="studio:/sdk/platform/service/iostream/src/sl_iostream_rtt.c"/>
             <file name="sl_iostream_stdlib_config.c" linked="false" uri="studio:/sdk/platform/service/iostream/src/sl_iostream_stdlib_config.c"/>
             <file name="sl_iostream_uart.c" linked="false" uri="studio:/sdk/platform/service/iostream/src/sl_iostream_uart.c"/>
             <file name="sl_iostream_usart.c" linked="false" uri="studio:/sdk/platform/service/iostream/src/sl_iostream_usart.c"/>
           </folder>
           <folder name="inc">
             <file name="sl_iostream.h" linked="false" uri="studio:/sdk/platform/service/iostream/inc/sl_iostream.h"/>
+            <file name="sl_iostream_rtt.h" linked="false" uri="studio:/sdk/platform/service/iostream/inc/sl_iostream_rtt.h"/>
             <file name="sl_iostream_stdlib_config.h" linked="false" uri="studio:/sdk/platform/service/iostream/inc/sl_iostream_stdlib_config.h"/>
             <file name="sl_iostream_uart.h" linked="false" uri="studio:/sdk/platform/service/iostream/inc/sl_iostream_uart.h"/>
             <file name="sli_iostream_uart.h" linked="false" uri="studio:/sdk/platform/service/iostream/inc/sli_iostream_uart.h"/>
@@ -1191,6 +1193,16 @@
             </folder>
           </folder>
         </folder>
+        <folder name="segger">
+          <folder name="systemview">
+            <folder name="SEGGER">
+              <file name="SEGGER_RTT.c" linked="false" uri="studio:/sdk/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.c"/>
+              <file name="SEGGER.h" linked="false" uri="studio:/sdk/util/third_party/segger/systemview/SEGGER/SEGGER.h"/>
+              <file name="SEGGER_RTT.h" linked="false" uri="studio:/sdk/util/third_party/segger/systemview/SEGGER/SEGGER_RTT.h"/>
+              <file name="sl_rtt_buffer_index.h" linked="false" uri="studio:/sdk/util/third_party/segger/systemview/SEGGER/sl_rtt_buffer_index.h"/>
+            </folder>
+          </folder>
+        </folder>
       </folder>
     </folder>
   </folder>
@@ -1277,6 +1289,7 @@
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/rail_util_power_manager_init"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/radio/rail_lib/plugin/rail_util_pti"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/security/sl_component/se_manager/inc"/>
+  <includePath uri="studio:/project/simplicity_sdk_2024.12.2/util/third_party/segger/systemview/SEGGER"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/common/toolchain/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/system/inc"/>
   <includePath uri="studio:/project/simplicity_sdk_2024.12.2/platform/service/sleeptimer/inc"/>
@@ -1304,6 +1317,8 @@
   <macroDefinition name="SL_RAIL_LIB_MULTIPROTOCOL_SUPPORT" value="0"/>
   <macroDefinition name="SL_RAIL_UTIL_PA_CONFIG_HEADER" value="&lt;sl_rail_util_pa_config.h>"/>
   <macroDefinition name="SL_CODE_COMPONENT_SE_MANAGER" value="se_manager"/>
+  <macroDefinition name="RTT_USE_ASM" value="0"/>
+  <macroDefinition name="SEGGER_RTT_SECTION" value="&quot;SEGGER_RTT&quot;"/>
   <macroDefinition name="SL_CODE_COMPONENT_CORE" value="core"/>
   <macroDefinition name="SL_CODE_COMPONENT_SLEEPTIMER" value="sleeptimer"/>
   <macroDefinition name="SL_CODE_COMPONENT_SLI_CRYPTO" value="sli_crypto"/>

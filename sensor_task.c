@@ -10,24 +10,136 @@
 #include "em_device.h"
 #include "em_cmu.h"
 #include "em_iadc.h"
+#include "em_gpio.h"
 #include "sync_data_task.h"
+#include "sl_sleeptimer.h"
+#include "sl_status.h"
 
 // Battery measurement defines
-#define MICROVOLTS_PER_STEP 1221
+// New design:
+// - PB0: battery sense node (R5/R6 divider)
+// - PB1: divider bottom switch; drive low only during measurement, otherwise hi-Z
+#define BATTERY_SENSE_PORT gpioPortB
+#define BATTERY_SENSE_PIN  0
+#define BATTERY_SW_PORT    gpioPortB
+#define BATTERY_SW_PIN     1
 
-extern bool suspend_lcd;
+#define BATTERY_R5_OHMS 100000UL
+#define BATTERY_R6_OHMS 150000UL
+
+// IADC single results are 12-bit aligned by default
+#define BATTERY_IADC_COUNTS_FULL_SCALE 4096UL
+
+// If VDDX is used as IADC reference, set this to your regulated VMCU/VDDX in mV.
+// Default is 3000mV (matches emlib's nominal VDDX reference value).
+#ifndef BATTERY_VDDX_MV
+#define BATTERY_VDDX_MV 3000UL
+#endif
+
+// Set to 1 to include extra ADC debug logging
+#ifndef BATTERY_MONITOR_LOG_DEBUG
+#define BATTERY_MONITOR_LOG_DEBUG 0
+#endif
+
+// Divider/node settling delay after enabling PB1 GND switch.
+// Increase this if you have an RC filter on the sense node.
+#ifndef BATTERY_SETTLE_DELAY_MS
+#define BATTERY_SETTLE_DELAY_MS 20U
+#endif
+
+// Set to 1 if the external divider-to-GND switch is active-high (e.g., PB1 drives a MOSFET gate).
+// Set to 0 if PB1 directly pulls the divider bottom to GND when driven low.
+#ifndef BATTERY_SW_ACTIVE_HIGH
+#define BATTERY_SW_ACTIVE_HIGH 1
+#endif
+
+// If computed battery voltage is below this, print extra diagnostics.
+#ifndef BATTERY_DIAG_BELOW_MV
+#define BATTERY_DIAG_BELOW_MV 3300UL
+#endif
+
+// Optional calibration factor applied to computed battery voltage.
+// Example: if DMM=4620mV and firmware=4465mV, scale ~= 4620/4465 = 1.0347.
+// Set BATTERY_CAL_NUM=1035 and BATTERY_CAL_DEN=1000.
+#ifndef BATTERY_CAL_NUM
+#define BATTERY_CAL_NUM 1035UL
+#endif
+#ifndef BATTERY_CAL_DEN
+#define BATTERY_CAL_DEN 1000UL
+#endif
+
+// Prefer the lowest available analog gain to increase allowable input range.
+// Approx full-scale input multiplier vs Vref:
+// - gain 0.25x => ~4 * Vref
+// - gain 0.5x  => ~2 * Vref
+// - gain 1x    => ~1 * Vref
+#if defined(_IADC_CFG_ANALOGGAIN_ANAGAIN0P25)
+  #define BATTERY_IADC_ANALOG_GAIN        iadcCfgAnalogGain0P25x
+  #define BATTERY_IADC_INPUT_SCALE_NUM   4UL
+  #define BATTERY_IADC_REFSEL             iadcCfgReferenceInt1V2
+  #define BATTERY_IADC_VREF_MV            1210UL
+#else
+  #define BATTERY_IADC_ANALOG_GAIN        iadcCfgAnalogGain0P5x
+  #define BATTERY_IADC_INPUT_SCALE_NUM   2UL
+  // With only 0.5x gain available, the PB0 node (~0.6*Vbat) can exceed 2*1.2V and saturate,
+  // producing a plateau around ~4.03V on the computed battery voltage. Use VDDX as reference.
+  #define BATTERY_IADC_REFSEL             iadcCfgReferenceVddx
+  #define BATTERY_IADC_VREF_MV            BATTERY_VDDX_MV
+#endif
 
 // Semaphores for synchronization
 OS_SEM sensor_data_ready_sem;
+OS_SEM measurement_sem;
 OS_TCB *sensor_task_tcb_ptr;
 CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 20; // Default to 20 seconds
+uint16_t measurement_interval = 10; // Default to 10 seconds
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
+
+// Timer handle for scheduling measurements
+static sl_sleeptimer_timer_handle_t measurement_timer_handle;
+
+// Timer callback: post the measurement semaphore from sleeptimer context
+static void measurement_timer_cb(sl_sleeptimer_timer_handle_t *handle, void *data)
+{
+  (void)handle;
+  (void)data;
+
+  RTOS_ERR err;
+  OSSemPost(&measurement_sem, OS_OPT_POST_1, &err);
+}
+
+sl_status_t sensor_restart_measurement_timer(uint16_t interval_sec)
+{
+  sl_status_t st;
+
+  // Stop existing timer if running
+  st = sl_sleeptimer_stop_timer(&measurement_timer_handle);
+  if ((st != SL_STATUS_OK) && (st != SL_STATUS_INVALID_STATE)) {
+    return st;
+  }
+
+  st = sl_sleeptimer_start_periodic_timer_ms(&measurement_timer_handle,
+                                             (uint32_t)interval_sec * 1000UL,
+                                             measurement_timer_cb,
+                                             NULL,
+                                             0,
+                                             0);
+  if (st != SL_STATUS_OK) {
+    return st;
+  }
+
+  // Kick off an immediate measurement after interval change
+  RTOS_ERR err;
+  OSSemPost(&measurement_sem, OS_OPT_POST_1, &err);
+  (void)err;
+
+  return SL_STATUS_OK;
+}
 
 /**************************************************************************//**
  * Initialize the SCD4x sensor for single shot measurements.
@@ -193,6 +305,21 @@ sensor_data_t* sensor_get_latest_readings(void)
  *****************************************************************************/
 void battery_init(void)
 {
+  // Ensure GPIO clock is enabled for PB0/PB1 configuration
+  CMU_ClockEnable(cmuClock_GPIO, true);
+
+  // Route Port B (even pins group 0 incl. PB0) onto the analog bus for ADC0/IADC.
+  // On some Series 2 parts, GPIO->BBUSALLOC must be set or the pin won't reach the ADC.
+#if defined(GPIO_BBUSALLOC_BEVEN0_ADC0)
+  GPIO->BBUSALLOC_SET = GPIO_BBUSALLOC_BEVEN0_ADC0;
+#endif
+
+  // PB0: disable digital (analog input)
+  GPIO_PinModeSet(BATTERY_SENSE_PORT, BATTERY_SENSE_PIN, gpioModeDisabled, 0);
+
+  // PB1: keep divider disconnected by default (hi-Z) to avoid leakage
+  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModeDisabled, 0);
+
   // Enable IADC0 clock branch
   CMU_ClockEnable(cmuClock_IADC0, true);
 
@@ -204,11 +331,21 @@ void battery_init(void)
   // Single input structure
   IADC_SingleInput_t singleInput = IADC_SINGLEINPUT_DEFAULT;
 
+  // Widen input range for GPIO measurements
+  initAllConfigs.configs[0].analogGain = BATTERY_IADC_ANALOG_GAIN;
+  initAllConfigs.configs[1].analogGain = BATTERY_IADC_ANALOG_GAIN;
+
+  // Reference selection + mV value used by emlib scaling
+  initAllConfigs.configs[0].reference = BATTERY_IADC_REFSEL;
+  initAllConfigs.configs[1].reference = BATTERY_IADC_REFSEL;
+  initAllConfigs.configs[0].vRef = BATTERY_IADC_VREF_MV;
+  initAllConfigs.configs[1].vRef = BATTERY_IADC_VREF_MV;
+
   // Initialize IADC
   IADC_init(IADC0, &init, &initAllConfigs);
 
   // Configure single input
-  singleInput.posInput = iadcPosInputAvdd;      // Add AVDD to GPIO so it can be measured
+  singleInput.posInput = iadcPosInputPortBPin0; // PB0 battery sense node
   singleInput.negInput = iadcNegInputGnd;       // Use ground as negative input
 
   // Initialize single conversion
@@ -253,15 +390,99 @@ static uint32_t battery_read_adc(void)
   return sample.data;
 }
 
+static uint32_t battery_read_voltage_with_sw_level(bool sw_high)
+{
+  RTOS_ERR err;
+  uint32_t sw_out = sw_high ? 1U : 0U;
+
+  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModePushPull, (unsigned int)sw_out);
+  OSTimeDlyHMSM(0, 0, 0, BATTERY_SETTLE_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+  (void)err;
+
+  uint32_t raw_reading = battery_read_adc();
+  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModeDisabled, 0);
+
+  uint32_t vnode_mv = (raw_reading * (BATTERY_IADC_VREF_MV * BATTERY_IADC_INPUT_SCALE_NUM))
+                      / BATTERY_IADC_COUNTS_FULL_SCALE;
+  uint32_t vbat_mv = (vnode_mv * (BATTERY_R5_OHMS + BATTERY_R6_OHMS)) / BATTERY_R6_OHMS;
+
+  // Apply calibration (rounded)
+  vbat_mv = (uint32_t)((vbat_mv * BATTERY_CAL_NUM + (BATTERY_CAL_DEN / 2UL)) / BATTERY_CAL_DEN);
+
+  return (vbat_mv & 0xFFFFFU) | ((raw_reading & 0xFFFU) << 20);
+}
+
 /**************************************************************************//**
  * Read battery voltage in millivolts.
  * @return Battery voltage in millivolts
  *****************************************************************************/
 uint32_t battery_read_voltage(void)
 {
-  uint32_t raw_reading = battery_read_adc();
-  uint32_t supply_voltage_mV = raw_reading * MICROVOLTS_PER_STEP / 1000UL;
-  return supply_voltage_mV;
+  const bool sw_high = (BATTERY_SW_ACTIVE_HIGH != 0);
+  uint32_t packed = battery_read_voltage_with_sw_level(sw_high);
+  uint32_t raw_reading = (packed >> 20) & 0xFFFU;
+  uint32_t vbat_mv = packed & 0xFFFFFU;
+
+  // Convert ADC counts to sense-node voltage (mV)
+  uint32_t vnode_mv = (raw_reading * (BATTERY_IADC_VREF_MV * BATTERY_IADC_INPUT_SCALE_NUM))
+                      / BATTERY_IADC_COUNTS_FULL_SCALE;
+
+  // Bring-up aid: if voltage is unexpectedly low, log raw + bus alloc state.
+  if (vbat_mv < BATTERY_DIAG_BELOW_MV) {
+    // Also take a single additional reading with opposite switch polarity to validate wiring.
+    uint32_t packed_alt = battery_read_voltage_with_sw_level(!sw_high);
+    uint32_t raw_alt = (packed_alt >> 20) & 0xFFFU;
+    uint32_t vbat_alt_mv = packed_alt & 0xFFFFFU;
+    uint32_t vnode_alt_mv = (raw_alt * (BATTERY_IADC_VREF_MV * BATTERY_IADC_INPUT_SCALE_NUM))
+                            / BATTERY_IADC_COUNTS_FULL_SCALE;
+#if defined(GPIO_BBUSALLOC_BEVEN0_ADC0)
+    app_log_warning("Battery diag: sw=%u raw=%lu vnode=%lu mV vbat=%lu mV (alt sw=%u raw=%lu vnode=%lu mV vbat=%lu mV) (refsel=%u gain=%u vref=%lu mV scale=%lu BBUSALLOC=0x%08lx CFG=0x%08lx)\n",
+                    (unsigned int)(sw_high ? 1U : 0U),
+                    (unsigned long)raw_reading,
+                    (unsigned long)vnode_mv,
+                    (unsigned long)vbat_mv,
+                    (unsigned int)((!sw_high) ? 1U : 0U),
+                    (unsigned long)raw_alt,
+                    (unsigned long)vnode_alt_mv,
+                    (unsigned long)vbat_alt_mv,
+                    (unsigned int)BATTERY_IADC_REFSEL,
+                    (unsigned int)BATTERY_IADC_ANALOG_GAIN,
+                    (unsigned long)BATTERY_IADC_VREF_MV,
+                    (unsigned long)BATTERY_IADC_INPUT_SCALE_NUM,
+                    (unsigned long)GPIO->BBUSALLOC,
+                    (unsigned long)IADC0->CFG);
+#else
+    app_log_warning("Battery diag: sw=%u raw=%lu vnode=%lu mV vbat=%lu mV (alt sw=%u raw=%lu vnode=%lu mV vbat=%lu mV) (refsel=%u gain=%u vref=%lu mV scale=%lu CFG=0x%08lx)\n",
+                    (unsigned int)(sw_high ? 1U : 0U),
+                    (unsigned long)raw_reading,
+                    (unsigned long)vnode_mv,
+                    (unsigned long)vbat_mv,
+                    (unsigned int)((!sw_high) ? 1U : 0U),
+                    (unsigned long)raw_alt,
+                    (unsigned long)vnode_alt_mv,
+                    (unsigned long)vbat_alt_mv,
+                    (unsigned int)BATTERY_IADC_REFSEL,
+                    (unsigned int)BATTERY_IADC_ANALOG_GAIN,
+                    (unsigned long)BATTERY_IADC_VREF_MV,
+                    (unsigned long)BATTERY_IADC_INPUT_SCALE_NUM,
+                    (unsigned long)IADC0->CFG);
+#endif
+  }
+
+  // Warn if ADC is saturating (often explains a ~4030mV plateau).
+  if (raw_reading >= (BATTERY_IADC_COUNTS_FULL_SCALE - 2U)) {
+    app_log_warning("Battery ADC near full-scale (raw=%lu). Reading may be saturated; check Vref/gain/divider.\n",
+                    (unsigned long)raw_reading);
+  }
+
+#if BATTERY_MONITOR_LOG_DEBUG
+  app_log_info("Battery ADC raw=%lu, vnode=%lu mV, vbat=%lu mV\n",
+               (unsigned long)raw_reading,
+               (unsigned long)vnode_mv,
+               (unsigned long)vbat_mv);
+#endif
+
+  return vbat_mv;
 }
 
 /**************************************************************************//**
@@ -271,14 +492,17 @@ uint32_t battery_read_voltage(void)
  *****************************************************************************/
 uint8_t battery_calculate_percentage(uint32_t voltage_mv)
 {
-  // Simple linear calculation: assume 3000mV = 100%
-  // You may need to adjust this based on your battery characteristics
-  if (voltage_mv >= 3000) {
+  // Simple linear calculation for 3xAAA pack.
+  // Adjust these thresholds if you want a different curve.
+  const uint32_t full_mv = 4500;
+  const uint32_t empty_mv = 3300;
+
+  if (voltage_mv >= full_mv) {
     return 100;
-  } else if (voltage_mv < 2400) {
+  } else if (voltage_mv <= empty_mv) {
     return 0;
   } else {
-    return (uint8_t)((voltage_mv - 2400) * 100 / (3000 - 2400));
+    return (uint8_t)((voltage_mv - empty_mv) * 100 / (full_mv - empty_mv));
   }
 }
 
@@ -306,6 +530,12 @@ void sensor_task_init(void)
               &err);
   app_assert(err.Code == RTOS_ERR_NONE, "Failed to create sensor data ready semaphore");
   
+  OSSemCreate(&measurement_sem,
+              "Sensor Measurement Sem",
+              0,
+              &err);
+  app_assert(err.Code == RTOS_ERR_NONE, "Failed to create measurement semaphore");
+
   app_assert(err.Code == RTOS_ERR_NONE, "Failed to create BLE notification semaphore");
   
   // Create the sensor task
@@ -352,11 +582,14 @@ void sensor_task(void *p_arg)
     // Continue anyway - will try to recover in the main loop
   }
   
+  // Start periodic sleeptimer to drive measurement cadence
+  sl_status_t st = sensor_restart_measurement_timer(measurement_interval);
+  app_assert((st == SL_STATUS_OK), "Failed to start measurement timer");
+
   while (DEF_TRUE) {
-    if (suspend_lcd) {
-      // Skip updating LCD and sending notifications.
-      app_log_error(" Wait for LCD to be updated, Skip sensor measurement.\n");
-      OSTimeDlyHMSM(0, 0, 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
+    // Wait for timer to signal a measurement window
+    OSSemPend(&measurement_sem, 0, OS_OPT_PEND_BLOCKING, DEF_NULL, &err);
+    if (err.Code != RTOS_ERR_NONE) {
       continue;
     }
 
@@ -384,7 +617,9 @@ void sensor_task(void *p_arg)
       sensor_readings.battery_voltage_mv = battery_read_voltage();
       battery_deinit();
       sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
-      //app_log_info("Battery: %lu mV (%d%%)\\n\", sensor_readings.battery_voltage_mv, sensor_readings.battery_percentage);
+      app_log_info("Battery: %lu mV (%u%%)\n",
+                   (unsigned long)sensor_readings.battery_voltage_mv,
+                   (unsigned int)sensor_readings.battery_percentage);
       
       // Save measurement to NVM3 for later sync
       // Timestamp is calculated automatically from epoch + uptime
@@ -400,6 +635,5 @@ void sensor_task(void *p_arg)
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
     }
 
-    OSTimeDlyHMSM(0, 0, measurement_interval - 5, 0, OS_OPT_TIME_HMSM_STRICT, &err);
   }
 }
