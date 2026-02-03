@@ -7,33 +7,55 @@
 #include "os.h"
 
 // Task configuration
-#define SYNC_DATA_TASK_PRIO       24u
-#define SYNC_DATA_TASK_STK_SIZE   192u
+#define SYNC_DATA_TASK_PRIO       55u
+#define SYNC_DATA_TASK_STK_SIZE   256u  // Increased to reduce stack overflow risk during sync
 
 // NVM3 key definitions for sample storage (application range >= 0x8000 to avoid BT keys)
-// Reserve metadata in the 0x8000 range and samples starting at 0x9000.
+// Reserve metadata in the 0x8000 range and batch samples starting at 0x9000.
 #define NVM3_META_KEY_WRITE_IDX   0x8000    // Key for write index
 #define NVM3_META_KEY_READ_IDX    0x8001    // Key for read index (last sent)
 #define NVM3_META_KEY_EPOCH       0x8002    // Key for epoch timestamp
 #define NVM3_META_KEY_BOOT_TIME   0x8003    // Key for boot timestamp offset
-#define NVM3_SAMPLE_KEY_BASE      0x9000    // Base key for sample storage
+#define NVM3_META_KEY_OLDEST_IDX  0x8004    // Key for oldest index in circular buffer
+#define NVM3_META_KEY_LAST_SYNCED_IDX 0x8005 // Key for last synced sample index
+
+// Batching configuration (10 samples per NVM3 object - reduced from 20 for RAM efficiency)
+// Trade-off: More NVM3 writes (5 objects) for ~400 bytes less RAM
+#define SAMPLES_PER_BATCH       10                  // Reduced from 20 to save RAM
+#define NUM_BATCHES             300                 // Total batches (3000 / 10)
+#define NVM3_SAMPLE_BATCH_KEY_BASE  0x9000         // Base key for batch objects
+#define NVM3_SAMPLE_BATCH_KEY_MAX   0x912B         // Max batch key (0x9000 + 299)
+#define BATCH_SIZE_BYTES        ((SAMPLES_PER_BATCH * sizeof(sample_t)) + 2) // +2 for count
+
+// Sync framing (12-byte payload, byte 10 is frame type)
+#define FRAME_DATA        0x01
+#define FRAME_SYNC_START  0x02
+#define FRAME_SYNC_DONE   0x03
+#define FRAME_SYNC_ABORT  0x04
+
+#define SYNC_PROTOCOL_VERSION 0x01
 
 // Maximum number of samples to store in NVM3 (circular buffer size)
-// With ~72KB available, reserving >=2 pages for bonding and ~20 bytes per sample,
-// cap at 3000 to avoid collisions with Bluetooth data.
+// With consolidated 80KB NVM3, batching 10 samples per object = 5 batch objects.
+// Total capacity: 5 batches × 10 samples = 50 samples
 #define MAX_SAMPLES               3000
 
-// Sample data structure stored in NVM3
+// Sample data structure stored in NVM3 batches
 typedef struct {
-    uint32_t timestamp;       // Absolute Unix timestamp (seconds since 1970)
+    uint32_t timestamp;       // Device uptime in seconds (not absolute - phone calculates timestamp)
     uint16_t co2;             // CO2 in ppm
     int16_t temperature_c;    // Temperature in centi-degrees Celsius (e.g., 2500 = 25.00°C)
     uint16_t humidity;        // Humidity in percent
     uint8_t battery_percent;  // Battery percentage (0-100)
-    uint8_t reserved;         // Reserved for alignment
 } sample_t;
 
-// Semaphore used to trigger sync from GATT write
+// Batch structure: 20 samples + count metadata
+typedef struct {
+    sample_t samples[SAMPLES_PER_BATCH];
+    uint16_t count;  // 0 to SAMPLES_PER_BATCH
+} sample_batch_t;
+
+// Semaphore used to trigger sync
 extern OS_SEM sync_data_task_sem;
 
 /**
@@ -41,6 +63,12 @@ extern OS_SEM sync_data_task_sem;
  * @return SL_STATUS_OK on success, error code otherwise
  */
 sl_status_t sync_data_task_init(void);
+
+/**
+ * @brief Flush pending samples to NVM3 (called before sync)
+ * @return SL_STATUS_OK on success, error code otherwise
+ */
+sl_status_t sync_data_flush_batch(void);
 
 /**
  * @brief Check if sync data task is currently sending data
@@ -62,21 +90,22 @@ sl_status_t sync_data_save_sample(uint16_t co2,
                                    uint8_t battery);
 
 /**
- * @brief Get current absolute timestamp (epoch + uptime)
- * @return Current Unix timestamp, or 0 if epoch not set
+ * @brief Get current device uptime in seconds
+ * @return Uptime in seconds since boot (stored as sample timestamp for phone to calculate absolute time)
  */
 uint32_t sync_data_get_current_timestamp(void);
 
 /**
- * @brief Check if epoch time has been set by phone
- * @return true if epoch is valid, false otherwise
+ * @brief Check if uptime tracking is valid (always true in simplified protocol)
+ * @return true (uptime always available)
  */
 bool sync_data_epoch_is_valid(void);
 
 /**
- * @brief Handle write to sync_data_id characteristic
- * @param value  Pointer to 8-byte value (MSB 4 bytes = current epoch, LSB 4 bytes = last sync timestamp)
- * @param length Length of value (should be 8)
+ * @brief Handle write to sync_data_id characteristic (simplified protocol)
+ * @param value  Pointer to 4-byte value (start index for sync)
+ * @param length Length of value (should be 4)
+ * @note Phone sends only the requested start index; timestamps calculated on phone side
  */
 void handle_sync_data_write(const uint8_t *value, uint16_t length);
 
@@ -94,8 +123,8 @@ void handle_sync_data_read(uint16_t connection, uint16_t characteristic);
 uint32_t sync_data_get_uptime_sec(void);
 
 /**
- * @brief Get the stored epoch timestamp
- * @return Epoch timestamp (seconds since 1970) or 0 if not set
+ * @brief Get the stored epoch timestamp (deprecated - not used in simplified protocol)
+ * @return Current device uptime (epoch no longer tracked)
  */
 uint32_t sync_data_get_epoch(void);
 

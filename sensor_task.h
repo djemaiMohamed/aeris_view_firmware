@@ -45,6 +45,7 @@ void battery_deinit(void);
 uint32_t battery_read_voltage(void);
 uint8_t battery_calculate_percentage(uint32_t voltage_mv);
 sl_status_t sensor_restart_measurement_timer(uint16_t interval_sec);
+sl_status_t sensor_stop_measurement_timer(void);
 
 // Global variables
 extern uint16_t measurement_interval;

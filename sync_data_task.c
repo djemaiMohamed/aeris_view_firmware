@@ -1,11 +1,13 @@
 #include "sync_data_task.h"
 #include "sensor_task.h"
+#include "app.h"
 #include "app_assert.h"
 #include "app_log.h"
 #include "sl_memory_manager.h"
 #include "sl_bt_api.h"
 #include "gatt_db.h"
 #include "nvm3_default.h"
+#include "nvm3.h"
 #include "sl_sleeptimer.h"
 #include <string.h>
 
@@ -16,16 +18,23 @@ extern uint8_t sync_data_id_notification_enabled;
 
 // Local state
 static bool sync_running = false;
-static uint32_t epoch_actual = 0;           // Epoch at device boot time
-static uint32_t last_sync_timestamp = 0;    // Last sync timestamp from phone
 static uint32_t boot_tick_count = 0;        // Tick count at boot for uptime calculation
-static bool epoch_valid = false;            // Whether epoch has been set by phone
-
+static uint16_t requested_sync_start_index = 0; // Index requested by phone to start sync
 // Connection parameter tuning removed; rely on default stack behavior.
 
 // NVM3 circular buffer indices
-static uint16_t write_index = 0;            // Next position to write
+static uint16_t write_index = 0;            // Next position to write (also determines current batch)
 static uint16_t sample_count = 0;           // Number of samples stored
+static uint16_t oldest_index = 0;           // Oldest valid sample in circular buffer
+static uint16_t last_synced_index = 0;      // Index of last sample sent to phone (for resume capability)
+
+// Batch buffering (samples buffered in RAM before NVM3 write)
+static sample_batch_t current_batch = {0};
+
+// Sync batch caching (dynamically allocated during sync to save RAM when idle)
+// Only allocated during sync_data_task execution, freed after sync completes
+static sample_batch_t *cached_batch_ptr = NULL;
+static int16_t cached_batch_index = -1;    // -1 = no cache, otherwise cached batch number
 
 // RTOS objects
 OS_TCB *sync_data_task_tcb_ptr;
@@ -34,44 +43,10 @@ OS_SEM sync_data_task_sem;
 
 static void sync_data_task(void *p_arg);
 static sl_status_t read_sample_from_nvm3(uint16_t index, sample_t *sample);
-static void purge_legacy_nvm3_keys(void);
-
-static uint16_t count_samples_newer_than(uint32_t after_timestamp)
-{
-    sample_t sample;
-
-    // Calculate the starting index based on sample count and write index
-    uint16_t start_index;
-    if (sample_count < MAX_SAMPLES) {
-        start_index = 0;
-    } else {
-        start_index = write_index; // Oldest sample in circular buffer
-    }
-
-    uint16_t eligible = 0;
-    for (uint16_t i = 0; i < sample_count; i++) {
-        uint16_t idx = (start_index + i) % MAX_SAMPLES;
-
-        if (read_sample_from_nvm3(idx, &sample) != SL_STATUS_OK) {
-            continue;
-        }
-
-        uint32_t sample_timestamp = sample.timestamp;
-        if (sample_timestamp & 0x80000000) {
-            if (!epoch_valid) {
-                continue;
-            }
-            uint32_t sample_uptime = sample_timestamp & 0x7FFFFFFF;
-            sample_timestamp = epoch_actual + sample_uptime;
-        }
-
-        if (sample_timestamp > after_timestamp) {
-            eligible++;
-        }
-    }
-
-    return eligible;
-}
+static sl_status_t read_sample_from_nvm3_cached(uint16_t index, sample_t *sample);
+static void invalidate_batch_cache(void);
+static sl_status_t send_sync_notification(const uint8_t *data, size_t len);
+static sl_status_t send_sync_notification_with_retry(const uint8_t *data, size_t len);
 
 /***************************************************************************//**
  * Get current uptime in seconds using sleeptimer
@@ -84,31 +59,59 @@ uint32_t sync_data_get_uptime_sec(void)
     return elapsed_ticks / freq;
 }
 
-// Delete any legacy keys that were in the Bluetooth-reserved range to reclaim space
-// and prevent overlap with bonding data. This runs once at startup.
-static void purge_legacy_nvm3_keys(void)
-{
-    // Legacy metadata keys
-    const nvm3_ObjectKey_t legacy_meta_keys[] = { 0x0F00, 0x0F01, 0x0F02, 0x0F03 };
-    for (size_t i = 0; i < (sizeof(legacy_meta_keys) / sizeof(legacy_meta_keys[0])); i++) {
-        (void)nvm3_deleteObject(nvm3_defaultHandle, legacy_meta_keys[i]);
-    }
-
-    // Legacy sample range starting at 0x1000
-    const nvm3_ObjectKey_t legacy_sample_base = 0x1000;
-    for (uint16_t i = 0; i < MAX_SAMPLES; i++) {
-        (void)nvm3_deleteObject(nvm3_defaultHandle, legacy_sample_base + i);
-    }
-
-    app_log_info("Legacy NVM3 keys purged\n");
-}
-
 /***************************************************************************//**
- * Get the stored epoch timestamp
+ * Get the stored epoch timestamp (deprecated - not used in simplified protocol)
  ******************************************************************************/
 uint32_t sync_data_get_epoch(void)
 {
-    return epoch_actual;
+    // Return current uptime (epoch not tracked in simplified protocol)
+    return sync_data_get_uptime_sec();
+}
+
+/***************************************************************************//**
+ * Flush current batch to NVM3 (called when batch is full or before sync)
+ * Batch index is derived from write_index to maintain circular buffer alignment
+ ******************************************************************************/
+static sl_status_t flush_sample_batch_internal(void)
+{
+    Ecode_t status;
+    
+    if (current_batch.count == 0) {
+        return SL_STATUS_OK;  // Nothing to flush
+    }
+    
+    // Derive batch index from write_index (before incrementing it)
+    // This ensures batch storage aligns with sample indexing
+    uint16_t batch_index = (write_index / SAMPLES_PER_BATCH) % NUM_BATCHES;
+    uint32_t key = NVM3_SAMPLE_BATCH_KEY_BASE + batch_index;
+    
+    // Write entire batch (800 bytes) as single NVM3 object
+    status = nvm3_writeData(nvm3_defaultHandle, key, &current_batch, BATCH_SIZE_BYTES);
+    
+    if (status != ECODE_NVM3_OK) {
+        app_log_error("Failed to flush batch %u key 0x%04lx: 0x%lx\n", 
+                      batch_index, (unsigned long)key, (unsigned long)status);
+        return SL_STATUS_FAIL;
+    }
+    
+    // Advance write_index by batch size
+    write_index = (write_index + SAMPLES_PER_BATCH) % MAX_SAMPLES;
+    
+    app_log_info("Batch flushed: batch_idx=%u key=0x%04lx count=%u samples (write_idx now=%u)\n",
+                 batch_index, (unsigned long)key, current_batch.count, write_index);
+    
+    // Reset batch count for next samples (don't memset samples, only count matters)
+    current_batch.count = 0;
+    
+    return SL_STATUS_OK;
+}
+
+/***************************************************************************//**
+ * Public API to flush batch (called before sync)
+ ******************************************************************************/
+sl_status_t sync_data_flush_batch(void)
+{
+    return flush_sample_batch_internal();
 }
 
 /***************************************************************************//**
@@ -138,6 +141,12 @@ static sl_status_t load_metadata_from_nvm3(void)
     } else {
         write_index = 0;
     }
+
+    if (write_index >= MAX_SAMPLES) {
+        app_log_warning("NVM3 write_index out of range (%u), clamping to %u\n",
+                        write_index, MAX_SAMPLES - 1);
+        write_index %= MAX_SAMPLES;
+    }
     
     // Load sample count
     status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_READ_IDX, &type, &len);
@@ -149,25 +158,52 @@ static sl_status_t load_metadata_from_nvm3(void)
     } else {
         sample_count = 0;
     }
-    
-    // Load epoch
-    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_EPOCH, &type, &len);
-    if (status == ECODE_NVM3_OK && len == sizeof(epoch_actual)) {
-        status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_EPOCH, &epoch_actual, sizeof(epoch_actual));
-        if (status != ECODE_NVM3_OK) {
-            epoch_actual = 0;
-            epoch_valid = false;
-        } else {
-            // Epoch is valid if it was previously saved (non-zero value)
-            epoch_valid = (epoch_actual != 0);
-        }
-    } else {
-        epoch_actual = 0;
-        epoch_valid = false;
+
+    if (sample_count > MAX_SAMPLES) {
+        app_log_warning("NVM3 sample_count out of range (%u), clamping to %u\n",
+                        sample_count, MAX_SAMPLES);
+        sample_count = MAX_SAMPLES;
     }
     
-    app_log_info("NVM3 metadata loaded: write_idx=%u, sample_count=%u, epoch=%lu, valid=%d\n", 
-                 write_index, sample_count, (unsigned long)epoch_actual, epoch_valid);
+    // Note: epoch tracking removed in simplified protocol
+    // Timestamps are now uptime values, phone calculates absolute timestamps
+    
+    // Load oldest index
+    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_OLDEST_IDX, &type, &len);
+    if (status == ECODE_NVM3_OK && len == sizeof(oldest_index)) {
+        status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_OLDEST_IDX, &oldest_index, sizeof(oldest_index));
+        if (status != ECODE_NVM3_OK) {
+            oldest_index = 0;
+        }
+    } else {
+        oldest_index = 0;
+    }
+
+    if (oldest_index >= MAX_SAMPLES) {
+        app_log_warning("NVM3 oldest_index out of range (%u), clamping to %u\n",
+                        oldest_index, MAX_SAMPLES - 1);
+        oldest_index %= MAX_SAMPLES;
+    }
+    
+    // Load last synced index
+    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_LAST_SYNCED_IDX, &type, &len);
+    if (status == ECODE_NVM3_OK && len == sizeof(last_synced_index)) {
+        status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_LAST_SYNCED_IDX, &last_synced_index, sizeof(last_synced_index));
+        if (status != ECODE_NVM3_OK) {
+            last_synced_index = 0;
+        }
+    } else {
+        last_synced_index = 0;
+    }
+
+    if (last_synced_index >= MAX_SAMPLES) {
+        app_log_warning("NVM3 last_synced_index out of range (%u), clamping to %u\n",
+                        last_synced_index, MAX_SAMPLES - 1);
+        last_synced_index %= MAX_SAMPLES;
+    }
+
+    app_log_info("NVM3 metadata loaded: write_idx=%u, sample_count=%u, oldest_idx=%u\n", 
+                 write_index, sample_count, oldest_index);
     
     return SL_STATUS_OK;
 }
@@ -191,9 +227,17 @@ static sl_status_t save_metadata_to_nvm3(void)
         return SL_STATUS_FAIL;
     }
     
-    status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_EPOCH, &epoch_actual, sizeof(epoch_actual));
+    // Note: epoch no longer stored in simplified protocol
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_OLDEST_IDX, &oldest_index, sizeof(oldest_index));
     if (status != ECODE_NVM3_OK) {
-        app_log_error("Failed to save epoch to NVM3: 0x%lx\n", (unsigned long)status);
+        app_log_error("Failed to save oldest_index to NVM3: 0x%lx\n", (unsigned long)status);
+        return SL_STATUS_FAIL;
+    }
+    
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_LAST_SYNCED_IDX, &last_synced_index, sizeof(last_synced_index));
+    if (status != ECODE_NVM3_OK) {
+        app_log_error("Failed to save last_synced_index to NVM3: 0x%lx\n", (unsigned long)status);
         return SL_STATUS_FAIL;
     }
     
@@ -201,248 +245,384 @@ static sl_status_t save_metadata_to_nvm3(void)
 }
 
 /***************************************************************************//**
- * Get current absolute timestamp (epoch + uptime)
+ * Get current timestamp (uptime in seconds)
+ * Phone will calculate absolute timestamps using device uptime
  ******************************************************************************/
 uint32_t sync_data_get_current_timestamp(void)
 {
-    if (!epoch_valid) {
-        return 0;
-    }
-    return epoch_actual + sync_data_get_uptime_sec();
+    // Simply return device uptime - phone handles timestamp calculation
+    return sync_data_get_uptime_sec();
 }
 
 /***************************************************************************//**
- * Check if epoch time has been set by phone
+ * Check if epoch time has been set by phone (deprecated - no longer used)
  ******************************************************************************/
 bool sync_data_epoch_is_valid(void)
 {
-    return epoch_valid;
+    // Always return true - no epoch synchronization needed in simplified protocol
+    return true;
 }
 
 /***************************************************************************//**
- * Save a sensor sample to NVM3 storage
+ * Save a sensor sample to NVM3 storage (batched)
  ******************************************************************************/
 sl_status_t sync_data_save_sample(uint16_t co2, 
                                    int32_t temp_mdeg_c, uint32_t humidity,
                                    uint8_t battery)
 {
     sample_t sample;
-    Ecode_t status;
     
-    // Calculate absolute timestamp
-    uint32_t current_timestamp = sync_data_get_current_timestamp();
+    // Get current device uptime (phone will calculate absolute timestamp)
+    uint32_t current_uptime = sync_data_get_uptime_sec();
     
-    // If epoch is not set, we cannot save with valid timestamp
-    // Still save with timestamp=0, will be updated on first sync
-    if (!epoch_valid) {
-        // Store uptime temporarily - will need special handling
-        // Use a marker (high bit set) to indicate this is uptime, not absolute
-        current_timestamp = sync_data_get_uptime_sec() | 0x80000000;
-        app_log_warning("Saving sample without valid epoch (uptime=%lu)\n", 
-                       (unsigned long)(current_timestamp & 0x7FFFFFFF));
-    }
-    
-    // Fill sample structure
-    sample.timestamp = current_timestamp;
+    // Fill sample structure with uptime and sensor data
+    sample.timestamp = current_uptime;
     sample.co2 = co2;
-    // Convert from milli-degrees to centi-degrees (divide by 10)
+    // Convert from milli-degrees to deci-degrees (divide by 10) to match notification task format
     sample.temperature_c = (int16_t)(temp_mdeg_c / 10);
     sample.humidity = (uint16_t)humidity;
     sample.battery_percent = battery;
-    sample.reserved = 0;
     
-    // Calculate NVM3 key for this sample
-    nvm3_ObjectKey_t key = NVM3_SAMPLE_KEY_BASE + write_index;
-    
-    // Write sample to NVM3
-    status = nvm3_writeData(nvm3_defaultHandle, key, &sample, sizeof(sample));
-    if (status != ECODE_NVM3_OK) {
-        app_log_error("Failed to write sample to NVM3 key 0x%lx: 0x%lx\n", 
-                      (unsigned long)key, (unsigned long)status);
-        return SL_STATUS_FAIL;
+    // Buffer in current batch (RAM only, no NVM3 write yet)
+    if (current_batch.count < SAMPLES_PER_BATCH) {
+        current_batch.samples[current_batch.count] = sample;
+        current_batch.count++;
+        
+        // Flush batch when full (20 samples)
+        if (current_batch.count >= SAMPLES_PER_BATCH) {
+            sl_status_t flush_status = flush_sample_batch_internal();
+            if (flush_status != SL_STATUS_OK) {
+                return flush_status;
+            }
+            
+            // Update sample count (write_index already updated in flush_sample_batch_internal)
+            if (sample_count < MAX_SAMPLES) {
+                sample_count += SAMPLES_PER_BATCH;
+                if (sample_count > MAX_SAMPLES) {
+                    sample_count = MAX_SAMPLES;
+                }
+            } else {
+                oldest_index = (oldest_index + SAMPLES_PER_BATCH) % MAX_SAMPLES;
+            }
+            
+            // Save metadata only on batch flush (98% fewer writes)
+            sl_status_t meta_status = save_metadata_to_nvm3();
+            if (meta_status != SL_STATUS_OK) {
+                return meta_status;
+            }
+            
+            // Repack when NVM3 reports fragmentation
+            if (nvm3_repackNeeded(nvm3_defaultHandle)) {
+                Ecode_t rep_status = nvm3_repack(nvm3_defaultHandle);
+                if (rep_status != ECODE_NVM3_OK) {
+                    app_log_warning("NVM3 repack skipped: 0x%lx\n", (unsigned long)rep_status);
+                } else {
+                    app_log_info("NVM3 repack completed\n");
+                }
+            }
+            
+            app_log_info("Batch flushed: %u samples now stored (write_idx=%u)\n",
+                         sample_count, write_index);
+        }
+        
+        return SL_STATUS_OK;
     }
     
-    // Update write index (circular buffer)
-    write_index = (write_index + 1) % MAX_SAMPLES;
-    
-    // Update sample count (cap at MAX_SAMPLES)
-    if (sample_count < MAX_SAMPLES) {
-        sample_count++;
-    }
-    
-    // Save metadata every sample (could optimize to save less frequently)
-    save_metadata_to_nvm3();
-    
-    app_log_info("Sample saved: ts=%lu, co2=%u, temp_c=%d, humidity=%u (count=%u)\n",
-                 (unsigned long)sample.timestamp, co2, sample.temperature_c, sample.humidity,
-                 sample_count);
-    
-    return SL_STATUS_OK;
+    return SL_STATUS_FAIL;
 }
 
 /***************************************************************************//**
- * Read a sample from NVM3 by index
+ * Read a sample from NVM3 by index (reads entire batch)
  ******************************************************************************/
 static sl_status_t read_sample_from_nvm3(uint16_t index, sample_t *sample)
 {
+    if (index >= MAX_SAMPLES || !sample) {
+        return SL_STATUS_INVALID_PARAMETER;
+    }
+    
     Ecode_t status;
-    nvm3_ObjectKey_t key = NVM3_SAMPLE_KEY_BASE + index;
     uint32_t type;
     size_t len;
     
-    // Check if object exists
+    // Calculate which batch and offset within batch
+    uint16_t batch_index = index / SAMPLES_PER_BATCH;  // 0-149
+    uint16_t sample_offset = index % SAMPLES_PER_BATCH;  // 0-19
+    
+    if (batch_index >= NUM_BATCHES) {
+        return SL_STATUS_INVALID_PARAMETER;
+    }
+    
+    // Read entire 800-byte batch
+    uint32_t key = NVM3_SAMPLE_BATCH_KEY_BASE + batch_index;
     status = nvm3_getObjectInfo(nvm3_defaultHandle, key, &type, &len);
+    
     if (status != ECODE_NVM3_OK) {
         return SL_STATUS_NOT_FOUND;
     }
     
-    if (len != sizeof(sample_t)) {
-        app_log_error("Sample size mismatch at index %u: expected %u, got %u\n",
-                      index, (unsigned)sizeof(sample_t), (unsigned)len);
-        return SL_STATUS_FAIL;
-    }
+    // Read batch from NVM3
+    sample_batch_t batch;
+    status = nvm3_readData(nvm3_defaultHandle, key, &batch, BATCH_SIZE_BYTES);
     
-    // Read sample data
-    status = nvm3_readData(nvm3_defaultHandle, key, sample, sizeof(sample_t));
     if (status != ECODE_NVM3_OK) {
-        app_log_error("Failed to read sample from NVM3 key 0x%lx: 0x%lx\n",
-                      (unsigned long)key, (unsigned long)status);
+        app_log_error("Failed to read batch %u from NVM3 key 0x%04lx: 0x%lx\n",
+                      batch_index, (unsigned long)key, (unsigned long)status);
         return SL_STATUS_FAIL;
     }
     
+    // Extract specific sample from batch
+    if (sample_offset >= batch.count) {
+        app_log_error("Sample offset %u out of range for batch %u (count=%u)\n",
+                      sample_offset, batch_index, batch.count);
+        return SL_STATUS_INVALID_PARAMETER;
+    }
+    
+    *sample = batch.samples[sample_offset];
     return SL_STATUS_OK;
 }
 
 /***************************************************************************//**
- * Delete a sample from NVM3 (currently unused - samples are kept until overwritten)
+ * Invalidate batch cache and free memory (called after sync completes)
  ******************************************************************************/
-__attribute__((unused))
-static sl_status_t delete_sample_from_nvm3(uint16_t index)
+static void invalidate_batch_cache(void)
 {
-    Ecode_t status;
-    nvm3_ObjectKey_t key = NVM3_SAMPLE_KEY_BASE + index;
-    
-    status = nvm3_deleteObject(nvm3_defaultHandle, key);
-    if (status != ECODE_NVM3_OK && status != ECODE_NVM3_ERR_KEY_NOT_FOUND) {
-        app_log_error("Failed to delete sample from NVM3 key 0x%lx: 0x%lx\n",
-                      (unsigned long)key, (unsigned long)status);
-        return SL_STATUS_FAIL;
+    if (cached_batch_ptr != NULL) {
+        sl_free(cached_batch_ptr);
+        cached_batch_ptr = NULL;
+    }
+    cached_batch_index = -1;
+}
+
+/***************************************************************************//**
+ * Read a sample from NVM3 with batch caching (optimized for sync)
+ * Caches the entire batch in RAM to avoid re-reading from NVM3 for
+ * consecutive samples within the same batch. Cache is dynamically allocated.
+ ******************************************************************************/
+static sl_status_t read_sample_from_nvm3_cached(uint16_t index, sample_t *sample)
+{
+    if (index >= MAX_SAMPLES || !sample) {
+        return SL_STATUS_INVALID_PARAMETER;
     }
     
+    Ecode_t status;
+    uint32_t type;
+    size_t len;
+    
+    // Calculate which batch and offset within batch
+    uint16_t batch_index = index / SAMPLES_PER_BATCH;
+    uint16_t sample_offset = index % SAMPLES_PER_BATCH;
+    
+    if (batch_index >= NUM_BATCHES) {
+        return SL_STATUS_INVALID_PARAMETER;
+    }
+    
+    // Check if batch is already cached
+    if (cached_batch_index != (int16_t)batch_index) {
+        // Need to load batch from NVM3
+        // Allocate cache if not already done
+        if (cached_batch_ptr == NULL) {
+            cached_batch_ptr = (sample_batch_t *)sl_malloc(sizeof(sample_batch_t));
+            if (cached_batch_ptr == NULL) {
+                app_log_error("Failed to allocate cached_batch buffer\n");
+                return SL_STATUS_ALLOCATION_FAILED;
+            }
+        }
+        
+        uint32_t key = NVM3_SAMPLE_BATCH_KEY_BASE + batch_index;
+        status = nvm3_getObjectInfo(nvm3_defaultHandle, key, &type, &len);
+        
+        if (status != ECODE_NVM3_OK) {
+            return SL_STATUS_NOT_FOUND;
+        }
+        
+        // Read batch from NVM3
+        status = nvm3_readData(nvm3_defaultHandle, key, cached_batch_ptr, BATCH_SIZE_BYTES);
+        
+        if (status != ECODE_NVM3_OK) {
+            app_log_error("Failed to read batch %u from NVM3 key 0x%04lx: 0x%lx\n",
+                          batch_index, (unsigned long)key, (unsigned long)status);
+            cached_batch_index = -1;
+            return SL_STATUS_FAIL;
+        }
+        
+        cached_batch_index = (int16_t)batch_index;
+        app_log_debug("Loaded batch %u into cache (key=0x%04lx count=%u)\n",
+                      batch_index, (unsigned long)key, cached_batch_ptr->count);
+    }
+    
+    // Extract specific sample from cached batch
+    if (sample_offset >= cached_batch_ptr->count) {
+        app_log_error("Sample offset %u out of range for batch %u (count=%u)\n",
+                      sample_offset, batch_index, cached_batch_ptr->count);
+        return SL_STATUS_INVALID_PARAMETER;
+    }
+    
+    *sample = cached_batch_ptr->samples[sample_offset];
     return SL_STATUS_OK;
+}
+
+// Send a notification (fire-and-forget with pacing)
+static sl_status_t send_sync_notification(const uint8_t *data, size_t len)
+{
+    sl_status_t sc;
+    RTOS_ERR pacing_err;
+
+    sc = sl_bt_gatt_server_send_notification(
+        connection_handle,
+        gattdb_sync_data_id,
+        len,
+        data);
+
+    return sc;
+}
+
+// Retry wrapper to cope with transient send errors during sync
+static sl_status_t send_sync_notification_with_retry(const uint8_t *data, size_t len)
+{
+    sl_status_t sc = SL_STATUS_FAIL;
+    RTOS_ERR err;
+
+    for (uint8_t attempt = 0; attempt < 4; attempt++) {
+        sc = send_sync_notification(data, len);
+        if (sc == SL_STATUS_OK) {
+            app_log_info("Notification sent (len=%u) on attempt %u\n", (unsigned)len, (unsigned)attempt + 1u);
+            return sc;
+        }
+        app_log_warning("Notification send failed (status=0x%04lx) attempt %u/4\n",
+                        (unsigned long)sc, (unsigned)attempt + 1u);
+
+        if (sc == SL_STATUS_NO_MORE_RESOURCE) {
+            OSTimeDlyHMSM(0u, 0u, 1u, 0u, OS_OPT_TIME_HMSM_STRICT, &err);
+            if (err.Code != RTOS_ERR_NONE) {
+                app_log_error("Notification backoff delay failed: %d\n", (int)err.Code);
+                break;
+            }
+        }
+    }
+
+    app_log_error("Notification send failed after 3 retries (status=0x%04lx)\n",
+                  (unsigned long)sc);
+    return sc;
 }
 
 /***************************************************************************//**
  * Send a historical sample as BLE notification
- * Format: 12 bytes = timestamp(4) + co2(2) + temperature(2) + humidity(2) + flags(2)
+ * Format: 12 bytes = uptime(4) + co2(2) + temperature(2) + humidity(2) + flags(2)
  ******************************************************************************/
-static sl_status_t send_sample_notification(const sample_t *sample, uint32_t timestamp)
+static sl_status_t send_data_frame(const sample_t *sample, uint32_t uptime)
 {
     sl_status_t sc;
     uint8_t data[12];
     
-    // Pack timestamp (4 bytes, little-endian)
-    data[0] = (uint8_t)(timestamp & 0xFF);
-    data[1] = (uint8_t)((timestamp >> 8) & 0xFF);
-    data[2] = (uint8_t)((timestamp >> 16) & 0xFF);
-    data[3] = (uint8_t)((timestamp >> 24) & 0xFF);
-    
-    // Pack CO2 (2 bytes, little-endian)
+    data[0] = (uint8_t)(uptime & 0xFF);
+    data[1] = (uint8_t)((uptime >> 8) & 0xFF);
+    data[2] = (uint8_t)((uptime >> 16) & 0xFF);
+    data[3] = (uint8_t)((uptime >> 24) & 0xFF);
     data[4] = (uint8_t)(sample->co2 & 0xFF);
     data[5] = (uint8_t)((sample->co2 >> 8) & 0xFF);
-    
-    // Pack temperature (2 bytes, little-endian, centi-degrees)
     data[6] = (uint8_t)(sample->temperature_c & 0xFF);
     data[7] = (uint8_t)((sample->temperature_c >> 8) & 0xFF);
-    
-    // Pack humidity (2 bytes, little-endian)
     data[8] = (uint8_t)(sample->humidity & 0xFF);
     data[9] = (uint8_t)((sample->humidity >> 8) & 0xFF);
-    
-    // Flags: 0x01 = historical data
-    data[10] = 0x01;
-    // Battery percentage
+    data[10] = FRAME_DATA;
     data[11] = sample->battery_percent;
     
-    // Send notification using sync_data_id characteristic
-    sc = sl_bt_gatt_server_send_notification(
-        connection_handle,
-        gattdb_sync_data_id,
-        sizeof(data),
-        data
-    );
+    sc = send_sync_notification_with_retry(data, sizeof(data));
     
     if (sc != SL_STATUS_OK) {
-        app_log_error("Failed to send sample notification: 0x%04lx\n", (unsigned long)sc);
+        app_log_error("Failed to send data frame: 0x%04lx\n", (unsigned long)sc);
     }
     
     return sc;
 }
 
-/***************************************************************************//**
- * Send sync complete notification
- ******************************************************************************/
-static sl_status_t send_sync_complete_notification(uint16_t samples_sent)
+static sl_status_t send_sync_start_frame(uint32_t device_uptime, uint16_t total_samples, uint16_t oldest_idx, bool last_sent_valid)
 {
-    sl_status_t sc;
     uint8_t data[12];
-    
-    // Clear data
     memset(data, 0, sizeof(data));
-    
-    // Samples sent count in first 2 bytes
+
+    // Pack device uptime (4 bytes)
+    data[0] = (uint8_t)(device_uptime & 0xFF);
+    data[1] = (uint8_t)((device_uptime >> 8) & 0xFF);
+    data[2] = (uint8_t)((device_uptime >> 16) & 0xFF);
+    data[3] = (uint8_t)((device_uptime >> 24) & 0xFF);
+    // Pack total samples (2 bytes)
+    data[4] = (uint8_t)(total_samples & 0xFF);
+    data[5] = (uint8_t)((total_samples >> 8) & 0xFF);
+    // Pack oldest index (2 bytes)
+    data[6] = (uint8_t)(oldest_idx & 0xFF);
+    data[7] = (uint8_t)((oldest_idx >> 8) & 0xFF);
+    // Pack last sent index validity flag
+    data[8] = last_sent_valid ? 1 : 0;  // 1 = last sent index + 1 is still valid (can resume), 0 = must restart
+    data[9] = 0;
+    data[10] = FRAME_SYNC_START;
+    data[11] = 0;
+
+    sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
+    if (sc == SL_STATUS_OK) {
+        app_log_info("SYNC_START sent: uptime=%lu, total=%u, oldest=%u, last_sent_valid=%d\n",
+                     (unsigned long)device_uptime, total_samples, oldest_idx, last_sent_valid);
+    }
+    return sc;
+}
+
+static sl_status_t send_sync_done_frame(uint16_t samples_sent)
+{
+    uint8_t data[12];
+    memset(data, 0, sizeof(data));
+
     data[0] = (uint8_t)(samples_sent & 0xFF);
     data[1] = (uint8_t)((samples_sent >> 8) & 0xFF);
-    
-    // Flags: 0x02 = sync complete
-    data[10] = 0x02;
-    data[11] = 0x00;
-    
-    sc = sl_bt_gatt_server_send_notification(
-        connection_handle,
-        gattdb_sync_data_id,
-        sizeof(data),
-        data
-    );
-    
+    data[10] = FRAME_SYNC_DONE;
+
+    sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
+    if (sc == SL_STATUS_OK) {
+        app_log_info("SYNC_DONE sent: samples_sent=%u\n", samples_sent);
+    }
+    return sc;
+}
+
+static sl_status_t send_sync_abort_frame(uint16_t samples_sent, uint8_t reason)
+{
+    uint8_t data[12];
+    memset(data, 0, sizeof(data));
+
+    data[0] = (uint8_t)(samples_sent & 0xFF);
+    data[1] = (uint8_t)((samples_sent >> 8) & 0xFF);
+    data[6] = reason;
+    data[10] = FRAME_SYNC_ABORT;
+
+    sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
+    if (sc == SL_STATUS_OK) {
+        app_log_warning("SYNC_ABORT sent: samples_sent=%u reason=%u\n", samples_sent, reason);
+    }
     return sc;
 }
 
 /***************************************************************************//**
- * Handle write to sync_data_id characteristic
+ * Handle write to sync_data_id characteristic (simplified protocol)
+ * Phone sends only the requested start index (4 bytes, little-endian)
  ******************************************************************************/
 void handle_sync_data_write(const uint8_t *value, uint16_t length)
 {
     RTOS_ERR err;
     
-    if (!value || length != 8) {
-        app_log_error("Sync data write invalid: length=%u (expected 8)\n", length);
+    if (!value || length != 4) {
+        app_log_error("Sync data write invalid: length=%u (expected 4)\n", length);
         return;
     }
     
-    // Parse 8-byte value:
-    // MSB 4 bytes (bytes 0-3): current_epoch_timestamp
-    // LSB 4 bytes (bytes 4-7): last_sync_timestamp
-    uint32_t current_epoch = (uint32_t)value[0] |
-                             ((uint32_t)value[1] << 8) |
-                             ((uint32_t)value[2] << 16) |
-                             ((uint32_t)value[3] << 24);
+    // Parse 4-byte value: requested start index for sync
+    uint32_t requested_start_idx_raw = (uint32_t)value[0] |
+                                       ((uint32_t)value[1] << 8) |
+                                       ((uint32_t)value[2] << 16) |
+                                       ((uint32_t)value[3] << 24);
+    uint16_t requested_start_idx = (uint16_t)(requested_start_idx_raw % MAX_SAMPLES);
     
-    uint32_t last_sync = (uint32_t)value[4] |
-                         ((uint32_t)value[5] << 8) |
-                         ((uint32_t)value[6] << 16) |
-                         ((uint32_t)value[7] << 24);
+    app_log_info("Sync data write: start_idx=%u\n", (unsigned)requested_start_idx);
     
-    app_log_info("Sync data write: current_epoch=%lu, last_sync=%lu\n",
-                 (unsigned long)current_epoch, (unsigned long)last_sync);
-    
-    // Update device epoch (this is the epoch at boot time)
-    epoch_actual = current_epoch - sync_data_get_uptime_sec();
-    epoch_valid = true;
-    last_sync_timestamp = last_sync;
-    
-    // Save updated epoch to NVM3
-    save_metadata_to_nvm3();
+    // Store requested start index
+    requested_sync_start_index = requested_start_idx;
     
     // Post semaphore to wake sync task
     OSSemPost(&sync_data_task_sem, OS_OPT_POST_1, &err);
@@ -453,21 +633,22 @@ void handle_sync_data_write(const uint8_t *value, uint16_t length)
 
 /***************************************************************************//**
  * Handle read from sync_data_id characteristic
+ * Returns: total samples available (2 bytes) + device uptime (4 bytes) + padding (2 bytes)
  ******************************************************************************/
 void handle_sync_data_read(uint16_t connection, uint16_t characteristic)
 {
     uint8_t data[8];
     sl_status_t sc;
     
-    // Return current state: sample_count (2 bytes) + current_epoch (4 bytes) + padding (2 bytes)
+    // Return current state: sample_count (2 bytes) + current uptime (4 bytes) + padding (2 bytes)
     data[0] = (uint8_t)(sample_count & 0xFF);
     data[1] = (uint8_t)((sample_count >> 8) & 0xFF);
     
-    uint32_t current_epoch = epoch_actual + sync_data_get_uptime_sec();
-    data[2] = (uint8_t)(current_epoch & 0xFF);
-    data[3] = (uint8_t)((current_epoch >> 8) & 0xFF);
-    data[4] = (uint8_t)((current_epoch >> 16) & 0xFF);
-    data[5] = (uint8_t)((current_epoch >> 24) & 0xFF);
+    uint32_t current_uptime = sync_data_get_uptime_sec();
+    data[2] = (uint8_t)(current_uptime & 0xFF);
+    data[3] = (uint8_t)((current_uptime >> 8) & 0xFF);
+    data[4] = (uint8_t)((current_uptime >> 16) & 0xFF);
+    data[5] = (uint8_t)((current_uptime >> 24) & 0xFF);
     data[6] = sync_running ? 1 : 0;
     data[7] = 0;
     
@@ -481,8 +662,8 @@ void handle_sync_data_read(uint16_t connection, uint16_t characteristic)
     );
     
     if (sc == SL_STATUS_OK) {
-        app_log_info("Sync data read: count=%u, epoch=%lu, running=%d\n",
-                     sample_count, (unsigned long)current_epoch, sync_running);
+        app_log_info("Sync data read: count=%u, uptime=%lu, running=%d\n",
+                     sample_count, (unsigned long)current_uptime, sync_running);
     } else {
         app_log_error("Failed to send sync data read response: 0x%04lx\n", (unsigned long)sc);
     }
@@ -505,9 +686,15 @@ sl_status_t sync_data_task_init(void)
     
     // Record boot tick count for uptime calculation
     boot_tick_count = sl_sleeptimer_get_tick_count();
-
-    // Clear any legacy keys that overlapped BT-reserved space to protect bonding data.
-    purge_legacy_nvm3_keys();
+    
+    // Initialize batch buffer (RAM buffering for 10 samples)
+    current_batch.count = 0;
+    // write_index will track which batch to flush (no separate batch_object_index)
+    // Don't memset samples array - only count matters, saves CPU cycles
+    
+    // Cached batch will be allocated dynamically during sync (saves ~800 bytes when idle)
+    cached_batch_ptr = NULL;
+    cached_batch_index = -1;
     
     // Load metadata from NVM3
     load_metadata_from_nvm3();
@@ -523,7 +710,7 @@ sl_status_t sync_data_task_init(void)
     // Create semaphore
     OSSemCreate(&sync_data_task_sem, "sync_data_sem", 0, &err);
     app_assert(err.Code == RTOS_ERR_NONE, "Failed to create sync_data semaphore");
-    
+
     // Create task
     OSTaskCreate(sync_data_task_tcb_ptr,
                  "sync_data_task",
@@ -540,7 +727,8 @@ sl_status_t sync_data_task_init(void)
                  &err);
     app_assert(err.Code == RTOS_ERR_NONE, "Failed to create sync_data task");
     
-    app_log_info("Sync data task initialized\n");
+    app_log_info("Sync data task initialized (batching: %u samples per batch, %u batches, stack: %u bytes, cached_batch: dynamic allocation)\n",
+                 SAMPLES_PER_BATCH, NUM_BATCHES, SYNC_DATA_TASK_STK_SIZE * sizeof(CPU_STK));
     
     return SL_STATUS_OK;
 }
@@ -568,120 +756,197 @@ static void sync_data_task(void *p_arg)
             continue;
         }
 
-        // Notifications must be enabled by client (CCCD) before we can sync.
+        // Notifications/indications must be enabled by client (CCCD) before we can sync.
         if (!sync_data_id_notification_enabled) {
-            app_log_warning("Sync requested but notifications are disabled (CCCD not set)\n");
+            app_log_warning("Sync requested but notifications/indications are disabled (CCCD not set)\n");
             continue;
         }
-        
-        sync_running = true;
-        samples_sent = 0;
 
-        // Pre-count how many samples we intend to send so remaining can be accurate,
-        // and to avoid logging "complete" when the connection drops mid-sync.
-        const uint16_t total_to_send = count_samples_newer_than(last_sync_timestamp);
-        
-        app_log_info("Starting sync: looking for samples after timestamp %lu\n",
-                     (unsigned long)last_sync_timestamp);
-        
-        // Iterate through all stored samples
-        // Calculate the starting index based on sample count and write index
-        uint16_t start_index;
-        if (sample_count < MAX_SAMPLES) {
-            start_index = 0;
-        } else {
-            start_index = write_index; // Oldest sample in circular buffer
-        }
-        
-        uint8_t retry_count = 0;
-        const uint8_t MAX_RETRIES = 3;
-        
-        bool aborted = false;
-        for (uint16_t i = 0; i < sample_count; i++) {
-            uint16_t idx = (start_index + i) % MAX_SAMPLES;
-            
-            if (read_sample_from_nvm3(idx, &sample) != SL_STATUS_OK) {
+        // Flush any pending samples in batch buffer before starting sync
+        if (current_batch.count > 0) {
+            uint16_t pending_count = current_batch.count;
+            sl_status_t flush_status = flush_sample_batch_internal();
+            if (flush_status != SL_STATUS_OK) {
+                app_log_error("Pre-sync batch flush failed: 0x%04lx\n", (unsigned long)flush_status);
                 continue;
             }
             
-            // Get the sample timestamp
-            // Check if this is an old-format sample (uptime with marker bit)
-            uint32_t sample_timestamp = sample.timestamp;
-            if (sample_timestamp & 0x80000000) {
-                // This sample was saved before epoch was set
-                // Skip it if we can't calculate proper timestamp
-                if (!epoch_valid) {
-                    app_log_warning("Skipping sample %u: no valid epoch to calculate timestamp\n", i);
-                    continue;
+            // flush_sample_batch_internal() already updated write_index and batch_object_index
+            // Update sample_count and oldest_index tracking after flush
+            if (sample_count < MAX_SAMPLES) {
+                sample_count += pending_count;
+                if (sample_count > MAX_SAMPLES) {
+                    sample_count = MAX_SAMPLES;
                 }
-                // Calculate approximate absolute timestamp using stored uptime
-                // This works if the device hasn't been rebooted since the sample was saved
-                uint32_t sample_uptime = sample_timestamp & 0x7FFFFFFF;
-                sample_timestamp = epoch_actual + sample_uptime;
-                app_log_info("Sample %u: converted uptime %lu to timestamp %lu\n", 
-                            i, (unsigned long)sample_uptime, (unsigned long)sample_timestamp);
+            } else {
+                // Buffer is full - oldest samples are being overwritten
+                oldest_index = (oldest_index + pending_count) % MAX_SAMPLES;
             }
+            save_metadata_to_nvm3();
+            app_log_info("Pre-sync batch flush: %u samples flushed\n", pending_count);
+        }
+
+        // Pause sensor sampling during sync to avoid contention
+        app_suspend_sensor_task();
+
+        sync_running = true;
+        samples_sent = 0;
+
+        // Detect circular buffer wraparound: oldest_index >= write_index with full buffer means wraparound occurred
+        // When oldest == write and buffer is full, we just wrapped and are at the wraparound point
+        bool buffer_wrapped = (oldest_index > write_index) || (oldest_index == write_index && sample_count == MAX_SAMPLES);
+        
+        app_log_info("Starting sync: start_idx=%u, count=%u, oldest=%u, write=%u, wrapped=%d\n",
+                     requested_sync_start_index, sample_count, oldest_index, write_index, buffer_wrapped);
+        
+        if (buffer_wrapped && sample_count == MAX_SAMPLES) {
+            app_log_warning("⚠️ CIRCULAR BUFFER WRAPAROUND DETECTED: oldest=%u > write=%u (valid range: [%u...%u])\n",
+                           oldest_index, write_index, oldest_index, (write_index + MAX_SAMPLES - 1) % MAX_SAMPLES);
+        }
+
+        // Send SYNC_START frame with device uptime, total samples, oldest index, and last sent validity
+        // Check if last_synced_index itself is still valid (not overwritten by circular buffer)
+        // This tells the phone whether it can safely request (last_synced_index + 1) or must start from oldest_index
+        bool last_sent_valid = false;
+        if (sample_count > 0) {
+            // Calculate distance from oldest_index to last_synced_index
+            uint16_t distance = (uint16_t)((last_synced_index + MAX_SAMPLES - oldest_index) % MAX_SAMPLES);
+            last_sent_valid = (distance < sample_count);
             
-            // Check if sample is newer than last sync
-            if (sample_timestamp > last_sync_timestamp) {
-                // Send this sample with retry logic
-                sl_status_t send_status;
-                retry_count = 0;
+            if (!last_sent_valid) {
+                app_log_warning("⚠️ RESUME BROKEN: last_synced_index=%u is OVERWRITTEN by circular buffer\n", last_synced_index);
+                app_log_warning("   Phone must restart from oldest_index=%u (distance=%u >= sample_count=%u)\n",
+                               oldest_index, distance, sample_count);
+            } else {
+                app_log_info("✓ Resume valid: last_synced_index=%u is still in buffer\n", last_synced_index);
+                app_log_info("   Phone can safely request next index=%u (distance=%u < sample_count=%u)\n",
+                             (last_synced_index + 1) % MAX_SAMPLES, distance, sample_count);
+            }
+        }
+        
+        uint32_t current_uptime = sync_data_get_uptime_sec();
+        sl_status_t send_status = send_sync_start_frame(current_uptime, sample_count, oldest_index, last_sent_valid);
+        if (send_status != SL_STATUS_OK) {
+            app_log_error("Failed to send SYNC_START frame (0x%04lx)\n", (unsigned long)send_status);
+            sync_running = false;
+            app_resume_sensor_task();
+            continue;
+        }
+
+        bool aborted = false;
+        uint32_t reads_since_pause = 0u;
+
+        uint16_t start_idx = requested_sync_start_index;
+        uint32_t remaining = 0u;
+
+        if (sample_count == 0u) {
+            remaining = 0u;
+        } else {
+            uint16_t distance_from_oldest = (uint16_t)((start_idx + MAX_SAMPLES - oldest_index) % MAX_SAMPLES);
+            bool start_in_window = (distance_from_oldest < sample_count);
+
+            if (!start_in_window) {
+                app_log_warning("Requested start_idx=%u outside window (oldest=%u); using oldest=%u\n",
+                                start_idx, oldest_index, oldest_index);
+                start_idx = oldest_index;
+                distance_from_oldest = 0u;
                 
-                do {
-                    send_status = send_sample_notification(&sample, sample_timestamp);
-                    if (send_status == SL_STATUS_OK) {
-                        samples_sent++;
-                        app_log_info("Sent sample %u: ts=%lu, co2=%u\n",
-                                     samples_sent, (unsigned long)sample_timestamp, sample.co2);
-                        break;
-                    } else if (send_status == SL_STATUS_NO_MORE_RESOURCE) {
-                        // BLE buffer is full, wait and retry
-                        retry_count++;
-                        app_log_warning("BLE buffer full, retry %d/%d\n", retry_count, MAX_RETRIES);
-                        OSTimeDlyHMSM(0, 0, 0, 500, OS_OPT_TIME_HMSM_STRICT, &err);
-                    } else {
-                        // Other error, stop trying
-                        app_log_error("Failed to send sample (0x%04lx), stopping sync\n", 
-                                     (unsigned long)send_status);
-                        retry_count = MAX_RETRIES + 1; // Force exit
-                    }
-                } while (retry_count < MAX_RETRIES && 
-                         connection_handle != SL_BT_INVALID_CONNECTION_HANDLE);
-                
-                if (retry_count >= MAX_RETRIES) {
-                    app_log_error("Max retries exceeded, stopping sync\n");
+                // Re-send SYNC_START with corrected start index since we're starting from oldest
+                send_status = send_sync_start_frame(current_uptime, sample_count, oldest_index, last_sent_valid);
+                if (send_status != SL_STATUS_OK) {
+                    app_log_error("Failed to re-send corrected SYNC_START frame (0x%04lx)\n", (unsigned long)send_status);
                     aborted = true;
-                    break;
                 }
-                
-                // Increased delay between notifications to avoid overwhelming BLE stack
-                // 200ms gives the BLE stack time to actually transmit the notification
-                OSTimeDlyHMSM(0, 0, 0, 200, OS_OPT_TIME_HMSM_STRICT, &err);
             }
+
+            remaining = sample_count - distance_from_oldest;
+        }
+
+        uint16_t idx = start_idx;
+
+        // Initialize batch cache for sync
+        invalidate_batch_cache();
+
+        while ((remaining > 0u) && !aborted) {
+            // Use cached batch reading to avoid re-reading the same batch for each sample
+            if (read_sample_from_nvm3_cached(idx, &sample) != SL_STATUS_OK) {
+                reads_since_pause++;
+                if ((reads_since_pause % 10u) == 0u) {
+                    OSTimeDlyHMSM(0u, 0u, 1u, 0u, OS_OPT_TIME_HMSM_STRICT, &err);
+                    if (err.Code != RTOS_ERR_NONE) {
+                        app_log_error("Read pacing delay failed: %d\n", (int)err.Code);
+                    }
+                }
+                app_log_error("Failed to read sample at index %u; skipping\n", idx);
+                idx = (idx + 1) % MAX_SAMPLES;
+                remaining--;
+                continue;
+            }
+
+            // Simplified protocol: just send the uptime value directly
+            // Phone will calculate absolute timestamp
+            uint32_t sample_uptime = sample.timestamp;
+
+            send_status = send_data_frame(&sample, sample_uptime);
+            if (send_status != SL_STATUS_OK) {
+                app_log_error("Failed to send data frame (0x%04lx) at index %u\n",
+                              (unsigned long)send_status, idx);
+                aborted = true;
+                break;
+            }
+
+            // Yield to allow BLE tasks to run and avoid starving the stack.
+            OSTimeDlyHMSM(0u, 0u, 0u, 5u, OS_OPT_TIME_HMSM_STRICT, &err);
+            if (err.Code != RTOS_ERR_NONE) {
+                app_log_error("Sync pacing delay failed: %d\n", (int)err.Code);
+            }
+
+            app_log_info("Data frame sent: idx=%u uptime=%lu co2=%u temp_c=%d hum=%u bat=%u (sent=%u)\n",
+                         idx, (unsigned long)sample_uptime, sample.co2,
+                         sample.temperature_c, sample.humidity, sample.battery_percent,
+                         samples_sent + 1u);
+
+            samples_sent++;
             
-            // Check if connection was lost
+            // Persist progress periodically during sync to avoid losing progress on disconnect
+            if ((samples_sent % 50) == 0) {
+                save_metadata_to_nvm3();
+            }
+
             if (connection_handle == SL_BT_INVALID_CONNECTION_HANDLE) {
                 app_log_warning("Connection lost during sync\n");
                 aborted = true;
                 break;
             }
-        }
-        
-        // If we finished without abort and are still connected, signal completion to client.
-        if (!aborted && connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
-            send_sync_complete_notification(samples_sent);
+
+            idx = (idx + 1) % MAX_SAMPLES;
+            remaining--;
         }
 
-        const uint16_t remaining = (total_to_send > samples_sent) ? (uint16_t)(total_to_send - samples_sent) : 0;
-        if (aborted) {
-            app_log_warning("Sync aborted: sent %u/%u samples, remaining %u\n",
-                            samples_sent, total_to_send, remaining);
-        } else {
-            app_log_info("Sync complete: sent %u/%u samples, remaining %u\n",
-                         samples_sent, total_to_send, remaining);
-        }
+        // Send completion/abort frame based on outcome
+        invalidate_batch_cache();  // Clear cached batch after sync
         
+        if (!aborted && connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
+            if (send_sync_done_frame(samples_sent) != SL_STATUS_OK) {
+                app_log_error("Failed to send SYNC_DONE frame\n");
+            }
+            // Update last synced index to track completion for resume capability
+            if (samples_sent > 0) {
+                last_synced_index = (idx - 1 + MAX_SAMPLES) % MAX_SAMPLES;
+            }
+            // Persist progress after a successful sync
+            save_metadata_to_nvm3();
+            app_log_info("Sync complete: sent %u samples, last_synced_idx=%u\n", samples_sent, last_synced_index);
+        } else if (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
+            if (send_sync_abort_frame(samples_sent, 1) != SL_STATUS_OK) {
+                app_log_error("Failed to send SYNC_ABORT frame\n");
+            }
+            app_log_warning("Sync aborted after sending %u samples\n", samples_sent);
+        }
+
         sync_running = false;
+
+        // Resume sensor sampling after sync completes/aborts
+        app_resume_sensor_task();
     }
 }

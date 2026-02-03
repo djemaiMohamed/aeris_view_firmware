@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "calibration_task.h": "c"
-    }
+    },
+    "cmake.sourceDirectory": "/Users/modjemai/SimplicityStudio/v5_workspace/air_quality/air_quality_cmake"
 }

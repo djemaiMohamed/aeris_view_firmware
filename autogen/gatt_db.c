@@ -54,7 +54,7 @@ GATT_DATA(const sli_bt_gattdb_value_t gattdb_attribute_field_49) = {
   .data = { 0x0f, 0x18, }
 };
 GATT_DATA(sli_bt_gattdb_attribute_chrvalue_t gattdb_attribute_field_47) = {
-  .properties = 0x1a,
+  .properties = 0x3a,
   .max_len = 12,
   .data = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, },
 };
@@ -210,9 +210,9 @@ GATT_DATA(const sli_bt_gattdb_attribute_t gattdb_attributes_map[]) = {
   { .handle = 0x2c, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x1a, .char_uuid = 0x8002 } },
   { .handle = 0x2d, .uuid = 0x8002, .permissions = 0x7f73, .caps = 0xffff, .state = 0x00, .datatype = 0x01, .dynamicdata = &gattdb_attribute_field_44 },
   { .handle = 0x2e, .uuid = 0x0014, .permissions = 0xf03, .caps = 0xffff, .state = 0x00, .datatype = 0x03, .configdata = { .flags = 0x01, .clientconfig_index = 0x05 } },
-  { .handle = 0x2f, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x1a, .char_uuid = 0x8003 } },
+  { .handle = 0x2f, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x3a, .char_uuid = 0x8003 } },
   { .handle = 0x30, .uuid = 0x8003, .permissions = 0x7f73, .caps = 0xffff, .state = 0x00, .datatype = 0x01, .dynamicdata = &gattdb_attribute_field_47 },
-  { .handle = 0x31, .uuid = 0x0014, .permissions = 0xf03, .caps = 0xffff, .state = 0x00, .datatype = 0x03, .configdata = { .flags = 0x01, .clientconfig_index = 0x06 } },
+  { .handle = 0x31, .uuid = 0x0014, .permissions = 0xf03, .caps = 0xffff, .state = 0x00, .datatype = 0x03, .configdata = { .flags = 0x03, .clientconfig_index = 0x06 } },
   { .handle = 0x32, .uuid = 0x0000, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x00, .constdata = &gattdb_attribute_field_49 },
   { .handle = 0x33, .uuid = 0x0002, .permissions = 0x801, .caps = 0xffff, .state = 0x00, .datatype = 0x05, .characteristic = { .properties = 0x10, .char_uuid = 0x000f } },
   { .handle = 0x34, .uuid = 0x000f, .permissions = 0x7800, .caps = 0xffff, .state = 0x00, .datatype = 0x07, .dynamicdata = NULL },

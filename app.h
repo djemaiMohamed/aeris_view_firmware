@@ -60,4 +60,9 @@ void app_proceed(void);
  *****************************************************************************/
 bool app_is_process_required(void);
 
+// Suspend/resume sensor task (used during sync to reduce contention)
+void app_suspend_sensor_task(void);
+void app_resume_sensor_task(void);
+void app_mark_data_activity(void);
+
 #endif // APP_H

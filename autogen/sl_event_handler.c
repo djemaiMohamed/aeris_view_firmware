@@ -6,7 +6,6 @@
 #include "sl_clock_manager_init.h"
 #include "sl_device_init_dcdc.h"
 #include "sl_clock_manager.h"
-#include "SEGGER_RTT.h"
 #include "sl_memory_manager.h"
 #include "pa_conversions_efr32.h"
 #include "sl_rail_util_power_manager_init.h"
@@ -20,7 +19,6 @@
 #include "sl_debug_swo.h"
 #include "sl_gpio.h"
 #include "sl_i2cspm_instances.h"
-#include "sl_iostream_rtt.h"
 #include "sl_iostream_stdlib_config.h"
 #include "sl_iostream_init_usart_instances.h"
 #include "sl_mbedtls.h"
@@ -44,7 +42,6 @@ void sl_platform_init(void)
   sl_clock_manager_init();
   sl_device_init_dcdc();
   sl_clock_manager_runtime_init();
-  SEGGER_RTT_Init();
   sl_memory_init();
   sl_board_init();
   CPU_Init();
@@ -97,7 +94,6 @@ void sl_internal_app_init(void)
 
 void sl_iostream_init_instances(void)
 {
-  sl_iostream_rtt_init();
   sl_iostream_usart_init_instances();
   sl_iostream_set_console_instance();
 }

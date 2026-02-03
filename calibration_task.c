@@ -1,5 +1,6 @@
 #include "calibration_task.h"
 #include "sensor_task.h"
+#include "app.h"
 #include "app_assert.h"
 #include "app_log.h"
 #include "sl_memory_manager.h"
@@ -94,11 +95,8 @@ static void calibration_task(void *p_arg)
 
     calibration_running = true;
 
-    // Pause sensor task
-    OSTaskSuspend(sensor_task_tcb_ptr, &err);
-    if (err.Code != RTOS_ERR_NONE) {
-      app_log_error("Failed to suspend sensor task (err=%d)\n", (int)err.Code);
-    }
+      // Pause sensor task using depth-aware helper
+      app_suspend_sensor_task();
 
     show_calibration_screen("Calibration: preparing...");
 
@@ -195,11 +193,8 @@ static void calibration_task(void *p_arg)
     OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);
     app_assert(err.Code == RTOS_ERR_NONE, "Sensor data ready semaphore post failed");
 
-    // Resume sensor task
-    OSTaskResume(sensor_task_tcb_ptr, &err);
-    if (err.Code != RTOS_ERR_NONE) {
-      app_log_error("Failed to resume sensor task (err=%d)\n", (int)err.Code);
-    }
+      // Finish calibration
+      app_resume_sensor_task();
 
     calibration_running = false;
   }

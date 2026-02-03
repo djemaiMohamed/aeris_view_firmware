@@ -8,7 +8,7 @@
 
 // Task constants
 #define LCD_TASK_PRIO              22u
-#define LCD_TASK_STK_SIZE          256u
+#define LCD_TASK_STK_SIZE          512u
 
 // Function prototypes
 void lcd_task_init(void);

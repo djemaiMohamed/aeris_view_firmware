@@ -96,7 +96,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 10; // Default to 10 seconds
+uint16_t measurement_interval = 7; // Default to 7 seconds
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
 
@@ -137,6 +137,16 @@ sl_status_t sensor_restart_measurement_timer(uint16_t interval_sec)
   RTOS_ERR err;
   OSSemPost(&measurement_sem, OS_OPT_POST_1, &err);
   (void)err;
+
+  return SL_STATUS_OK;
+}
+
+sl_status_t sensor_stop_measurement_timer(void)
+{
+  sl_status_t st = sl_sleeptimer_stop_timer(&measurement_timer_handle);
+  if ((st != SL_STATUS_OK) && (st != SL_STATUS_INVALID_STATE)) {
+    return st;
+  }
 
   return SL_STATUS_OK;
 }
@@ -300,16 +310,49 @@ sensor_data_t* sensor_get_latest_readings(void)
   return &sensor_readings;
 }
 
-/**************************************************************************//**
- * Initialize IADC for battery voltage measurement.
- *****************************************************************************/
+// IADC helpers using PB0/PB1 divider (R5/R6) and configurable reference/gain
+static uint32_t battery_read_adc(void)
+{
+  IADC_Result_t sample;
+
+  IADC_command(IADC0, iadcCmdStartSingle);
+  while ((IADC0->STATUS & (_IADC_STATUS_CONVERTING_MASK | _IADC_STATUS_SINGLEFIFODV_MASK))
+         != _IADC_STATUS_SINGLEFIFODV_MASK) {}
+
+  sample = IADC_pullSingleFifoResult(IADC0);
+  return sample.data; // 12-bit aligned
+}
+
+static uint32_t battery_read_voltage_with_sw_level(bool sw_high)
+{
+  RTOS_ERR err;
+  uint32_t sw_out = sw_high ? 1U : 0U;
+
+  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModePushPull,
+                  (unsigned int)sw_out);
+  OSTimeDlyHMSM(0, 0, 0, BATTERY_SETTLE_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
+  (void)err;
+
+  uint32_t raw_reading = battery_read_adc();
+  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModeDisabled, 0);
+
+  uint32_t vnode_mv = (raw_reading * (BATTERY_IADC_VREF_MV * BATTERY_IADC_INPUT_SCALE_NUM))
+                      / BATTERY_IADC_COUNTS_FULL_SCALE;
+  uint32_t vbat_mv = (vnode_mv * (BATTERY_R5_OHMS + BATTERY_R6_OHMS)) / BATTERY_R6_OHMS;
+
+  // Apply calibration (rounded)
+  vbat_mv = (uint32_t)((vbat_mv * BATTERY_CAL_NUM + (BATTERY_CAL_DEN / 2UL))
+                       / BATTERY_CAL_DEN);
+
+  return (vbat_mv & 0xFFFFFU) | ((raw_reading & 0xFFFU) << 20);
+}
+
 void battery_init(void)
 {
   // Ensure GPIO clock is enabled for PB0/PB1 configuration
   CMU_ClockEnable(cmuClock_GPIO, true);
 
   // Route Port B (even pins group 0 incl. PB0) onto the analog bus for ADC0/IADC.
-  // On some Series 2 parts, GPIO->BBUSALLOC must be set or the pin won't reach the ADC.
 #if defined(GPIO_BBUSALLOC_BEVEN0_ADC0)
   GPIO->BBUSALLOC_SET = GPIO_BBUSALLOC_BEVEN0_ADC0;
 #endif
@@ -350,72 +393,17 @@ void battery_init(void)
 
   // Initialize single conversion
   IADC_initSingle(IADC0, &initSingle, &singleInput);
-  
+
   app_log_info("Battery IADC initialized\n");
 }
 
-/**************************************************************************//**
- * Deinitialize IADC for battery voltage measurement.
- *****************************************************************************/
 void battery_deinit(void)
 {
-  // Reset IADC to disable the module
-  //IADC_disable(IADC0);
   IADC0->EN_CLR = IADC_EN_EN;
-  
-  // Disable IADC0 clock branch to save power
   CMU_ClockEnable(cmuClock_IADC0, false);
-  
   app_log_info("Battery IADC deinitialized\n");
 }
 
-/**************************************************************************//**
- * Read IADC value for battery voltage.
- * @return IADC reading
- *****************************************************************************/
-static uint32_t battery_read_adc(void)
-{
-  IADC_Result_t sample;
-  
-  // Start IADC conversion
-  IADC_command(IADC0, iadcCmdStartSingle);
-
-  // Wait for conversion to be complete
-  while((IADC0->STATUS & (_IADC_STATUS_CONVERTING_MASK | _IADC_STATUS_SINGLEFIFODV_MASK)) != _IADC_STATUS_SINGLEFIFODV_MASK);
-
-  // Get ADC result
-  sample = IADC_pullSingleFifoResult(IADC0);
-
-  // Convert to 12-bit unsigned value for compatibility
-  return sample.data;
-}
-
-static uint32_t battery_read_voltage_with_sw_level(bool sw_high)
-{
-  RTOS_ERR err;
-  uint32_t sw_out = sw_high ? 1U : 0U;
-
-  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModePushPull, (unsigned int)sw_out);
-  OSTimeDlyHMSM(0, 0, 0, BATTERY_SETTLE_DELAY_MS, OS_OPT_TIME_HMSM_STRICT, &err);
-  (void)err;
-
-  uint32_t raw_reading = battery_read_adc();
-  GPIO_PinModeSet(BATTERY_SW_PORT, BATTERY_SW_PIN, gpioModeDisabled, 0);
-
-  uint32_t vnode_mv = (raw_reading * (BATTERY_IADC_VREF_MV * BATTERY_IADC_INPUT_SCALE_NUM))
-                      / BATTERY_IADC_COUNTS_FULL_SCALE;
-  uint32_t vbat_mv = (vnode_mv * (BATTERY_R5_OHMS + BATTERY_R6_OHMS)) / BATTERY_R6_OHMS;
-
-  // Apply calibration (rounded)
-  vbat_mv = (uint32_t)((vbat_mv * BATTERY_CAL_NUM + (BATTERY_CAL_DEN / 2UL)) / BATTERY_CAL_DEN);
-
-  return (vbat_mv & 0xFFFFFU) | ((raw_reading & 0xFFFU) << 20);
-}
-
-/**************************************************************************//**
- * Read battery voltage in millivolts.
- * @return Battery voltage in millivolts
- *****************************************************************************/
 uint32_t battery_read_voltage(void)
 {
   const bool sw_high = (BATTERY_SW_ACTIVE_HIGH != 0);
@@ -427,9 +415,7 @@ uint32_t battery_read_voltage(void)
   uint32_t vnode_mv = (raw_reading * (BATTERY_IADC_VREF_MV * BATTERY_IADC_INPUT_SCALE_NUM))
                       / BATTERY_IADC_COUNTS_FULL_SCALE;
 
-  // Bring-up aid: if voltage is unexpectedly low, log raw + bus alloc state.
   if (vbat_mv < BATTERY_DIAG_BELOW_MV) {
-    // Also take a single additional reading with opposite switch polarity to validate wiring.
     uint32_t packed_alt = battery_read_voltage_with_sw_level(!sw_high);
     uint32_t raw_alt = (packed_alt >> 20) & 0xFFFU;
     uint32_t vbat_alt_mv = packed_alt & 0xFFFFFU;
@@ -469,7 +455,6 @@ uint32_t battery_read_voltage(void)
 #endif
   }
 
-  // Warn if ADC is saturating (often explains a ~4030mV plateau).
   if (raw_reading >= (BATTERY_IADC_COUNTS_FULL_SCALE - 2U)) {
     app_log_warning("Battery ADC near full-scale (raw=%lu). Reading may be saturated; check Vref/gain/divider.\n",
                     (unsigned long)raw_reading);
@@ -485,15 +470,8 @@ uint32_t battery_read_voltage(void)
   return vbat_mv;
 }
 
-/**************************************************************************//**
- * Calculate battery percentage from voltage.
- * @param voltage_mv Battery voltage in millivolts
- * @return Battery percentage (0-100)
- *****************************************************************************/
 uint8_t battery_calculate_percentage(uint32_t voltage_mv)
 {
-  // Simple linear calculation for 3xAAA pack.
-  // Adjust these thresholds if you want a different curve.
   const uint32_t full_mv = 4500;
   const uint32_t empty_mv = 3300;
 
@@ -572,8 +550,8 @@ void sensor_task(void *p_arg)
     // Continue anyway - will try to recover in the main loop
   }
 
-  // Initialize battery ADC
-  //battery_init();
+  // Initialize battery ADC for PB0/PB1 divider measurement
+  battery_init();
 
   // Start peridic measurement
   //error = sensor_trigger_periodic_measurement();
@@ -612,10 +590,8 @@ void sensor_task(void *p_arg)
     //scd4x_power_down();
 
     if (error == 0 && sensor_readings.valid_data) {
-      // Add battery measurement
-      battery_init();
+      // Add battery measurement (uses AVDD via app_iadc-style routine)
       sensor_readings.battery_voltage_mv = battery_read_voltage();
-      battery_deinit();
       sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
       app_log_info("Battery: %lu mV (%u%%)\n",
                    (unsigned long)sensor_readings.battery_voltage_mv,
@@ -631,6 +607,7 @@ void sensor_task(void *p_arg)
       // Signal that new data is available to other tasks
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &err);
       app_assert(err.Code == RTOS_ERR_NONE, "Sensor data ready semaphore post failed");
+      app_mark_data_activity();
     } else if (error != 1) { // error=1 means data not ready, which is not a critical error
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
     }
