@@ -753,7 +753,9 @@ static void render_frame(memlcd_handle_t *handle)
   char co2_str[8]; snprintf(co2_str, sizeof(co2_str), "%d", co2);
   char hum_str[6]; snprintf(hum_str, sizeof(hum_str), "%d", hum);
 
-  int temp_whole = (int)handle->temperature_value;
+  int temp_whole = (int)(handle->temperature_value >= 0.0f
+                         ? handle->temperature_value + 0.5f
+                         : handle->temperature_value - 0.5f);
   char temp_str[12]; snprintf(temp_str, sizeof(temp_str), "%d", temp_whole);
   const char *t_unit = (temperature_unit == 0) ? "C" : "F";
   const char *co2_unit = "ppm";
