@@ -20,6 +20,7 @@ OS_SEM ble_notification_sem;
 extern uint8_t connection_handle;
 extern uint16_t measurement_interval;
 extern uint8_t temperature_unit;
+extern uint8_t display_type;
 extern uint8_t sync_data_id_notification_enabled;
 
 // Task function prototype
@@ -182,6 +183,43 @@ void handle_temperature_unit_read(uint16_t connection, uint16_t characteristic)
     app_log_info("Temperature unit read: %s.\n", temperature_unit ? "Fahrenheit" : "Celsius");
   } else {
     app_log_error("Failed to send temperature unit read response. Status: 0x%04x\n", sc);
+  }
+}
+
+// Function to handle GATT write requests for the display type
+void handle_display_type_write(uint8_t *value, uint16_t length)
+{
+  if (length == sizeof(display_type)) {
+    uint8_t new_type = value[0];
+    if (new_type == 0 || new_type == 1) {
+      display_type = new_type;
+      app_log_info("Display type updated to %s.\n", display_type ? "simple" : "complex");
+    } else {
+      app_log_warning("Invalid display type: %d. Must be 0 (complex) or 1 (simple).\n", new_type);
+    }
+  } else {
+    app_log_warning("Invalid write length for display type.\n");
+  }
+}
+
+// Function to handle GATT read requests for the display type
+void handle_display_type_read(uint16_t connection, uint16_t characteristic)
+{
+  uint8_t value = display_type;
+
+  sl_status_t sc = sl_bt_gatt_server_send_user_read_response(
+    connection,
+    characteristic,
+    0, // Success
+    sizeof(value),
+    &value,
+    NULL
+  );
+
+  if (sc == SL_STATUS_OK) {
+    app_log_info("Display type read: %s.\n", display_type ? "simple" : "complex");
+  } else {
+    app_log_error("Failed to send display type read response. Status: 0x%04x\n", sc);
   }
 }
 

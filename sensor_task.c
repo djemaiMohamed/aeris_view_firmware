@@ -99,6 +99,8 @@ static sensor_data_t sensor_readings = {0};
 uint16_t measurement_interval = 7; // Default to 7 seconds
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
+// display type (0 = complex, 1 = simple CO2-only)
+uint8_t display_type = 0; // Default to complex
 
 // Timer handle for scheduling measurements
 static sl_sleeptimer_timer_handle_t measurement_timer_handle;

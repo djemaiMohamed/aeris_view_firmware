@@ -972,15 +972,101 @@ static void render_frame(memlcd_handle_t *handle)
 }
 
 //------------------------------------------------------------------------------
+// Simple mode renderer: large CO2 number centered, small "ppm" label, status text
+static void render_frame_simple(memlcd_handle_t *handle)
+{
+  int co2  = (int)handle->co2_value;
+  int batt = (int)handle->battery_level;
+
+  const GLIB_Font_t *small       = (const GLIB_Font_t *)&GLIB_FontNarrow6x8;
+  const GLIB_Font_t *num         = (const GLIB_Font_t *)&GLIB_FontNumber16x20;
+  const GLIB_Font_t *status_font = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+
+  char co2_str[8];
+  snprintf(co2_str, sizeof(co2_str), "%d", co2);
+  char batt_str[6];
+  snprintf(batt_str, sizeof(batt_str), "%d%%", batt);
+  const char *co2_unit  = "ppm";
+  const char *qual_msg  = co2_quality_text(co2);
+  const char *interval  = handle->date ? handle->date : "";
+
+  // Top bar (interval left, battery right) — identical to complex mode
+  uint8_t top_scale   = 3;
+  int top_bar_h       = small->fontHeight * (int)top_scale;
+  int top_bar_bottom  = TOP_BAR_Y + top_bar_h;
+
+  const int batt_icon_w = 24; // 22 body + 2 terminal
+  const int batt_icon_h = 12;
+  int batt_icon_x  = LCD_WIDTH - RIGHT_MARGIN - batt_icon_w;
+  int batt_icon_y0 = TOP_BAR_Y + (top_bar_h - batt_icon_h) / 2;
+  int batt_text_x  = batt_icon_x - 4 - text_width_px(small, batt_str, top_scale);
+
+  // Adaptive CO2 scale: keep digits fitting inside 400px
+  int len = (int)strlen(co2_str);
+  uint8_t co2_scale = (len <= 3) ? 7 : (len == 4) ? 6 : 5;
+  int co2_h = num->fontHeight * (int)co2_scale;
+
+  // Unit label: scale 2 (same size as complex mode)
+  uint8_t unit_scale = 2;
+  int unit_h = small->fontHeight * (int)unit_scale;
+
+  // Status label: scale 3
+  uint8_t qual_scale = 3;
+  int qual_h = status_font->fontHeight * (int)qual_scale;
+
+  const int gap1 = 4; // between ppm and CO2 number
+  const int gap2 = 8; // between CO2 number and status
+
+  // Center the CO2 number against the full screen height so it appears visually centered
+  int co2_y  = (LCD_HEIGHT - co2_h) / 2;
+  int unit_y = co2_y - gap1 - unit_h;
+  if (unit_y < top_bar_bottom + 2) unit_y = top_bar_bottom + 2; // clamp below top bar
+  int qual_y = co2_y + co2_h + gap2;
+
+  // Horizontal centering
+  int unit_x = centered_x(small, co2_unit, unit_scale);
+  int co2_x  = centered_x(num, co2_str, co2_scale);
+  int qual_x = centered_x(status_font, qual_msg, qual_scale);
+
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+
+    // Top bar: interval (left) + battery text + icon (right)
+    draw_text_row(s_row, small, interval,  LEFT_MARGIN, TOP_BAR_Y, top_scale, y);
+    draw_text_row(s_row, small, batt_str,  batt_text_x, TOP_BAR_Y, top_scale, y);
+    draw_battery_row(s_row, y, batt_icon_x, batt_icon_y0, batt);
+
+    // "ppm" label (small, centered above number)
+    draw_text_row(s_row, small, co2_unit, unit_x, unit_y, unit_scale, y);
+
+    // CO2 number (large, extra-bold via triple overdraw)
+    draw_text_row(s_row, num, co2_str, co2_x - 1, co2_y, co2_scale, y);
+    draw_text_row(s_row, num, co2_str, co2_x,     co2_y, co2_scale, y);
+    draw_text_row(s_row, num, co2_str, co2_x + 1, co2_y, co2_scale, y);
+
+    // Status label (Excellent / Good / Poor)
+    draw_text_row(s_row, status_font, qual_msg, qual_x, qual_y, qual_scale, y);
+
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
+}
+
+//------------------------------------------------------------------------------
 // Public API
 void memlcd_draw_data(memlcd_handle_t *handle)
 {
   if (!s_memlcd) init_display();
   if (!handle) return;
   render_frame(handle);
-  // sleep memlcd
   sl_memlcd_power_on(s_memlcd, false);
+}
 
+void memlcd_draw_data_simple(memlcd_handle_t *handle)
+{
+  if (!s_memlcd) init_display();
+  if (!handle) return;
+  render_frame_simple(handle);
+  sl_memlcd_power_on(s_memlcd, false);
 }
 
 void memlcd_display_passkey(uint32_t passkey)

@@ -36,9 +36,14 @@ typedef struct {
 } memlcd_handle_t;
 
 /***************************************************************************//**
- * Initialize example
+ * Draw full complex display (CO2, temperature, humidity, chart, etc.)
  ******************************************************************************/
 void memlcd_draw_data(memlcd_handle_t *handle);
+
+/***************************************************************************//**
+ * Draw simple display: large CO2 value centered, ppm label, status text only
+ ******************************************************************************/
+void memlcd_draw_data_simple(memlcd_handle_t *handle);
 
 /***************************************************************************//**
  * Add CO2 value to history

@@ -27,6 +27,8 @@ void handle_measurement_interval_write(uint8_t *value, uint16_t length);
 void handle_measurement_interval_read(uint16_t connection, uint16_t characteristic);
 void handle_temperature_unit_write(uint8_t *value, uint16_t length);
 void handle_temperature_unit_read(uint16_t connection, uint16_t characteristic);
+void handle_display_type_write(uint8_t *value, uint16_t length);
+void handle_display_type_read(uint16_t connection, uint16_t characteristic);
 
 // Read handler for calibration characteristic (returns status: 0=idle,1=running)
 void handle_calibration_read(uint16_t connection, uint16_t characteristic);

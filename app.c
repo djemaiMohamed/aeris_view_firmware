@@ -465,6 +465,13 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
         // Semaphore is posted by handle_sync_data_write
         app_mark_data_activity();
       }
+      // display type
+      else if (evt->data.evt_gatt_server_attribute_value.attribute == gattdb_disp_type_id) {
+        handle_display_type_write(evt->data.evt_gatt_server_attribute_value.value.data,
+                                  evt->data.evt_gatt_server_attribute_value.value.len);
+        OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
+        app_mark_data_activity();
+      }
       break;
 
     case sl_bt_evt_gatt_server_user_read_request_id:
@@ -483,6 +490,10 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_sync_data_id) {
         handle_sync_data_read(evt->data.evt_gatt_server_user_read_request.connection,
                               evt->data.evt_gatt_server_user_read_request.characteristic);
+        app_mark_data_activity();
+      } else if (evt->data.evt_gatt_server_user_read_request.characteristic == gattdb_disp_type_id) {
+        handle_display_type_read(evt->data.evt_gatt_server_user_read_request.connection,
+                                 evt->data.evt_gatt_server_user_read_request.characteristic);
         app_mark_data_activity();
       }
       break;

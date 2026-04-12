@@ -30,11 +30,12 @@ extern const sli_bt_gattdb_t gattdb;
 #define gattdb_temp_unit_id                   43
 #define gattdb_run_calibration_id             45
 #define gattdb_sync_data_id                   48
-#define gattdb_battery_service_0              50
-#define gattdb_battery_level                  52
-#define gattdb_characteristic_presentation_format 54
-#define gattdb_ota                            55
-#define gattdb_ota_control                    57
+#define gattdb_disp_type_id                   51
+#define gattdb_battery_service_0              52
+#define gattdb_battery_level                  54
+#define gattdb_characteristic_presentation_format 56
+#define gattdb_ota                            57
+#define gattdb_ota_control                    59
 
 
 #endif // __GATT_DB_H

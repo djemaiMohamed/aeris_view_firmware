@@ -18,6 +18,7 @@ CPU_STK *lcd_task_stk_ptr;
 extern uint16_t measurement_interval;
 extern uint8_t connection_handle;
 extern uint8_t temperature_unit;
+extern uint8_t display_type;
 
 // Variables for LCD display data
 memlcd_handle_t lcd_data;
@@ -89,19 +90,19 @@ void lcd_init_display(void)
  *****************************************************************************/
 void lcd_update_measurement_interval_string(uint16_t interval_seconds)
 {
-  // Format measurement interval as "Xs" or "Xm Xs" based on value
+  // Format measurement interval as "Xsec" or "Xmin" or "Xmin Xsec"
   if (interval_seconds < 60) {
-    snprintf(measurement_interval_str, sizeof(measurement_interval_str), 
-             "%ds", interval_seconds);
+    snprintf(measurement_interval_str, sizeof(measurement_interval_str),
+             "%dsec", interval_seconds);
   } else {
     int minutes = interval_seconds / 60;
     int seconds = interval_seconds % 60;
     if (seconds == 0) {
-      snprintf(measurement_interval_str, sizeof(measurement_interval_str), 
-               "%dm", minutes);
+      snprintf(measurement_interval_str, sizeof(measurement_interval_str),
+               "%dmin", minutes);
     } else {
-      snprintf(measurement_interval_str, sizeof(measurement_interval_str), 
-               "%dm %ds", minutes, seconds);
+      snprintf(measurement_interval_str, sizeof(measurement_interval_str),
+               "%dmin %dsec", minutes, seconds);
     }
   }
 }
@@ -140,8 +141,12 @@ void lcd_update_display(sensor_data_t *sensor_data)
 
   memlcd_add_co2_to_history(&lcd_data, lcd_data.co2_value);
 
-  // Draw data to LCD
-  memlcd_draw_data(&lcd_data);
+  // Draw data to LCD based on display type
+  if (display_type == 1) {
+    memlcd_draw_data_simple(&lcd_data);
+  } else {
+    memlcd_draw_data(&lcd_data);
+  }
   
   // Log temperature in the selected unit for display purposes
   if (temperature_unit == 0) {
