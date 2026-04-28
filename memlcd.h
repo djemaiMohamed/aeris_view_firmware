@@ -61,6 +61,11 @@ void memlcd_display_passkey(uint32_t passkey);
 void memlcd_display_waiting_message(void);
 
 /***************************************************************************//**
+ * Display battery dead message on LCD
+ ******************************************************************************/
+void memlcd_display_battery_dead_message(void);
+
+/***************************************************************************//**
  * Display calibration progress message on LCD
  ******************************************************************************/
 void memlcd_display_calibration_message(const char *line1, const char *line2);

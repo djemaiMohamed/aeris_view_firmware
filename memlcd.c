@@ -1097,6 +1097,29 @@ void memlcd_display_passkey(uint32_t passkey)
   }
 }
 
+void memlcd_display_battery_dead_message(void)
+{
+  if (!s_memlcd) init_display();
+  const GLIB_Font_t *mono8 = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+  const char *main_msg = "BATTERY DEAD";
+  const char *sub_msg  = "Please charge";
+  uint8_t main_scale = 3;
+  uint8_t sub_scale  = 2;
+  int total_h = (mono8->fontHeight * main_scale) + 12 + (mono8->fontHeight * sub_scale);
+  int start_y = (LCD_HEIGHT - total_h) / 2;
+  int main_y  = start_y;
+  int sub_y   = main_y + (mono8->fontHeight * main_scale) + 12;
+  int main_x  = centered_x(mono8, main_msg, main_scale);
+  int sub_x   = centered_x(mono8, sub_msg,  sub_scale);
+
+  for (int y = 0; y < LCD_HEIGHT; ++y) {
+    row_clear(s_row);
+    draw_text_row(s_row, mono8, main_msg, main_x, main_y, main_scale, y);
+    draw_text_row(s_row, mono8, sub_msg,  sub_x,  sub_y,  sub_scale,  y);
+    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+  }
+}
+
 void memlcd_display_waiting_message(void)
 {
   if (!s_memlcd) init_display();

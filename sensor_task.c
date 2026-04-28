@@ -1,5 +1,6 @@
 #include "sensor_task.h"
 #include "app.h"
+#include "memlcd.h"
 #include "app_log.h"
 #include <os.h>
 #include "scd4x_i2c.h"
@@ -96,7 +97,7 @@ CPU_STK *sensor_task_stk_ptr;// measurement interval in seconds
 // Global sensor data accessible to other tasks
 static sensor_data_t sensor_readings = {0};
 // measurement interval in seconds
-uint16_t measurement_interval = 7; // Default to 7 seconds
+uint16_t measurement_interval = 300; // Default to 5 minutes
 // temperature unit (0 = Celsius, 1 = Fahrenheit)
 uint8_t temperature_unit = 0; // Default to Celsius
 // display type (0 = complex, 1 = simple CO2-only)
@@ -193,9 +194,9 @@ int16_t sensor_init(void)
   
   // Set temperature offset to compensate for device enclosure effects
   // Formula: raw_value = (offset_celsius * 65535) / 175
-  // Reduced from 4°C to 2°C offset because sensor was reading 2°C below actual.
-  // 2°C offset = (2 * 65535) / 175 = 749
-  uint16_t temp_offset_raw = 749;  // 2°C offset (adjusted: sensor was reading 2°C low)
+  // Reduced from 2°C to 1°C offset because sensor was reading 1°C below actual.
+  // 1°C offset = (1 * 65535) / 175 = 375
+  uint16_t temp_offset_raw = 375;  // 1°C offset (adjusted: sensor was reading 1°C low)
   error = scd4x_set_temperature_offset_raw(temp_offset_raw);
   if (error) {
     app_log_error("Error setting temperature offset: %d\n", error);
@@ -566,6 +567,8 @@ void sensor_task(void *p_arg)
   sl_status_t st = sensor_restart_measurement_timer(measurement_interval);
   app_assert((st == SL_STATUS_OK), "Failed to start measurement timer");
 
+  bool has_battery_reading = false;
+
   while (DEF_TRUE) {
     // Wait for timer to signal a measurement window
     OSSemPend(&measurement_sem, 0, OS_OPT_PEND_BLOCKING, DEF_NULL, &err);
@@ -595,6 +598,7 @@ void sensor_task(void *p_arg)
       // Add battery measurement (uses AVDD via app_iadc-style routine)
       sensor_readings.battery_voltage_mv = battery_read_voltage();
       sensor_readings.battery_percentage = battery_calculate_percentage(sensor_readings.battery_voltage_mv);
+      has_battery_reading = true;
       app_log_info("Battery: %lu mV (%u%%)\n",
                    (unsigned long)sensor_readings.battery_voltage_mv,
                    (unsigned int)sensor_readings.battery_percentage);
@@ -612,6 +616,11 @@ void sensor_task(void *p_arg)
       app_mark_data_activity();
     } else if (error != 1) { // error=1 means data not ready, which is not a critical error
       app_log_warning("Failed to read measurement or data not valid. Will retry.\n");
+      if (has_battery_reading && sensor_readings.battery_percentage < 100) {
+        app_log_warning("Battery at %u%% and sensor read failed — displaying battery dead message.\n",
+                        (unsigned int)sensor_readings.battery_percentage);
+        memlcd_display_battery_dead_message();
+      }
     }
 
   }
