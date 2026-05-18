@@ -11,8 +11,8 @@
 #include "sl_bt_api.h"
 
 // CO2 alert thresholds (ppm)
-#define CO2_BAD_THRESHOLD   2000u   // above this → bad air quality; start alert
-#define CO2_GOOD_THRESHOLD  1500u   // below this → recovered; hysteresis band
+#define CO2_BAD_THRESHOLD   1300u   // above this → bad air quality; start alert
+#define CO2_GOOD_THRESHOLD  1100u   // below this → recovered; hysteresis band
 
 // Alert animation: 10 × 500ms toggles = 5 s, then stay inverted
 #define ALERT_TOGGLE_COUNT  10u
