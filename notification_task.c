@@ -255,8 +255,10 @@ static void send_notifications(void)
   // Flag 0x00 = live data, 0x01 = historical data, 0x02 = sync complete
   uint8_t data[12];
   
-  // Calculate current timestamp
-  uint32_t timestamp = sync_data_get_epoch() + sync_data_get_uptime_sec();
+  // Timestamp = device uptime in seconds (phone computes absolute time).
+  // sync_data_get_epoch() is deprecated and returns uptime too, so use the
+  // canonical function directly to avoid the previous double-count bug.
+  uint32_t timestamp = sync_data_get_uptime_sec();
   
   // Pack timestamp (4 bytes, little-endian)
   data[0] = (uint8_t)(timestamp & 0xFF);

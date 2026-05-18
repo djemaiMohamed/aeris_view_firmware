@@ -18,7 +18,7 @@ extern uint8_t sync_data_id_notification_enabled;
 
 // Local state
 static bool sync_running = false;
-static uint32_t boot_tick_count = 0;        // Tick count at boot for uptime calculation
+static uint64_t boot_tick_count = 0;        // Tick count at boot for uptime calculation (64-bit to avoid 36-hour wrap)
 static uint16_t requested_sync_start_index = 0; // Index requested by phone to start sync
 // Connection parameter tuning removed; rely on default stack behavior.
 
@@ -53,10 +53,10 @@ static sl_status_t send_sync_notification_with_retry(const uint8_t *data, size_t
  ******************************************************************************/
 uint32_t sync_data_get_uptime_sec(void)
 {
-    uint32_t current_ticks = sl_sleeptimer_get_tick_count();
-    uint32_t elapsed_ticks = current_ticks - boot_tick_count;
+    uint64_t current_ticks = sl_sleeptimer_get_tick_count64();
+    uint64_t elapsed_ticks = current_ticks - boot_tick_count;
     uint32_t freq = sl_sleeptimer_get_timer_frequency();
-    return elapsed_ticks / freq;
+    return (uint32_t)(elapsed_ticks / freq);
 }
 
 /***************************************************************************//**
@@ -684,8 +684,8 @@ sl_status_t sync_data_task_init(void)
 {
     RTOS_ERR err;
     
-    // Record boot tick count for uptime calculation
-    boot_tick_count = sl_sleeptimer_get_tick_count();
+    // Record boot tick count for uptime calculation (64-bit to survive the ~36-hour uint32 wrap)
+    boot_tick_count = sl_sleeptimer_get_tick_count64();
     
     // Initialize batch buffer (RAM buffering for 10 samples)
     current_batch.count = 0;

@@ -114,7 +114,8 @@ void lcd_update_measurement_interval_string(uint16_t interval_seconds)
 void lcd_update_display(sensor_data_t *sensor_data)
 {
   if (!sensor_data->valid_data) {
-    app_log_warning("Trying to update LCD with invalid sensor data\n");
+    app_log_warning("No valid sensor data yet; showing waiting screen\n");
+    memlcd_display_waiting_message();
     return;
   }
   

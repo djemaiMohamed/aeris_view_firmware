@@ -57,8 +57,7 @@ static int16_t pwr_max;
 static bool tasks_are_suspended = false;
 static bool sensor_suspended_for_sync = false;
 static uint8_t sensor_suspend_depth = 0u;
-static bool pending_param_resume = false;
-static OS_TICK param_resume_deadline_tick = 0u;
+static bool conn_notif_posted = false;  // ensures ble_notification_sem is posted once per connection
 static OS_TICK last_data_tick = 0u;
 static const OS_TICK no_data_timeout_ticks = 600000u; // ~10 min if tick=1kHz; adjust as needed
 
@@ -245,7 +244,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     app_log_warning("No data activity detected; closing connection to recover.\n");
     sl_bt_connection_close(connection_handle);
     resume_tasks();
-    pending_param_resume = false;
+    conn_notif_posted = false;
     connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
     start_advertising();
   }
@@ -286,6 +285,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
     case sl_bt_evt_connection_opened_id:
       // suspend tasks until secure connection is established
       suspend_tasks();
+      conn_notif_posted = false;
       app_log_info("Connection opened. Handle: %d\n", evt->data.evt_connection_opened.connection);
       connection_handle = evt->data.evt_connection_opened.connection;
 
@@ -304,59 +304,55 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       break;
 
     case sl_bt_evt_connection_parameters_id:
-      // Fallback: if a pending resume deadline passed, resume tasks even if latency != 4
-      if (pending_param_resume) {
-        RTOS_ERR err_tick;
-        OS_TICK now_tick = OSTimeGet(&err_tick);
-        (void)err_tick;
-        if (now_tick >= param_resume_deadline_tick) {
-          app_log_info("Connection param timeout reached; resuming tasks as fallback.\n");
-          resume_tasks();
-          pending_param_resume = false;
-        }
-      }
-
-      bool authenticated =false;
-      switch (evt->data.evt_connection_parameters.security_mode)
       {
-        case sl_bt_connection_mode1_level1:
-          app_log_info("No Security\r\n");
-          break;
-        case sl_bt_connection_mode1_level2:
-          app_log_info("Unauthenticated pairing with encryption (Just Works)\r\n");
-          break;
-        case sl_bt_connection_mode1_level3:
-          app_log_info("Authenticated pairing with encryption (Legacy Pairing)\r\n");
-          break;
-        case sl_bt_connection_mode1_level4:
-          app_log_info("Authenticated Secure Connections pairing with encryption using a 128-bit strength encryption key (Secure Connections)\r\n");
-          authenticated = true;
-          break;
-        default:
-          break;
-      }
+        bool authenticated = false;
+        switch (evt->data.evt_connection_parameters.security_mode)
+        {
+          case sl_bt_connection_mode1_level1:
+            app_log_info("No Security\r\n");
+            break;
+          case sl_bt_connection_mode1_level2:
+            app_log_info("Unauthenticated pairing with encryption (Just Works)\r\n");
+            break;
+          case sl_bt_connection_mode1_level3:
+            app_log_info("Authenticated pairing with encryption (Legacy Pairing)\r\n");
+            break;
+          case sl_bt_connection_mode1_level4:
+            app_log_info("Authenticated Secure Connections\r\n");
+            authenticated = true;
+            break;
+          default:
+            break;
+        }
 
-      uint16_t interval = evt->data.evt_connection_parameters.interval, latency = evt->data.evt_connection_parameters.latency, timeout = evt->data.evt_connection_parameters.timeout;
-      app_log_info("connection interval %d, latency %d, timeout %d ms\n", interval, latency, timeout * 10);
-      if (authenticated) {
-        if (latency != 4) {
-          app_log_info("Changing connection parameters to desired latency of 4. Suspending tasks.\n");
-          sl_bt_connection_set_parameters(evt->data.evt_connection_parameters.connection, 160, 200, 4, 600, 0, 0xffff);
-          app_log_info("Re-setting connection parameters to desired latency of 4.\n");
-          // Fallback: if latency never reaches 4, resume tasks after timeout
-          RTOS_ERR err_tick;
-          param_resume_deadline_tick = OSTimeGet(&err_tick) + 10000u; // ~10s at 1kHz tick
-          pending_param_resume = true;
-        } else {
-          app_log_info("Desired connection parameters already set. Resuming tasks.\n");
-          // resume tasks
-          resume_tasks();
-          // trigger notification task to send data
-          OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
-          pending_param_resume = false;
+        uint16_t interval = evt->data.evt_connection_parameters.interval;
+        uint16_t latency  = evt->data.evt_connection_parameters.latency;
+        uint16_t timeout  = evt->data.evt_connection_parameters.timeout;
+        app_log_info("connection interval %d, latency %d, timeout %d ms\n", interval, latency, timeout * 10);
+
+        if (authenticated) {
+          // Resume tasks as soon as security is confirmed — don't gate on latency value.
+          // Previously tasks stayed suspended waiting for latency==4 which iOS may not honour.
+          bool was_suspended = tasks_are_suspended;
+          if (was_suspended) {
+            app_log_info("Auth confirmed; resuming tasks.\n");
+            resume_tasks();
+          }
+
+          // Request preferred connection latency for power efficiency (non-blocking).
+          if (latency != 4) {
+            sl_bt_connection_set_parameters(evt->data.evt_connection_parameters.connection,
+                                            160, 200, 4, 600, 0, 0xffff);
+          }
+
+          // Trigger the notification task to send current sensor data once per connection.
+          // The notification task retries if the iOS CCCD is not yet set (up to ~17 s).
+          if (!conn_notif_posted) {
+            OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
+            conn_notif_posted = true;
+          }
         }
       }
-
       break;
 
     case sl_bt_evt_connection_set_parameters_failed_id:
@@ -370,7 +366,7 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
                    evt->data.evt_connection_closed.reason);
       resume_tasks();
       connection_handle = SL_BT_INVALID_CONNECTION_HANDLE;
-      pending_param_resume = false;
+      conn_notif_posted = false;
 
       sl_bt_system_set_tx_power(-30, 0, &pwr_min, &pwr_max);
 
@@ -393,17 +389,26 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
       break;
 
     case sl_bt_evt_sm_bonded_id:
-      // Set pairing mode to false after bonding is completed
       app_log_info("Bonding completed. Connection: %d, Security mode: %d, Bonding handle: %d\n",
                    evt->data.evt_sm_bonded.connection,
                    evt->data.evt_sm_bonded.security_mode,
                    evt->data.evt_sm_bonded.bonding);
 
-      // Ensure tasks are running and LCD is cleared after pairing
+      // Clear passkey display immediately — mirroring the direct draw done in
+      // sm_passkey_display_id so the screen updates without waiting for the LCD task.
+      memlcd_display_waiting_message();
+
       resume_tasks();
 
-      //sl_bt_connection_set_parameters(connection_handle, 160, 200, 4, 600, 0, 0xffff);
+      // Refresh LCD with latest sensor data.
       OSSemPost(&sensor_data_ready_sem, OS_OPT_POST_1, &local_err);
+
+      // Wake notification task to push current reading to phone.
+      // The task retries internally until the iOS CCCD is set (~1-17 s window).
+      if (!conn_notif_posted) {
+        OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
+        conn_notif_posted = true;
+      }
       break;
 
     case sl_bt_evt_sm_bonding_failed_id:
@@ -424,14 +429,22 @@ void sl_bt_on_event(sl_bt_msg_t *evt)
 
     case sl_bt_evt_gatt_server_characteristic_status_id:
       if (evt->data.evt_gatt_server_characteristic_status.status_flags == sl_bt_gatt_server_client_config) {
-        // Track subscription for sync_data_id characteristic
+        // Mark activity for any CCCD change so the watchdog timer doesn't fire during setup.
+        app_mark_data_activity();
+
         if (evt->data.evt_gatt_server_characteristic_status.characteristic == gattdb_sync_data_id) {
-          sync_data_id_notification_enabled = 
+          uint8_t new_val =
             (evt->data.evt_gatt_server_characteristic_status.client_config_flags &
              (sl_bt_gatt_server_notification | sl_bt_gatt_server_indication)) ? 1 : 0;
-          app_log_info("Sync data notifications/indications %s\n", 
+          bool was_disabled = (sync_data_id_notification_enabled == 0);
+          sync_data_id_notification_enabled = new_val;
+          app_log_info("Sync data notifications/indications %s\n",
                        sync_data_id_notification_enabled ? "enabled" : "disabled");
-          app_mark_data_activity();
+          // iOS just armed the CCCD — wake notification task immediately so
+          // the first live packet is guaranteed to succeed.
+          if (new_val && was_disabled) {
+            OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &local_err);
+          }
         }
       }
       break;
