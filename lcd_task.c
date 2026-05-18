@@ -7,8 +7,21 @@
 #include "memlcd.h"
 #include <stdio.h>
 #include <string.h>
-#include "sl_memory_manager.h" // Added for dynamic allocation
-#include "sl_bt_api.h" // Added for SL_BT_INVALID_CONNECTION_HANDLE
+#include "sl_memory_manager.h"
+#include "sl_bt_api.h"
+
+// CO2 alert thresholds (ppm)
+#define CO2_BAD_THRESHOLD   2000u   // above this → bad air quality; start alert
+#define CO2_GOOD_THRESHOLD  1500u   // below this → recovered; hysteresis band
+
+// Alert animation: 10 × 500ms toggles = 5 s, then stay inverted
+#define ALERT_TOGGLE_COUNT  10u
+
+typedef enum {
+    CO2_ALERT_GOOD,   // normal polarity; waiting for data
+    CO2_ALERT_ANIM,   // toggling polarity every 500ms for 5 s
+    CO2_ALERT_BAD,    // polarity locked inverted; waiting for recovery
+} co2_alert_state_t;
 
 // Semaphores for synchronization
 extern OS_SEM sensor_data_ready_sem;
@@ -177,34 +190,81 @@ void lcd_update_display(sensor_data_t *sensor_data)
  *****************************************************************************/
 void lcd_task(void *p_arg)
 {
+  (void)p_arg;
+
   RTOS_ERR err;
-  sensor_data_t *sensor_data;
+  sensor_data_t     *sensor_data;
+  co2_alert_state_t  alert_state = CO2_ALERT_GOOD;
+  uint32_t           anim_count  = 0;
 
   app_log_info("LCD task started.\n");
-  
-  // Initialize the LCD display
   lcd_init_display();
 
-  while (DEF_TRUE) {
+  // 500ms in OS ticks — used as pend timeout during alert animation
+  OS_TICK alert_ticks = OSTimeTickRateHzGet(&err) / 2u;
 
-    // Wait for the semaphore that indicates new sensor data is available
-    OSSemPend(&sensor_data_ready_sem,
-              0,                    // Wait indefinitely
-              OS_OPT_PEND_BLOCKING,
-              NULL,
-              &err);
-    
-    // Get the latest sensor readings
+  while (DEF_TRUE) {
+    // During animation, wake every 500ms to toggle polarity even without new data.
+    OS_TICK timeout = (alert_state == CO2_ALERT_ANIM) ? alert_ticks : 0u;
+
+    OSSemPend(&sensor_data_ready_sem, timeout, OS_OPT_PEND_BLOCKING, NULL, &err);
+
+    if (err.Code == RTOS_ERR_TIMEOUT) {
+      // Animation tick: flip polarity and redraw with last known sensor data
+      memlcd_set_polarity_inverted(!memlcd_get_polarity_inverted());
+      anim_count++;
+
+      if (anim_count >= ALERT_TOGGLE_COUNT) {
+        // 5 seconds elapsed — lock into inverted state
+        memlcd_set_polarity_inverted(true);
+        alert_state = CO2_ALERT_BAD;
+        app_log_info("CO2 alert: animation done, display locked inverted\n");
+      }
+
+      sensor_data = sensor_get_latest_readings();
+      if (sensor_data->valid_data) {
+        lcd_update_display(sensor_data);
+      }
+      continue;
+    }
+
+    if (err.Code != RTOS_ERR_NONE) {
+      continue;
+    }
+
+    // New sensor data available
     sensor_data = sensor_get_latest_readings();
-    
-    // Update the LCD with the new data
     lcd_update_display(sensor_data);
 
-    // if connection handle is valid and pairing mode is false
+    // CO2 alert state machine
+    if (sensor_data->valid_data) {
+      uint16_t co2 = sensor_data->co2_ppm;
+
+      switch (alert_state) {
+        case CO2_ALERT_GOOD:
+          if (co2 >= CO2_BAD_THRESHOLD) {
+            alert_state = CO2_ALERT_ANIM;
+            anim_count  = 0;
+            memlcd_set_polarity_inverted(false); // first tick will toggle to inverted
+            app_log_info("CO2 bad (%u ppm) — starting 5s polarity alert animation\n", co2);
+          }
+          break;
+
+        case CO2_ALERT_ANIM:
+        case CO2_ALERT_BAD:
+          if (co2 < CO2_GOOD_THRESHOLD) {
+            alert_state = CO2_ALERT_GOOD;
+            anim_count  = 0;
+            memlcd_set_polarity_inverted(false);
+            lcd_update_display(sensor_data); // redraw immediately with normal polarity
+            app_log_info("CO2 recovered (%u ppm) — normal polarity restored\n", co2);
+          }
+          break;
+      }
+    }
+
     if (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
-      // Trigger BLE notifications to send updated data
       app_log_info("Triggering BLE notifications for updated sensor data.\n");
-      // Triger notification task to send notifications
       OSSemPost(&ble_notification_sem, OS_OPT_POST_1, &err);
     } else {
       app_log_info("No connection. Skipping BLE notifications.\n");

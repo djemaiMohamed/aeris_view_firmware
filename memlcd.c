@@ -47,6 +47,16 @@ extern uint8_t temperature_unit;
 static const sl_memlcd_t *s_memlcd = NULL;
 static uint8_t s_row[BYTES_PER_ROW]; // 400
 static const GLIB_Font_t *s_font = (const GLIB_Font_t *)&GLIB_FontNormal8x8;
+static bool s_polarity_inverted = false; // when true, pixel data is XOR'd before sending
+
+// Send s_row to the display at line y, applying polarity inversion if active.
+static inline void commit_row(int y)
+{
+  if (s_polarity_inverted) {
+    for (int i = 0; i < BYTES_PER_ROW; ++i) s_row[i] ^= 0xFF;
+  }
+  (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+}
 
 //------------------------------------------------------------------------------
 // Bit helpers
@@ -340,7 +350,7 @@ static void init_display(void)
   // Clear to white
   for (int y = 0; y < LCD_HEIGHT; ++y) {
     row_clear(s_row);
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -969,7 +979,7 @@ static void render_frame(memlcd_handle_t *handle)
     draw_chart_row(s_row, y, chart_top, chart_bottom, handle, max_value);
 
     // Stream
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -1049,7 +1059,7 @@ static void render_frame_simple(memlcd_handle_t *handle)
     // Status label (Excellent / Good / Poor)
     draw_text_row(s_row, status_font, qual_msg, qual_x, qual_y, qual_scale, y);
 
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -1093,7 +1103,7 @@ void memlcd_display_passkey(uint32_t passkey)
     row_clear(s_row);
     draw_text_row(s_row, small, msg, msg_x, msg_y, msg_scale, y);
     draw_text_row(s_row, num,   key, key_x, key_y, key_scale, y);
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -1116,7 +1126,7 @@ void memlcd_display_battery_dead_message(void)
     row_clear(s_row);
     draw_text_row(s_row, mono8, main_msg, main_x, main_y, main_scale, y);
     draw_text_row(s_row, mono8, sub_msg,  sub_x,  sub_y,  sub_scale,  y);
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -1139,7 +1149,7 @@ void memlcd_display_waiting_message(void)
     row_clear(s_row);
     draw_text_row(s_row, mono8, main_msg, main_x, main_y, main_scale, y);
     draw_text_row(s_row, mono8, sub_msg,  sub_x,  sub_y,  sub_scale,  y);
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -1162,7 +1172,7 @@ void memlcd_display_calibration_message(const char *line1, const char *line2)
     row_clear(s_row);
     draw_text_row(s_row, mono8, line1, l1_x, l1_y, l1_scale, y);
     draw_text_row(s_row, mono8, line2, l2_x, l2_y, l2_scale, y);
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
 }
 
@@ -1216,8 +1226,18 @@ void memlcd_display_calibration_progress(uint8_t percent, uint16_t seconds_remai
       // fill
       draw_hline(s_row, bar_x + 2, bar_x + 2 + fill_w);
     }
-    (void)sl_memlcd_draw(s_memlcd, s_row, (uint16_t)y, 1);
+    commit_row(y);
   }
+}
+
+void memlcd_set_polarity_inverted(bool inverted)
+{
+  s_polarity_inverted = inverted;
+}
+
+bool memlcd_get_polarity_inverted(void)
+{
+  return s_polarity_inverted;
 }
 
 void memlcd_add_co2_to_history(memlcd_handle_t *handle, uint16_t co2_value)

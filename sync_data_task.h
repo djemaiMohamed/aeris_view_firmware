@@ -17,7 +17,9 @@
 #define NVM3_META_KEY_EPOCH       0x8002    // Key for epoch timestamp
 #define NVM3_META_KEY_BOOT_TIME   0x8003    // Key for boot timestamp offset
 #define NVM3_META_KEY_OLDEST_IDX  0x8004    // Key for oldest index in circular buffer
-#define NVM3_META_KEY_LAST_SYNCED_IDX 0x8005 // Key for last synced sample index
+#define NVM3_META_KEY_LAST_SYNCED_IDX 0x8005 // Kept for NVM3 key-space reservation (unused in v2 protocol)
+#define NVM3_META_KEY_NEXT_SEQ_ID 0x8006    // Key for monotonic global sequence counter (never resets)
+#define NVM3_META_KEY_BOOT_COUNT  0x8007    // Key for boot generation counter (increments each boot)
 
 // Batching configuration (10 samples per NVM3 object - reduced from 20 for RAM efficiency)
 // Trade-off: More NVM3 writes (5 objects) for ~400 bytes less RAM
@@ -27,13 +29,23 @@
 #define NVM3_SAMPLE_BATCH_KEY_MAX   0x912B         // Max batch key (0x9000 + 299)
 #define BATCH_SIZE_BYTES        ((SAMPLES_PER_BATCH * sizeof(sample_t)) + 2) // +2 for count
 
-// Sync framing (12-byte payload, byte 10 is frame type)
+// Sync protocol v2 — all frames are SYNC_FRAME_SIZE bytes; frame type is at byte 14.
+// Phone writes SYNC_REQUEST_SIZE bytes to initiate a sync.
+#define SYNC_FRAME_SIZE      20    // Fixed size of every device→phone frame
+#define SYNC_REQUEST_SIZE    8     // Fixed size of phone→device sync request
+
+// Frame type identifiers (byte 14 of every device→phone frame)
 #define FRAME_DATA        0x01
 #define FRAME_SYNC_START  0x02
 #define FRAME_SYNC_DONE   0x03
 #define FRAME_SYNC_ABORT  0x04
 
-#define SYNC_PROTOCOL_VERSION 0x01
+// Sentinel value the phone sends when it has no prior seq_id (full sync requested).
+// UINT32_MAX + 1 wraps to 0 in unsigned arithmetic, which is handled correctly in
+// the firmware's start-index calculation.
+#define SYNC_REQ_FULL_SYNC  0xFFFFFFFFUL
+
+#define SYNC_PROTOCOL_VERSION 0x02
 
 // Maximum number of samples to store in NVM3 (circular buffer size)
 // With consolidated 80KB NVM3, batching 10 samples per object = 5 batch objects.
@@ -102,10 +114,12 @@ uint32_t sync_data_get_current_timestamp(void);
 bool sync_data_epoch_is_valid(void);
 
 /**
- * @brief Handle write to sync_data_id characteristic (simplified protocol)
- * @param value  Pointer to 4-byte value (start index for sync)
- * @param length Length of value (should be 4)
- * @note Phone sends only the requested start index; timestamps calculated on phone side
+ * @brief Handle write to sync_data_id characteristic (v2 protocol)
+ * @param value  Pointer to SYNC_REQUEST_SIZE (8) bytes:
+ *               bytes 0-3: last_known_seq_id (UInt32 LE) — highest seq_id phone has seen,
+ *                          or SYNC_REQ_FULL_SYNC (0xFFFFFFFF) to request all data from oldest
+ *               bytes 4-7: reserved (ignored)
+ * @param length Length of value (must be SYNC_REQUEST_SIZE)
  */
 void handle_sync_data_write(const uint8_t *value, uint16_t length);
 
@@ -133,5 +147,11 @@ uint32_t sync_data_get_epoch(void);
  * @return Number of stored samples
  */
 uint16_t sync_data_get_sample_count(void);
+
+/**
+ * @brief Get the current boot generation counter
+ * @return Boot count, incremented on each device boot and persisted in NVM3
+ */
+uint16_t sync_data_get_boot_count(void);
 
 #endif // SYNC_DATA_TASK_H

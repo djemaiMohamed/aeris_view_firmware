@@ -19,14 +19,17 @@ extern uint8_t sync_data_id_notification_enabled;
 // Local state
 static bool sync_running = false;
 static uint64_t boot_tick_count = 0;        // Tick count at boot for uptime calculation (64-bit to avoid 36-hour wrap)
-static uint16_t requested_sync_start_index = 0; // Index requested by phone to start sync
-// Connection parameter tuning removed; rely on default stack behavior.
+static uint32_t last_known_seq_id_from_phone = SYNC_REQ_FULL_SYNC; // Last seq_id the phone reported (v2 protocol)
 
 // NVM3 circular buffer indices
 static uint16_t write_index = 0;            // Next position to write (also determines current batch)
 static uint16_t sample_count = 0;           // Number of samples stored
 static uint16_t oldest_index = 0;           // Oldest valid sample in circular buffer
-static uint16_t last_synced_index = 0;      // Index of last sample sent to phone (for resume capability)
+
+// Monotonic sequence tracking (v2 protocol — never resets across reboots)
+// oldest_seq_id is derived: oldest_seq_id = next_seq_id - sample_count
+static uint32_t next_seq_id = 0;            // Seq ID that will be assigned to the next committed sample
+static uint16_t boot_count = 0;             // Incremented on each device boot
 
 // Batch buffering (samples buffered in RAM before NVM3 write)
 static sample_batch_t current_batch = {0};
@@ -122,6 +125,11 @@ uint16_t sync_data_get_sample_count(void)
     return sample_count;
 }
 
+uint16_t sync_data_get_boot_count(void)
+{
+    return boot_count;
+}
+
 /***************************************************************************//**
  * Load metadata from NVM3 (indices and epoch)
  ******************************************************************************/
@@ -185,26 +193,35 @@ static sl_status_t load_metadata_from_nvm3(void)
         oldest_index %= MAX_SAMPLES;
     }
     
-    // Load last synced index
-    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_LAST_SYNCED_IDX, &type, &len);
-    if (status == ECODE_NVM3_OK && len == sizeof(last_synced_index)) {
-        status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_LAST_SYNCED_IDX, &last_synced_index, sizeof(last_synced_index));
+    // Load next_seq_id (monotonic, never resets)
+    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_NEXT_SEQ_ID, &type, &len);
+    if (status == ECODE_NVM3_OK && len == sizeof(next_seq_id)) {
+        status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_NEXT_SEQ_ID, &next_seq_id, sizeof(next_seq_id));
         if (status != ECODE_NVM3_OK) {
-            last_synced_index = 0;
+            next_seq_id = 0;
         }
     } else {
-        last_synced_index = 0;
+        next_seq_id = 0;
     }
 
-    if (last_synced_index >= MAX_SAMPLES) {
-        app_log_warning("NVM3 last_synced_index out of range (%u), clamping to %u\n",
-                        last_synced_index, MAX_SAMPLES - 1);
-        last_synced_index %= MAX_SAMPLES;
+    // Load boot count and increment it to mark this new boot
+    status = nvm3_getObjectInfo(nvm3_defaultHandle, NVM3_META_KEY_BOOT_COUNT, &type, &len);
+    if (status == ECODE_NVM3_OK && len == sizeof(boot_count)) {
+        status = nvm3_readData(nvm3_defaultHandle, NVM3_META_KEY_BOOT_COUNT, &boot_count, sizeof(boot_count));
+        if (status != ECODE_NVM3_OK) {
+            boot_count = 0;
+        }
+    } else {
+        boot_count = 0;
     }
+    boot_count++;  // New boot — increment generation counter immediately
 
-    app_log_info("NVM3 metadata loaded: write_idx=%u, sample_count=%u, oldest_idx=%u\n", 
-                 write_index, sample_count, oldest_index);
-    
+    // Write boot_count back right away so it survives a crash before the first batch flush
+    nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_BOOT_COUNT, &boot_count, sizeof(boot_count));
+
+    app_log_info("NVM3 metadata loaded: write_idx=%u, sample_count=%u, oldest_idx=%u, next_seq=%lu, boot=%u\n",
+                 write_index, sample_count, oldest_index, (unsigned long)next_seq_id, boot_count);
+
     return SL_STATUS_OK;
 }
 
@@ -227,20 +244,24 @@ static sl_status_t save_metadata_to_nvm3(void)
         return SL_STATUS_FAIL;
     }
     
-    // Note: epoch no longer stored in simplified protocol
-
     status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_OLDEST_IDX, &oldest_index, sizeof(oldest_index));
     if (status != ECODE_NVM3_OK) {
         app_log_error("Failed to save oldest_index to NVM3: 0x%lx\n", (unsigned long)status);
         return SL_STATUS_FAIL;
     }
-    
-    status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_LAST_SYNCED_IDX, &last_synced_index, sizeof(last_synced_index));
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_NEXT_SEQ_ID, &next_seq_id, sizeof(next_seq_id));
     if (status != ECODE_NVM3_OK) {
-        app_log_error("Failed to save last_synced_index to NVM3: 0x%lx\n", (unsigned long)status);
+        app_log_error("Failed to save next_seq_id to NVM3: 0x%lx\n", (unsigned long)status);
         return SL_STATUS_FAIL;
     }
-    
+
+    status = nvm3_writeData(nvm3_defaultHandle, NVM3_META_KEY_BOOT_COUNT, &boot_count, sizeof(boot_count));
+    if (status != ECODE_NVM3_OK) {
+        app_log_error("Failed to save boot_count to NVM3: 0x%lx\n", (unsigned long)status);
+        return SL_STATUS_FAIL;
+    }
+
     return SL_STATUS_OK;
 }
 
@@ -296,6 +317,7 @@ sl_status_t sync_data_save_sample(uint16_t co2,
             }
             
             // Update sample count (write_index already updated in flush_sample_batch_internal)
+            next_seq_id += SAMPLES_PER_BATCH;  // Advance monotonic counter for committed samples
             if (sample_count < MAX_SAMPLES) {
                 sample_count += SAMPLES_PER_BATCH;
                 if (sample_count > MAX_SAMPLES) {
@@ -505,96 +527,148 @@ static sl_status_t send_sync_notification_with_retry(const uint8_t *data, size_t
     return sc;
 }
 
-/***************************************************************************//**
- * Send a historical sample as BLE notification
- * Format: 12 bytes = uptime(4) + co2(2) + temperature(2) + humidity(2) + flags(2)
- ******************************************************************************/
-static sl_status_t send_data_frame(const sample_t *sample, uint32_t uptime)
+// ---------------------------------------------------------------------------
+// v2 Protocol frame senders (all frames are SYNC_FRAME_SIZE = 20 bytes)
+// Frame type byte is always at byte 14.
+//
+// DATA frame layout (20 bytes):
+//   [0-3]  seq_id          — monotonic global sequence ID for this sample
+//   [4-7]  uptime_sec      — device uptime when sample was recorded
+//   [8-9]  co2_ppm
+//   [10-11] temperature_centi_c (signed, 2500 = 25.00 °C)
+//   [12-13] humidity_pct
+//   [14]   FRAME_DATA (0x01)
+//   [15]   battery_pct
+//   [16-17] boot_count     — device boot generation when sample was saved
+//   [18-19] reserved
+//
+// SYNC_START frame layout (20 bytes):
+//   [0-3]  device_uptime_sec
+//   [4-7]  oldest_seq_id   — seq_id of the oldest sample currently in the buffer
+//   [8-9]  total_samples
+//   [10-11] oldest_index   — buffer index of oldest sample (debug info)
+//   [12-13] boot_count
+//   [14]   FRAME_SYNC_START (0x02)
+//   [15-19] reserved
+//
+// SYNC_DONE frame layout (20 bytes):
+//   [0-1]  samples_sent
+//   [2-5]  last_seq_id_sent — highest seq_id included in this session
+//   [6-13] reserved
+//   [14]   FRAME_SYNC_DONE (0x03)
+//   [15-19] reserved
+//
+// SYNC_ABORT frame layout (20 bytes):
+//   [0-1]  samples_sent
+//   [2-5]  last_seq_id_sent
+//   [6-12] reserved
+//   [13]   abort_reason
+//   [14]   FRAME_SYNC_ABORT (0x04)
+//   [15-19] reserved
+// ---------------------------------------------------------------------------
+
+static sl_status_t send_data_frame(const sample_t *sample, uint32_t seq_id)
 {
-    sl_status_t sc;
-    uint8_t data[12];
-    
-    data[0] = (uint8_t)(uptime & 0xFF);
-    data[1] = (uint8_t)((uptime >> 8) & 0xFF);
-    data[2] = (uint8_t)((uptime >> 16) & 0xFF);
-    data[3] = (uint8_t)((uptime >> 24) & 0xFF);
-    data[4] = (uint8_t)(sample->co2 & 0xFF);
-    data[5] = (uint8_t)((sample->co2 >> 8) & 0xFF);
-    data[6] = (uint8_t)(sample->temperature_c & 0xFF);
-    data[7] = (uint8_t)((sample->temperature_c >> 8) & 0xFF);
-    data[8] = (uint8_t)(sample->humidity & 0xFF);
-    data[9] = (uint8_t)((sample->humidity >> 8) & 0xFF);
-    data[10] = FRAME_DATA;
-    data[11] = sample->battery_percent;
-    
-    sc = send_sync_notification_with_retry(data, sizeof(data));
-    
+    uint8_t data[SYNC_FRAME_SIZE];
+    memset(data, 0, sizeof(data));
+
+    data[0]  = (uint8_t)(seq_id & 0xFF);
+    data[1]  = (uint8_t)((seq_id >> 8) & 0xFF);
+    data[2]  = (uint8_t)((seq_id >> 16) & 0xFF);
+    data[3]  = (uint8_t)((seq_id >> 24) & 0xFF);
+    data[4]  = (uint8_t)(sample->timestamp & 0xFF);
+    data[5]  = (uint8_t)((sample->timestamp >> 8) & 0xFF);
+    data[6]  = (uint8_t)((sample->timestamp >> 16) & 0xFF);
+    data[7]  = (uint8_t)((sample->timestamp >> 24) & 0xFF);
+    data[8]  = (uint8_t)(sample->co2 & 0xFF);
+    data[9]  = (uint8_t)((sample->co2 >> 8) & 0xFF);
+    data[10] = (uint8_t)(sample->temperature_c & 0xFF);
+    data[11] = (uint8_t)((sample->temperature_c >> 8) & 0xFF);
+    data[12] = (uint8_t)(sample->humidity & 0xFF);
+    data[13] = (uint8_t)((sample->humidity >> 8) & 0xFF);
+    data[14] = FRAME_DATA;
+    data[15] = sample->battery_percent;
+    data[16] = (uint8_t)(boot_count & 0xFF);
+    data[17] = (uint8_t)((boot_count >> 8) & 0xFF);
+
+    sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
     if (sc != SL_STATUS_OK) {
-        app_log_error("Failed to send data frame: 0x%04lx\n", (unsigned long)sc);
-    }
-    
-    return sc;
-}
-
-static sl_status_t send_sync_start_frame(uint32_t device_uptime, uint16_t total_samples, uint16_t oldest_idx, bool last_sent_valid)
-{
-    uint8_t data[12];
-    memset(data, 0, sizeof(data));
-
-    // Pack device uptime (4 bytes)
-    data[0] = (uint8_t)(device_uptime & 0xFF);
-    data[1] = (uint8_t)((device_uptime >> 8) & 0xFF);
-    data[2] = (uint8_t)((device_uptime >> 16) & 0xFF);
-    data[3] = (uint8_t)((device_uptime >> 24) & 0xFF);
-    // Pack total samples (2 bytes)
-    data[4] = (uint8_t)(total_samples & 0xFF);
-    data[5] = (uint8_t)((total_samples >> 8) & 0xFF);
-    // Pack oldest index (2 bytes)
-    data[6] = (uint8_t)(oldest_idx & 0xFF);
-    data[7] = (uint8_t)((oldest_idx >> 8) & 0xFF);
-    // Pack last sent index validity flag
-    data[8] = last_sent_valid ? 1 : 0;  // 1 = last sent index + 1 is still valid (can resume), 0 = must restart
-    data[9] = 0;
-    data[10] = FRAME_SYNC_START;
-    data[11] = 0;
-
-    sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
-    if (sc == SL_STATUS_OK) {
-        app_log_info("SYNC_START sent: uptime=%lu, total=%u, oldest=%u, last_sent_valid=%d\n",
-                     (unsigned long)device_uptime, total_samples, oldest_idx, last_sent_valid);
+        app_log_error("Failed to send data frame (seq=%lu): 0x%04lx\n",
+                      (unsigned long)seq_id, (unsigned long)sc);
     }
     return sc;
 }
 
-static sl_status_t send_sync_done_frame(uint16_t samples_sent)
+static sl_status_t send_sync_start_frame(uint32_t device_uptime, uint32_t oldest_seq_id,
+                                          uint16_t total_samples, uint16_t oldest_idx)
 {
-    uint8_t data[12];
+    uint8_t data[SYNC_FRAME_SIZE];
     memset(data, 0, sizeof(data));
 
-    data[0] = (uint8_t)(samples_sent & 0xFF);
-    data[1] = (uint8_t)((samples_sent >> 8) & 0xFF);
-    data[10] = FRAME_SYNC_DONE;
+    data[0]  = (uint8_t)(device_uptime & 0xFF);
+    data[1]  = (uint8_t)((device_uptime >> 8) & 0xFF);
+    data[2]  = (uint8_t)((device_uptime >> 16) & 0xFF);
+    data[3]  = (uint8_t)((device_uptime >> 24) & 0xFF);
+    data[4]  = (uint8_t)(oldest_seq_id & 0xFF);
+    data[5]  = (uint8_t)((oldest_seq_id >> 8) & 0xFF);
+    data[6]  = (uint8_t)((oldest_seq_id >> 16) & 0xFF);
+    data[7]  = (uint8_t)((oldest_seq_id >> 24) & 0xFF);
+    data[8]  = (uint8_t)(total_samples & 0xFF);
+    data[9]  = (uint8_t)((total_samples >> 8) & 0xFF);
+    data[10] = (uint8_t)(oldest_idx & 0xFF);
+    data[11] = (uint8_t)((oldest_idx >> 8) & 0xFF);
+    data[12] = (uint8_t)(boot_count & 0xFF);
+    data[13] = (uint8_t)((boot_count >> 8) & 0xFF);
+    data[14] = FRAME_SYNC_START;
 
     sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
     if (sc == SL_STATUS_OK) {
-        app_log_info("SYNC_DONE sent: samples_sent=%u\n", samples_sent);
+        app_log_info("SYNC_START sent: uptime=%lu oldest_seq=%lu total=%u oldest_idx=%u boot=%u\n",
+                     (unsigned long)device_uptime, (unsigned long)oldest_seq_id,
+                     total_samples, oldest_idx, boot_count);
     }
     return sc;
 }
 
-static sl_status_t send_sync_abort_frame(uint16_t samples_sent, uint8_t reason)
+static sl_status_t send_sync_done_frame(uint16_t samples_sent, uint32_t last_seq_id_sent)
 {
-    uint8_t data[12];
+    uint8_t data[SYNC_FRAME_SIZE];
     memset(data, 0, sizeof(data));
 
-    data[0] = (uint8_t)(samples_sent & 0xFF);
-    data[1] = (uint8_t)((samples_sent >> 8) & 0xFF);
-    data[6] = reason;
-    data[10] = FRAME_SYNC_ABORT;
+    data[0]  = (uint8_t)(samples_sent & 0xFF);
+    data[1]  = (uint8_t)((samples_sent >> 8) & 0xFF);
+    data[2]  = (uint8_t)(last_seq_id_sent & 0xFF);
+    data[3]  = (uint8_t)((last_seq_id_sent >> 8) & 0xFF);
+    data[4]  = (uint8_t)((last_seq_id_sent >> 16) & 0xFF);
+    data[5]  = (uint8_t)((last_seq_id_sent >> 24) & 0xFF);
+    data[14] = FRAME_SYNC_DONE;
 
     sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
     if (sc == SL_STATUS_OK) {
-        app_log_warning("SYNC_ABORT sent: samples_sent=%u reason=%u\n", samples_sent, reason);
+        app_log_info("SYNC_DONE sent: samples=%u last_seq=%lu\n",
+                     samples_sent, (unsigned long)last_seq_id_sent);
+    }
+    return sc;
+}
+
+static sl_status_t send_sync_abort_frame(uint16_t samples_sent, uint32_t last_seq_id_sent, uint8_t reason)
+{
+    uint8_t data[SYNC_FRAME_SIZE];
+    memset(data, 0, sizeof(data));
+
+    data[0]  = (uint8_t)(samples_sent & 0xFF);
+    data[1]  = (uint8_t)((samples_sent >> 8) & 0xFF);
+    data[2]  = (uint8_t)(last_seq_id_sent & 0xFF);
+    data[3]  = (uint8_t)((last_seq_id_sent >> 8) & 0xFF);
+    data[4]  = (uint8_t)((last_seq_id_sent >> 16) & 0xFF);
+    data[5]  = (uint8_t)((last_seq_id_sent >> 24) & 0xFF);
+    data[13] = reason;
+    data[14] = FRAME_SYNC_ABORT;
+
+    sl_status_t sc = send_sync_notification_with_retry(data, sizeof(data));
+    if (sc == SL_STATUS_OK) {
+        app_log_warning("SYNC_ABORT sent: samples=%u last_seq=%lu reason=%u\n",
+                        samples_sent, (unsigned long)last_seq_id_sent, reason);
     }
     return sc;
 }
@@ -606,25 +680,24 @@ static sl_status_t send_sync_abort_frame(uint16_t samples_sent, uint8_t reason)
 void handle_sync_data_write(const uint8_t *value, uint16_t length)
 {
     RTOS_ERR err;
-    
-    if (!value || length != 4) {
-        app_log_error("Sync data write invalid: length=%u (expected 4)\n", length);
+
+    if (!value || length != SYNC_REQUEST_SIZE) {
+        app_log_error("Sync data write invalid: length=%u (expected %u)\n",
+                      length, (unsigned)SYNC_REQUEST_SIZE);
         return;
     }
-    
-    // Parse 4-byte value: requested start index for sync
-    uint32_t requested_start_idx_raw = (uint32_t)value[0] |
-                                       ((uint32_t)value[1] << 8) |
-                                       ((uint32_t)value[2] << 16) |
-                                       ((uint32_t)value[3] << 24);
-    uint16_t requested_start_idx = (uint16_t)(requested_start_idx_raw % MAX_SAMPLES);
-    
-    app_log_info("Sync data write: start_idx=%u\n", (unsigned)requested_start_idx);
-    
-    // Store requested start index
-    requested_sync_start_index = requested_start_idx;
-    
-    // Post semaphore to wake sync task
+
+    // Parse last_known_seq_id from bytes 0-3 (little-endian UInt32).
+    // SYNC_REQ_FULL_SYNC (0xFFFFFFFF) means "phone has no data — send all from oldest".
+    last_known_seq_id_from_phone = (uint32_t)value[0]        |
+                                   ((uint32_t)value[1] << 8)  |
+                                   ((uint32_t)value[2] << 16) |
+                                   ((uint32_t)value[3] << 24);
+    // bytes 4-7 are reserved; ignored.
+
+    app_log_info("Sync data write: last_known_seq_id=%lu\n",
+                 (unsigned long)last_known_seq_id_from_phone);
+
     OSSemPost(&sync_data_task_sem, OS_OPT_POST_1, &err);
     if (err.Code != RTOS_ERR_NONE) {
         app_log_error("Failed to post sync semaphore: %d\n", (int)err.Code);
@@ -734,7 +807,18 @@ sl_status_t sync_data_task_init(void)
 }
 
 /***************************************************************************//**
- * Sync data task - sends historical data to phone on request
+ * Sync data task — v2 protocol (seq_id-based, 20-byte frames)
+ *
+ * Resume algorithm:
+ *   oldest_seq_id = next_seq_id - sample_count
+ *   resume_seq    = last_known_seq_id_from_phone + 1  (wraps for 0xFFFFFFFF → 0)
+ *
+ *   if resume_seq <= oldest_seq_id  → buffer advanced past phone; restart from oldest
+ *   if resume_seq >= next_seq_id    → phone is up to date; nothing to send
+ *   else                            → start_idx = oldest_index + (resume_seq - oldest_seq_id)
+ *
+ * The phone uses the seq_id in each DATA frame for idempotent deduplication.
+ * No last_synced_index or last_sent_valid flag needed.
  ******************************************************************************/
 static void sync_data_task(void *p_arg)
 {
@@ -742,176 +826,126 @@ static void sync_data_task(void *p_arg)
     RTOS_ERR err;
     sample_t sample;
     uint16_t samples_sent = 0;
-    
+
     for (;;) {
-        // Wait for sync request
         OSSemPend(&sync_data_task_sem, 0, OS_OPT_PEND_BLOCKING, DEF_NULL, &err);
         if (err.Code != RTOS_ERR_NONE) {
             continue;
         }
-        
-        // Check connection
+
         if (connection_handle == SL_BT_INVALID_CONNECTION_HANDLE) {
             app_log_warning("Sync requested but no connection\n");
             continue;
         }
 
-        // Notifications/indications must be enabled by client (CCCD) before we can sync.
         if (!sync_data_id_notification_enabled) {
-            app_log_warning("Sync requested but notifications/indications are disabled (CCCD not set)\n");
+            app_log_warning("Sync requested but CCCD not set\n");
             continue;
         }
 
-        // Flush any pending samples in batch buffer before starting sync
+        // ---- Flush any RAM-buffered samples to NVM3 before reading ----
         if (current_batch.count > 0) {
-            uint16_t pending_count = current_batch.count;
-            sl_status_t flush_status = flush_sample_batch_internal();
-            if (flush_status != SL_STATUS_OK) {
-                app_log_error("Pre-sync batch flush failed: 0x%04lx\n", (unsigned long)flush_status);
+            uint16_t pending = current_batch.count;
+            if (flush_sample_batch_internal() != SL_STATUS_OK) {
+                app_log_error("Pre-sync batch flush failed\n");
                 continue;
             }
-            
-            // flush_sample_batch_internal() already updated write_index and batch_object_index
-            // Update sample_count and oldest_index tracking after flush
+            next_seq_id += pending;
             if (sample_count < MAX_SAMPLES) {
-                sample_count += pending_count;
-                if (sample_count > MAX_SAMPLES) {
-                    sample_count = MAX_SAMPLES;
-                }
+                sample_count += pending;
+                if (sample_count > MAX_SAMPLES) sample_count = MAX_SAMPLES;
             } else {
-                // Buffer is full - oldest samples are being overwritten
-                oldest_index = (oldest_index + pending_count) % MAX_SAMPLES;
+                oldest_index = (oldest_index + pending) % MAX_SAMPLES;
             }
             save_metadata_to_nvm3();
-            app_log_info("Pre-sync batch flush: %u samples flushed\n", pending_count);
+            app_log_info("Pre-sync flush: %u samples committed\n", pending);
         }
 
-        // Pause sensor sampling during sync to avoid contention
         app_suspend_sensor_task();
-
         sync_running = true;
         samples_sent = 0;
 
-        // Detect circular buffer wraparound: oldest_index >= write_index with full buffer means wraparound occurred
-        // When oldest == write and buffer is full, we just wrapped and are at the wraparound point
-        bool buffer_wrapped = (oldest_index > write_index) || (oldest_index == write_index && sample_count == MAX_SAMPLES);
-        
-        app_log_info("Starting sync: start_idx=%u, count=%u, oldest=%u, write=%u, wrapped=%d\n",
-                     requested_sync_start_index, sample_count, oldest_index, write_index, buffer_wrapped);
-        
-        if (buffer_wrapped && sample_count == MAX_SAMPLES) {
-            app_log_warning("⚠️ CIRCULAR BUFFER WRAPAROUND DETECTED: oldest=%u > write=%u (valid range: [%u...%u])\n",
-                           oldest_index, write_index, oldest_index, (write_index + MAX_SAMPLES - 1) % MAX_SAMPLES);
+        // ---- Compute seq_id window ----
+        uint32_t oldest_seq_id = next_seq_id - (uint32_t)sample_count;
+        uint32_t resume_seq    = last_known_seq_id_from_phone + 1u; // wraps for 0xFFFFFFFF → 0
+
+        uint16_t start_idx;
+        uint32_t remaining;
+
+        if (sample_count == 0u) {
+            remaining = 0u;
+            start_idx = oldest_index;
+        } else if (resume_seq <= oldest_seq_id) {
+            // Buffer has advanced past phone's last known seq (or full sync requested).
+            app_log_info("Sync: resume_seq=%lu <= oldest_seq=%lu; restarting from oldest\n",
+                         (unsigned long)resume_seq, (unsigned long)oldest_seq_id);
+            start_idx = oldest_index;
+            remaining = (uint32_t)sample_count;
+        } else if (resume_seq >= next_seq_id) {
+            // Phone already has all samples.
+            app_log_info("Sync: phone up to date (resume_seq=%lu >= next_seq=%lu)\n",
+                         (unsigned long)resume_seq, (unsigned long)next_seq_id);
+            start_idx = oldest_index;
+            remaining = 0u;
+        } else {
+            uint32_t dist = resume_seq - oldest_seq_id;
+            start_idx = (uint16_t)((oldest_index + dist) % MAX_SAMPLES);
+            remaining  = next_seq_id - resume_seq;
+            app_log_info("Sync: resuming from seq=%lu (buf_idx=%u, %lu samples to send)\n",
+                         (unsigned long)resume_seq, start_idx, (unsigned long)remaining);
         }
 
-        // Send SYNC_START frame with device uptime, total samples, oldest index, and last sent validity
-        // Check if last_synced_index itself is still valid (not overwritten by circular buffer)
-        // This tells the phone whether it can safely request (last_synced_index + 1) or must start from oldest_index
-        bool last_sent_valid = false;
-        if (sample_count > 0) {
-            // Calculate distance from oldest_index to last_synced_index
-            uint16_t distance = (uint16_t)((last_synced_index + MAX_SAMPLES - oldest_index) % MAX_SAMPLES);
-            last_sent_valid = (distance < sample_count);
-            
-            if (!last_sent_valid) {
-                app_log_warning("⚠️ RESUME BROKEN: last_synced_index=%u is OVERWRITTEN by circular buffer\n", last_synced_index);
-                app_log_warning("   Phone must restart from oldest_index=%u (distance=%u >= sample_count=%u)\n",
-                               oldest_index, distance, sample_count);
-            } else {
-                app_log_info("✓ Resume valid: last_synced_index=%u is still in buffer\n", last_synced_index);
-                app_log_info("   Phone can safely request next index=%u (distance=%u < sample_count=%u)\n",
-                             (last_synced_index + 1) % MAX_SAMPLES, distance, sample_count);
-            }
-        }
-        
+        // ---- Send SYNC_START ----
         uint32_t current_uptime = sync_data_get_uptime_sec();
-        sl_status_t send_status = send_sync_start_frame(current_uptime, sample_count, oldest_index, last_sent_valid);
+        sl_status_t send_status = send_sync_start_frame(current_uptime, oldest_seq_id,
+                                                         (uint16_t)sample_count, oldest_index);
         if (send_status != SL_STATUS_OK) {
-            app_log_error("Failed to send SYNC_START frame (0x%04lx)\n", (unsigned long)send_status);
+            app_log_error("Failed to send SYNC_START (0x%04lx)\n", (unsigned long)send_status);
             sync_running = false;
             app_resume_sensor_task();
             continue;
         }
 
         bool aborted = false;
-        uint32_t reads_since_pause = 0u;
-
-        uint16_t start_idx = requested_sync_start_index;
-        uint32_t remaining = 0u;
-
-        if (sample_count == 0u) {
-            remaining = 0u;
-        } else {
-            uint16_t distance_from_oldest = (uint16_t)((start_idx + MAX_SAMPLES - oldest_index) % MAX_SAMPLES);
-            bool start_in_window = (distance_from_oldest < sample_count);
-
-            if (!start_in_window) {
-                app_log_warning("Requested start_idx=%u outside window (oldest=%u); using oldest=%u\n",
-                                start_idx, oldest_index, oldest_index);
-                start_idx = oldest_index;
-                distance_from_oldest = 0u;
-                
-                // Re-send SYNC_START with corrected start index since we're starting from oldest
-                send_status = send_sync_start_frame(current_uptime, sample_count, oldest_index, last_sent_valid);
-                if (send_status != SL_STATUS_OK) {
-                    app_log_error("Failed to re-send corrected SYNC_START frame (0x%04lx)\n", (unsigned long)send_status);
-                    aborted = true;
-                }
-            }
-
-            remaining = sample_count - distance_from_oldest;
-        }
-
+        uint32_t last_seq_id_sent = (oldest_seq_id > 0u) ? (oldest_seq_id - 1u) : 0u;
         uint16_t idx = start_idx;
 
-        // Initialize batch cache for sync
         invalidate_batch_cache();
 
-        while ((remaining > 0u) && !aborted) {
-            // Use cached batch reading to avoid re-reading the same batch for each sample
+        // ---- Stream DATA frames ----
+        while (remaining > 0u && !aborted) {
             if (read_sample_from_nvm3_cached(idx, &sample) != SL_STATUS_OK) {
-                reads_since_pause++;
-                if ((reads_since_pause % 10u) == 0u) {
-                    OSTimeDlyHMSM(0u, 0u, 1u, 0u, OS_OPT_TIME_HMSM_STRICT, &err);
-                    if (err.Code != RTOS_ERR_NONE) {
-                        app_log_error("Read pacing delay failed: %d\n", (int)err.Code);
-                    }
-                }
-                app_log_error("Failed to read sample at index %u; skipping\n", idx);
-                idx = (idx + 1) % MAX_SAMPLES;
+                app_log_error("Failed to read sample at idx=%u; skipping\n", idx);
+                idx = (idx + 1u) % MAX_SAMPLES;
                 remaining--;
                 continue;
             }
 
-            // Simplified protocol: just send the uptime value directly
-            // Phone will calculate absolute timestamp
-            uint32_t sample_uptime = sample.timestamp;
+            // seq_id of the sample at buffer index idx
+            uint32_t dist_from_oldest = (uint32_t)((idx + MAX_SAMPLES - oldest_index) % MAX_SAMPLES);
+            uint32_t sample_seq_id    = oldest_seq_id + dist_from_oldest;
 
-            send_status = send_data_frame(&sample, sample_uptime);
+            send_status = send_data_frame(&sample, sample_seq_id);
             if (send_status != SL_STATUS_OK) {
-                app_log_error("Failed to send data frame (0x%04lx) at index %u\n",
-                              (unsigned long)send_status, idx);
+                app_log_error("Data frame failed (seq=%lu idx=%u): 0x%04lx\n",
+                              (unsigned long)sample_seq_id, idx, (unsigned long)send_status);
                 aborted = true;
                 break;
             }
 
-            // Yield to allow BLE tasks to run and avoid starving the stack.
+            // 5 ms yield so the BLE stack can dequeue the notification
             OSTimeDlyHMSM(0u, 0u, 0u, 5u, OS_OPT_TIME_HMSM_STRICT, &err);
             if (err.Code != RTOS_ERR_NONE) {
-                app_log_error("Sync pacing delay failed: %d\n", (int)err.Code);
+                app_log_error("Pacing delay failed: %d\n", (int)err.Code);
             }
 
-            app_log_info("Data frame sent: idx=%u uptime=%lu co2=%u temp_c=%d hum=%u bat=%u (sent=%u)\n",
-                         idx, (unsigned long)sample_uptime, sample.co2,
-                         sample.temperature_c, sample.humidity, sample.battery_percent,
-                         samples_sent + 1u);
+            app_log_info("DATA seq=%lu idx=%u co2=%u t=%d h=%u bat=%u (%u sent)\n",
+                         (unsigned long)sample_seq_id, idx,
+                         sample.co2, sample.temperature_c, sample.humidity,
+                         sample.battery_percent, samples_sent + 1u);
 
+            last_seq_id_sent = sample_seq_id;
             samples_sent++;
-            
-            // Persist progress periodically during sync to avoid losing progress on disconnect
-            if ((samples_sent % 50) == 0) {
-                save_metadata_to_nvm3();
-            }
 
             if (connection_handle == SL_BT_INVALID_CONNECTION_HANDLE) {
                 app_log_warning("Connection lost during sync\n");
@@ -919,34 +953,24 @@ static void sync_data_task(void *p_arg)
                 break;
             }
 
-            idx = (idx + 1) % MAX_SAMPLES;
+            idx = (idx + 1u) % MAX_SAMPLES;
             remaining--;
         }
 
-        // Send completion/abort frame based on outcome
-        invalidate_batch_cache();  // Clear cached batch after sync
-        
+        invalidate_batch_cache();
+
+        // ---- Send termination frame ----
         if (!aborted && connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
-            if (send_sync_done_frame(samples_sent) != SL_STATUS_OK) {
-                app_log_error("Failed to send SYNC_DONE frame\n");
-            }
-            // Update last synced index to track completion for resume capability
-            if (samples_sent > 0) {
-                last_synced_index = (idx - 1 + MAX_SAMPLES) % MAX_SAMPLES;
-            }
-            // Persist progress after a successful sync
-            save_metadata_to_nvm3();
-            app_log_info("Sync complete: sent %u samples, last_synced_idx=%u\n", samples_sent, last_synced_index);
+            send_sync_done_frame(samples_sent, last_seq_id_sent);
+            app_log_info("Sync DONE: %u samples, last_seq=%lu\n",
+                         samples_sent, (unsigned long)last_seq_id_sent);
         } else if (connection_handle != SL_BT_INVALID_CONNECTION_HANDLE) {
-            if (send_sync_abort_frame(samples_sent, 1) != SL_STATUS_OK) {
-                app_log_error("Failed to send SYNC_ABORT frame\n");
-            }
-            app_log_warning("Sync aborted after sending %u samples\n", samples_sent);
+            send_sync_abort_frame(samples_sent, last_seq_id_sent, 1u);
+            app_log_warning("Sync ABORTED after %u samples (last_seq=%lu)\n",
+                            samples_sent, (unsigned long)last_seq_id_sent);
         }
 
         sync_running = false;
-
-        // Resume sensor sampling after sync completes/aborts
         app_resume_sensor_task();
     }
 }

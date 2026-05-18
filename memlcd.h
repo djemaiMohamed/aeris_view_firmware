@@ -19,6 +19,7 @@
 #define MEMLCD_H
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #define CO2_HISTORY_SIZE 400
 
@@ -73,5 +74,17 @@ void memlcd_display_calibration_message(const char *line1, const char *line2);
 // Display calibration progress with a progress bar and time remaining
 void memlcd_display_calibration_progress(uint8_t percent, uint16_t seconds_remaining,
                                          uint8_t sample_idx, uint8_t sample_total);
+
+/***************************************************************************//**
+ * Set pixel polarity inversion for the display.
+ * When inverted, all pixel bits are flipped before sending each row,
+ * producing a negative-image (dark background, light content) effect.
+ ******************************************************************************/
+void memlcd_set_polarity_inverted(bool inverted);
+
+/***************************************************************************//**
+ * Return the current pixel polarity inversion state.
+ ******************************************************************************/
+bool memlcd_get_polarity_inverted(void);
 
 #endif // MEMLCD_APP_H

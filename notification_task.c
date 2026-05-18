@@ -3,11 +3,12 @@
 #include "os.h"
 #include "sl_bt_api.h"
 #include "app_assert.h"
-#include "sl_memory_manager.h" // Added for dynamic allocation
+#include "sl_memory_manager.h"
 #include "sensor_task.h"
 #include "gatt_db.h"
 #include "calibration_task.h"
 #include "sync_data_task.h"
+#include <string.h>
 
 OS_TCB *notification_task_tcb_ptr;
 CPU_STK *notification_task_stk_ptr;
@@ -223,72 +224,60 @@ void handle_display_type_read(uint16_t connection, uint16_t characteristic)
   }
 }
 
-// Function to convert temperature to buffer format
-static void temperature_measurement_val_to_buf(int32_t value, bool fahrenheit, uint8_t *buffer)
-{
-  int32_t temp_value = value;
-  
-  // Convert temperature based on unit
-  if (fahrenheit) {
-    // Convert from Celsius to Fahrenheit: F = C * 1.8 + 32
-    // For milli-degrees: F_mdeg = (C_mdeg * 18) / 10 + 32000
-    temp_value = (value * 18) / 10 + 32000;
-  }
-  
-  uint32_t tmp_value = ((uint32_t)temp_value & 0x00ffffffu) | ((uint32_t)(-3) << 24);
-  buffer[0] = fahrenheit ? 1 : 0;
-  buffer[1] = tmp_value & 0xff;
-  buffer[2] = (tmp_value >> 8) & 0xff;
-  buffer[3] = (tmp_value >> 16) & 0xff;
-  buffer[4] = (tmp_value >> 24) & 0xff;
-}
-
 static void send_notifications(void)
 {
   sl_status_t sc;
-  
-  // get sensor data
+  RTOS_ERR retry_err;
+
   sensor_data_t *sensor_data = sensor_get_latest_readings();
-  
-  // Use unified 12-byte format for sync_data_id characteristic
-  // Format: timestamp(4) + co2(2) + temperature(2) + humidity(2) + flags(2)
-  // Flag 0x00 = live data, 0x01 = historical data, 0x02 = sync complete
-  uint8_t data[12];
-  
-  // Timestamp = device uptime in seconds (phone computes absolute time).
-  // sync_data_get_epoch() is deprecated and returns uptime too, so use the
-  // canonical function directly to avoid the previous double-count bug.
-  uint32_t timestamp = sync_data_get_uptime_sec();
-  
-  // Pack timestamp (4 bytes, little-endian)
-  data[0] = (uint8_t)(timestamp & 0xFF);
-  data[1] = (uint8_t)((timestamp >> 8) & 0xFF);
-  data[2] = (uint8_t)((timestamp >> 16) & 0xFF);
-  data[3] = (uint8_t)((timestamp >> 24) & 0xFF);
-  
-  // Pack CO2 (2 bytes, little-endian)
-  data[4] = (uint8_t)(sensor_data->co2_ppm & 0xFF);
-  data[5] = (uint8_t)((sensor_data->co2_ppm >> 8) & 0xFF);
-  
-  // Pack temperature (2 bytes, little-endian, centi-degrees Celsius)
-  int16_t temp_centi = (int16_t)(sensor_data->temperature_mdeg_c / 10);
-  data[6] = (uint8_t)(temp_centi & 0xFF);
-  data[7] = (uint8_t)((temp_centi >> 8) & 0xFF);
-  
-  // Pack humidity (2 bytes, little-endian, percent)
-  data[8] = (uint8_t)(sensor_data->humidity_percent & 0xFF);
-  data[9] = (uint8_t)((sensor_data->humidity_percent >> 8) & 0xFF);
-  
-  // Flags: 0x00 = live data
-  data[10] = 0x00;
-  data[11] = sensor_data->battery_percentage;
-  
-  // Send unified notification using sync_data_id characteristic
+
+  // v2 live data frame — 20 bytes, frame type (0x00) at byte 14.
+  // Layout mirrors the sync DATA frame so the iOS decoder handles both:
+  //   [0-3]  seq_id    = 0  (live frames carry no seq_id)
+  //   [4-7]  uptime    (device uptime in seconds, little-endian)
+  //   [8-9]  co2       (PPM, uint16 LE)
+  //   [10-11] temp     (centi-°C, int16 LE)
+  //   [12-13] humidity (%, uint16 LE)
+  //   [14]   frame type = FRAME_LIVE (0x00)
+  //   [15]   battery   (%)
+  //   [16-17] boot_count (uint16 LE)
+  //   [18-19] reserved
+  uint8_t data[SYNC_FRAME_SIZE];
+  memset(data, 0, sizeof(data));
+
+  uint32_t uptime     = sync_data_get_uptime_sec();
+  uint16_t boot_cnt   = sync_data_get_boot_count();
+  int16_t  temp_centi = (int16_t)(sensor_data->temperature_mdeg_c / 10);
+
+  // seq_id = 0 (bytes 0-3 already zeroed)
+
+  data[4]  = (uint8_t)(uptime & 0xFF);
+  data[5]  = (uint8_t)((uptime >> 8) & 0xFF);
+  data[6]  = (uint8_t)((uptime >> 16) & 0xFF);
+  data[7]  = (uint8_t)((uptime >> 24) & 0xFF);
+
+  data[8]  = (uint8_t)(sensor_data->co2_ppm & 0xFF);
+  data[9]  = (uint8_t)((sensor_data->co2_ppm >> 8) & 0xFF);
+
+  data[10] = (uint8_t)((uint16_t)temp_centi & 0xFF);
+  data[11] = (uint8_t)(((uint16_t)temp_centi >> 8) & 0xFF);
+
+  data[12] = (uint8_t)(sensor_data->humidity_percent & 0xFF);
+  data[13] = (uint8_t)((sensor_data->humidity_percent >> 8) & 0xFF);
+
+  data[14] = 0x00;  // FRAME_LIVE
+
+  data[15] = sensor_data->battery_percentage;
+
+  data[16] = (uint8_t)(boot_cnt & 0xFF);
+  data[17] = (uint8_t)((boot_cnt >> 8) & 0xFF);
+
+  // bytes 18-19 reserved, already 0
+
   sc = SL_STATUS_FAIL;
   int retry_count = 0;
-  const int MAX_RETRIES = 10;  // Increased to 10 retries
-  RTOS_ERR retry_err;
-  
+  const int MAX_RETRIES = 10;
+
   while (sc != SL_STATUS_OK && retry_count < MAX_RETRIES) {
     sc = sl_bt_gatt_server_send_notification(
       connection_handle,
@@ -296,31 +285,25 @@ static void send_notifications(void)
       sizeof(data),
       data
     );
-    // log fail and retry
     if (sc != SL_STATUS_OK) {
       retry_count++;
-      app_log_error("Failed to send live data notification: 0x%04lx. Retry %d/%d\n", 
+      app_log_error("Failed to send live data notification: 0x%04lx. Retry %d/%d\n",
                     (unsigned long)sc, retry_count, MAX_RETRIES);
-      // Add longer delay before retry to give client time to subscribe
-      // First few retries wait 1 second, then increase to 2 seconds
       if (retry_count < MAX_RETRIES) {
-        if (retry_count < 3) {
-          OSTimeDlyHMSM(0, 0, 1, 0, OS_OPT_TIME_HMSM_STRICT, &retry_err);  // 1 second
-        } else {
-          OSTimeDlyHMSM(0, 0, 2, 0, OS_OPT_TIME_HMSM_STRICT, &retry_err);  // 2 seconds
-        }
+        uint32_t delay_sec = (retry_count < 3) ? 1u : 2u;
+        OSTimeDlyHMSM(0, 0, delay_sec, 0, OS_OPT_TIME_HMSM_STRICT, &retry_err);
       }
     }
   }
-  
+
   if (sc == SL_STATUS_OK) {
     app_log_info("Live data notification sent: CO2=%u, Temp=%d.%02d, Hum=%lu%%, Bat=%u%%\n",
-                   sensor_data->co2_ppm,
-                   temp_centi / 100, (temp_centi >= 0 ? temp_centi : -temp_centi) % 100,
-                   (unsigned long)sensor_data->humidity_percent,
-                   sensor_data->battery_percentage);
+                 sensor_data->co2_ppm,
+                 temp_centi / 100, (temp_centi >= 0 ? temp_centi : -temp_centi) % 100,
+                 (unsigned long)sensor_data->humidity_percent,
+                 sensor_data->battery_percentage);
   } else {
-    app_log_error("Failed to send live data notification after %d attempts. Status: 0x%04lx\n", 
+    app_log_error("Failed to send live data notification after %d attempts. Status: 0x%04lx\n",
                   MAX_RETRIES, (unsigned long)sc);
   }
 }
@@ -331,9 +314,8 @@ static void send_notifications(void)
 static void notification_task(void *p_arg)
 {
   RTOS_ERR err;
-  sl_bt_msg_t evt;
-  
-  (void)p_arg; // Unused parameter
+
+  (void)p_arg;
   
   // Infinite loop
   while (1) {
